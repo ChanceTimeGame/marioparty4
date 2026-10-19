@@ -4,7 +4,8 @@
 
 #include "game/sprite.h"
 
-float GetClusterCurve(HSFTRACK *arg0, float arg1) {
+float GetClusterCurve(HSFTRACK *arg0, float arg1)
+{
     float *var_r30;
 
     switch (arg0->curveType) {
@@ -19,7 +20,8 @@ float GetClusterCurve(HSFTRACK *arg0, float arg1) {
     return 0.0f;
 }
 
-float GetClusterWeightCurve(HSFTRACK *arg0, float arg1) {
+float GetClusterWeightCurve(HSFTRACK *arg0, float arg1)
+{
     float *var_r30;
 
     switch (arg0->curveType) {
@@ -34,7 +36,8 @@ float GetClusterWeightCurve(HSFTRACK *arg0, float arg1) {
     return 0.0f;
 }
 
-void SetClusterMain(HSFCLUSTER *arg0) {
+void SetClusterMain(HSFCLUSTER *arg0)
+{
     float var_f30;
     float var_f31;
     s32 temp_r24;
@@ -58,9 +61,9 @@ void SetClusterMain(HSFCLUSTER *arg0) {
             }
             for (i = 0; i < temp_r27->num; i++, var_r28++) {
                 temp_r29 = *var_r28;
-                Vertextop[temp_r29].x = ((Vec*) temp_r30->data)[i].x;
-                Vertextop[temp_r29].y = ((Vec*) temp_r30->data)[i].y;
-                Vertextop[temp_r29].z = ((Vec*) temp_r30->data)[i].z;
+                Vertextop[temp_r29].x = ((Vec *)temp_r30->data)[i].x;
+                Vertextop[temp_r29].y = ((Vec *)temp_r30->data)[i].y;
+                Vertextop[temp_r29].z = ((Vec *)temp_r30->data)[i].z;
             }
             for (i = 1; i < arg0->vertexNum; i++) {
                 temp_r30 = arg0->vertex[i];
@@ -68,14 +71,15 @@ void SetClusterMain(HSFCLUSTER *arg0) {
                 var_f31 = arg0->weight[i];
                 if (var_f31 < 0.0f) {
                     var_f31 = 0.0f;
-                } else if (var_f30 > 1.0f) {
+                }
+                else if (var_f30 > 1.0f) {
                     var_f31 /= var_f30;
                 }
                 for (j = 0; j < temp_r27->num; j++, var_r28++) {
                     temp_r29 = *var_r28;
-                    Vertextop[temp_r29].x += var_f31 * (((Vec*) temp_r30->data)[j].x - Vertextop[temp_r29].x);
-                    Vertextop[temp_r29].y += var_f31 * (((Vec*) temp_r30->data)[j].y - Vertextop[temp_r29].y);
-                    Vertextop[temp_r29].z += var_f31 * (((Vec*) temp_r30->data)[j].z - Vertextop[temp_r29].z);
+                    Vertextop[temp_r29].x += var_f31 * (((Vec *)temp_r30->data)[j].x - Vertextop[temp_r29].x);
+                    Vertextop[temp_r29].y += var_f31 * (((Vec *)temp_r30->data)[j].y - Vertextop[temp_r29].y);
+                    Vertextop[temp_r29].z += var_f31 * (((Vec *)temp_r30->data)[j].z - Vertextop[temp_r29].z);
                 }
             }
             return;
@@ -91,14 +95,15 @@ void SetClusterMain(HSFCLUSTER *arg0) {
         var_r28 = temp_r27->vertex;
         for (i = 0; i < temp_r27->num; i++, var_r28++) {
             temp_r29 = *var_r28;
-            Vertextop[temp_r29].x = ((Vec*) temp_r30->data)[i].x + var_f31 * (((Vec*) temp_r25->data)[i].x - ((Vec*) temp_r30->data)[i].x);
-            Vertextop[temp_r29].y = ((Vec*) temp_r30->data)[i].y + var_f31 * (((Vec*) temp_r25->data)[i].y - ((Vec*) temp_r30->data)[i].y);
-            Vertextop[temp_r29].z = ((Vec*) temp_r30->data)[i].z + var_f31 * (((Vec*) temp_r25->data)[i].z - ((Vec*) temp_r30->data)[i].z);
+            Vertextop[temp_r29].x = ((Vec *)temp_r30->data)[i].x + var_f31 * (((Vec *)temp_r25->data)[i].x - ((Vec *)temp_r30->data)[i].x);
+            Vertextop[temp_r29].y = ((Vec *)temp_r30->data)[i].y + var_f31 * (((Vec *)temp_r25->data)[i].y - ((Vec *)temp_r30->data)[i].y);
+            Vertextop[temp_r29].z = ((Vec *)temp_r30->data)[i].z + var_f31 * (((Vec *)temp_r25->data)[i].z - ((Vec *)temp_r30->data)[i].z);
         }
     }
 }
 
-void ClusterProc(HU3DMODEL *arg0) {
+void ClusterProc(HU3DMODEL *arg0)
+{
     s32 temp_r24;
     s32 i;
     s32 j;
@@ -123,9 +128,9 @@ void ClusterProc(HU3DMODEL *arg0) {
                     Vertextop = temp_r31->mesh.vertex->data;
                     if (temp_r31->mesh.cenvNum) {
                         for (k = 0; k < temp_r31->mesh.vertex->count; k++) {
-                            Vertextop[k].x = ((Vec*) temp_r31->mesh.file[0])[k].x;
-                            Vertextop[k].y = ((Vec*) temp_r31->mesh.file[0])[k].y;
-                            Vertextop[k].z = ((Vec*) temp_r31->mesh.file[0])[k].z;
+                            Vertextop[k].x = ((Vec *)temp_r31->mesh.vtxtop)[k].x;
+                            Vertextop[k].y = ((Vec *)temp_r31->mesh.vtxtop)[k].y;
+                            Vertextop[k].z = ((Vec *)temp_r31->mesh.vtxtop)[k].z;
                         }
                     }
                     SetClusterMain(var_r29);
@@ -137,7 +142,8 @@ void ClusterProc(HU3DMODEL *arg0) {
     }
 }
 
-void ClusterMotionExec(HU3DMODEL *arg0) {
+void ClusterMotionExec(HU3DMODEL *arg0)
+{
     float temp_f31;
     s32 i;
     s32 j;
@@ -149,7 +155,9 @@ void ClusterMotionExec(HU3DMODEL *arg0) {
     HSFTRACK *var_r30;
     HU3DMOTION *var_r23;
 
+#ifndef NON_MATCHING
     var_r31 = temp_r27->track;
+#endif
     for (i = 0; i < 4; i++) {
         if (arg0->motIdCluster[i] != -1) {
             var_r20 = arg0->motIdCluster[i];

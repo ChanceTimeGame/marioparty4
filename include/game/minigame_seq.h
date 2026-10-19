@@ -89,7 +89,7 @@ void MGSeqStub(void);
 void MGSeqPauseInit(void);
 void MGSeqPauseEnableCtrl(s32 flag);
 void MGSeqPracticeInit(void);
-void MGSeqPracticeExitCheck(OMOBJ *object);
+void MGSeqPracticeExitCheck(omObjData *object);
 
 s32 MGSeqInitTimer(SeqWork *work, va_list params);
 s32 MGSeqUpdateTimer(SeqWork *work);
@@ -117,6 +117,6 @@ s32 MGSeqUpdateRecord(SeqWork *work);
 s32 MGSeqInitFlip(SeqWork *work, va_list params);
 s32 MGSeqUpdateFlip(SeqWork *work);
 
-extern OMOVL mgSeqOvlPrev;
+SHARED_SYM extern OMOVL mgSeqOvlPrev;
 
 #endif

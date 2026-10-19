@@ -2,6 +2,7 @@
 
 #include "ext_math.h"
 #include "game/audio.h"
+#include "game/disp.h"
 #include "game/hu3d.h"
 #include "game/minigame_seq.h"
 #include "game/objsub.h"
@@ -9,7 +10,7 @@
 #include "version.h"
 
 // BSS
-HUPROCESS* lbl_1_bss_4C;
+Process* lbl_1_bss_4C;
 s32 lbl_1_bss_48;
 s32 lbl_1_bss_44;
 s32 lbl_1_bss_40;
@@ -20,8 +21,8 @@ s32 lbl_1_bss_30;
 s32 lbl_1_bss_2C;
 s16 lbl_1_bss_24[4];
 s16 lbl_1_bss_1C[4];
-OMOBJ* lbl_1_bss_18;
-OMOBJ* lbl_1_bss_14;
+omObjData* lbl_1_bss_18;
+omObjData* lbl_1_bss_14;
 s32 lbl_1_bss_10;
 s32 lbl_1_bss_C;
 f32 lbl_1_bss_4[2]; // UNUSED
@@ -50,12 +51,12 @@ Vec lbl_1_data_60 = { 0.0f, 1.0f, 0.0f };
 Vec lbl_1_data_6C = { 0.0f, 0.0f, -450.0f };
 
 // PROTO
-void fn_1_264(OMOBJ* object);
-void fn_1_41C(OMOBJ* object);
-void fn_1_EE0(OMOBJ* object);
-void fn_1_F40(OMOBJ* object);
+void fn_1_264(omObjData* object);
+void fn_1_41C(omObjData* object);
+void fn_1_EE0(omObjData* object);
+void fn_1_F40(omObjData* object);
 void fn_1_FF0(void);
-void fn_1_11EC(OMOBJ* object);
+void fn_1_11EC(omObjData* object);
 void fn_1_1204(s32, s32, f32);
 f32 fn_1_16C0(f32, f32, f32);
 
@@ -63,7 +64,7 @@ f32 fn_1_16C0(f32, f32, f32);
 
 void ObjectSetup(void) {
     s32 var_r31;
-    HUPROCESS* var_r30;
+    Process* var_r30;
     HU3DCAMERA* var_r29;
 
     OSReport("******* M424ObjectSetup *********\n");
@@ -97,7 +98,7 @@ Vec lbl_1_data_9C = { 0.0f, 0.0f, 0.0f };
 Vec lbl_1_data_A8 = { -1.0f, -2.0f, -1.0f };
 GXColor lbl_1_data_B4 = { 0xFF, 0xFF, 0xFF, 0xFF };
 
-void fn_1_264(OMOBJ* object) {
+void fn_1_264(omObjData* object) {
     s32 var_r31;
     s32 var_r30;
     s32 var_r29;
@@ -125,10 +126,10 @@ void fn_1_264(OMOBJ* object) {
     fn_1_1AB8(lbl_1_bss_4C);
     fn_1_2720(lbl_1_bss_4C);
     fn_1_93F0(lbl_1_bss_4C);
-    object->objFunc = fn_1_41C;
+    object->func = fn_1_41C;
 }
 
-void fn_1_41C(OMOBJ* object) {
+void fn_1_41C(omObjData* object) {
     s16 sp16;
     s16 sp12;
     s16 spE;
@@ -269,13 +270,13 @@ void fn_1_41C(OMOBJ* object) {
             break;
         case 9:
             WipeCreate(2, 0, 0x3C);
-            object->objFunc = fn_1_EE0;
+            object->func = fn_1_EE0;
             break;
     }
     fn_1_F40(object);
 }
 
-void fn_1_EE0(OMOBJ* object) {
+void fn_1_EE0(omObjData* object) {
     if (WipeStatGet() == 0) {
         Hu3DBGColorSet(0, 0, 0);
         fn_1_1B8C();
@@ -287,11 +288,11 @@ void fn_1_EE0(OMOBJ* object) {
     }
 }
 
-void fn_1_F40(OMOBJ* object) {
+void fn_1_F40(omObjData* object) {
     s32 var_r30;
 
     var_r30 = 0;
-    if ((WipeStatGet() != 0) || (object->objFunc == fn_1_EE0)) {
+    if ((WipeStatGet() != 0) || (object->func == fn_1_EE0)) {
         return;
     }
     if (omSysExitReq != 0) {
@@ -300,7 +301,7 @@ void fn_1_F40(OMOBJ* object) {
     if (var_r30 != 0) {
         WipeCreate(2, 0, 0x3C);
         HuAudStreamFadeOut(0x1E);
-        object->objFunc = fn_1_EE0;
+        object->func = fn_1_EE0;
     }
 }
 
@@ -309,12 +310,12 @@ s32 fn_1_FE0(void) {
 }
 
 void fn_1_FF0(void) {
-    OMOBJ* var_r31;
+    omObjData* var_r31;
 
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 45.0f, 50.0f, 50000.0f, 1.2f);
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
-    Hu3DCameraScissorSet(1, 0, 0, 0x280, 0x1E0);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
+    Hu3DCameraScissorSet(1, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
     var_r31 = lbl_1_bss_14 = omAddObjEx(lbl_1_bss_4C, 0x7FDA, 0, 0, -1, omOutView);
     var_r31->work[0] = 1;
     CRot.x = lbl_1_data_0[0].rot.x;
@@ -329,7 +330,7 @@ void fn_1_FF0(void) {
     omAddObjEx(lbl_1_bss_4C, 0xFF, 0, 0, -1, fn_1_11EC);
 }
 
-void fn_1_11EC(OMOBJ* object) {}
+void fn_1_11EC(omObjData* object) {}
 void fn_1_11F0(void) {}
 
 s32 fn_1_11F4(void) {

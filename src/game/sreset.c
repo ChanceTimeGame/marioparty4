@@ -21,10 +21,10 @@
 
 extern s32 HuDvdErrWait;
 
-static s32 SR_PreRstChk[4] = {};
+static s32 SR_PreRstChk[4] = {0, 0, 0, 0};
 
 #if VERSION_JP
-static s32 padding[4] = {};
+static s32 padding[4] = {0, 0, 0, 0};
 #endif
 
 #if VERSION_ENG
@@ -162,8 +162,8 @@ void HuDvdErrDispInit(GXRenderModeObj *rmode, void *xfb1, void *xfb2)
 		XfbH = rmode->xfbHeight;
 	} else {
 		#if VERSION_NTSC
-		XfbW = 640;
-		XfbH = 480;
+		XfbW = HU_FB_WIDTH;
+		XfbH = HU_FB_HEIGHT;
 		#else
 		XfbW = 640;
 		XfbH = 528;

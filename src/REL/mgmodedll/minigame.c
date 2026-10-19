@@ -61,10 +61,10 @@ void fn_1_26C54(s16 layer)
     Vec pos, target, up;
     GXColor color;
     HU3DCAMERA *camera = &Hu3DCamera[0];
-    MTXPerspective(proj, camera->fov, camera->aspect, camera->near, camera->far);
+    MTXPerspective(proj, camera->fov, camera->aspect, camera->nnear, camera->ffar);
     GXSetProjection(proj, GX_PERSPECTIVE);
-    GXSetViewport(0, 0, 640, 480, 0, 1);
-    GXSetScissor(0, 0, 640, 480);
+    GXSetViewport(0, 0, HU_FB_WIDTH, HU_FB_HEIGHT, 0, 1);
+    GXSetScissor(0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
@@ -135,7 +135,11 @@ s16 fn_1_271B4(s16 mgNo, s16 x, s16 y)
     s32 mgpic;
     if (mgNo == -1) {
         if (lbl_1_data_A00 == -1) {
+#ifdef NON_MATCHING
+            return mgNo;
+#else
             return;
+#endif
         }
         for (time = 0; time <= 10; time++) {
             HuSprGrpTPLvlSet(lbl_1_data_A00, 1.0 - (time / 10.0));
@@ -143,7 +147,11 @@ s16 fn_1_271B4(s16 mgNo, s16 x, s16 y)
         }
         HuSprGrpKill(lbl_1_data_A00);
         lbl_1_data_A00 = -1;
+#ifdef NON_MATCHING
+        return 0;
+#else
         return;
+#endif
     }
 
     if (lbl_1_data_A00 != -1) {
@@ -204,7 +212,7 @@ void fn_1_27418(void)
 void fn_1_2783C(s16 evtno)
 {
     s16 i;
-    OMOVLHIS *his;
+    omOvlHisData *his;
     for (i = 0; i < 4; i++) {
         GWPlayerCfg[i].character = lbl_1_bss_8.unk24[i].unk68;
         GWPlayerCfg[i].iscom = lbl_1_bss_8.unk24[i].unk60;

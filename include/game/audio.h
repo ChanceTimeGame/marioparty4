@@ -3,6 +3,7 @@
 
 #include "dolphin.h"
 #include "game/msm_grpset.h"
+#include "version.h"
 
 typedef struct sndGrpTbl_s {
     s16 ovl;
@@ -67,7 +68,7 @@ s32 CharFXPlay(s16 charNo, s16 seId);
 s32 CharFXPlayPos(s16 charNo, s16 seId, Vec *pos);
 void CharFXStop(s16 charNo, s16 seId);
 
-extern SNDGRPTBL sndGrpTable[];
+SHARED_SYM extern SNDGRPTBL sndGrpTable[];
 
 extern float Snd3DBackSurDisOffset;
 extern float Snd3DFrontSurDisOffset;

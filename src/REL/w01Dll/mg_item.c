@@ -26,30 +26,30 @@ extern s32 rand8(void);
 
 static void RoundItemEnd(void);
 static void RoundItemClose(void);
-static void RoundItemMainUpdate(OMOBJ *obj);
-static void RoundItemUmaStop(OMOBJ *obj);
-static void RoundItemPlayerJump(OMOBJ *obj);
-static void RoundItemStartWait(OMOBJ *obj);
-static void RoundItemComInputGet(OMOBJ *obj, u16 *btn);
-static void RoundItemInputWait(OMOBJ *obj);
-static void RoundItemStop(OMOBJ *obj);
-static void RoundItemLightFlicker(OMOBJ *obj);
-static void RoundItemUmaJumpWait(OMOBJ *obj);
-static void RoundItemUmaJump(OMOBJ *obj);
-static void RoundItemRotatePlayer(OMOBJ *obj);
-static void RoundItemStreamWait(OMOBJ *obj);
-static void RoundItemWinWait(OMOBJ *obj);
+static void RoundItemMainUpdate(omObjData *obj);
+static void RoundItemUmaStop(omObjData *obj);
+static void RoundItemPlayerJump(omObjData *obj);
+static void RoundItemStartWait(omObjData *obj);
+static void RoundItemComInputGet(omObjData *obj, u16 *btn);
+static void RoundItemInputWait(omObjData *obj);
+static void RoundItemStop(omObjData *obj);
+static void RoundItemLightFlicker(omObjData *obj);
+static void RoundItemUmaJumpWait(omObjData *obj);
+static void RoundItemUmaJump(omObjData *obj);
+static void RoundItemRotatePlayer(omObjData *obj);
+static void RoundItemStreamWait(omObjData *obj);
+static void RoundItemWinWait(omObjData *obj);
 static void ItemGetWinExec(void);
-static void ItemGetShrinkWait(OMOBJ *obj);
+static void ItemGetShrinkWait(omObjData *obj);
 static void ItemGetReturnWinExec(void);
-static void RoundItemGameClose(OMOBJ *obj);
-static void RoundItemGameEnd(OMOBJ *obj);
-static void RoundItemItemUpdate(OMOBJ *obj);
+static void RoundItemGameClose(omObjData *obj);
+static void RoundItemGameEnd(omObjData *obj);
+static void RoundItemItemUpdate(omObjData *obj);
 static s16 RoundItemItemGet(u32 umaNo);
 static void ItemGetCreate(s16 itemNo);
-static void ItemGetObjUpdate(OMOBJ *obj);
-static void ItemGetPlayerMove(OMOBJ *obj);
-static void ItemGetShrink(OMOBJ *obj);
+static void ItemGetObjUpdate(omObjData *obj);
+static void ItemGetPlayerMove(omObjData *obj);
+static void ItemGetShrink(omObjData *obj);
 static float RoundItemUmaRotYGet(u32 umaNo);
 static void RoundItemUmaPlayerSet(u32 umaNo);
 static float RoundItemAngleGet(Vec *arg0);
@@ -58,10 +58,10 @@ static void ItemGetEff2Hook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix
 
 static void *itemAnim;
 static Vec roundItemPos;
-static OMOBJ *itemObj[4];
-static OMOBJ *roundItemUmaObj;
-static OMOBJ *roundItemMainObj;
-static OMOBJ *itemGetObj;
+static omObjData *itemObj[4];
+static omObjData *roundItemUmaObj;
+static omObjData *roundItemMainObj;
+static omObjData *itemGetObj;
 static float umaSpeed;
 static float borderSpeed;
 static s32 roundItemPlayer;
@@ -125,7 +125,7 @@ void RoundItemInit(s16 *itemTbl)
     s32 i;
     s32 j;
 
-    itemAnim = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_W01, 28), HU_MEMNUM_OVL, HEAP_MODEL);
+    itemAnim = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_W01, 28), MEMORY_DEFAULT_NUM, HEAP_DATA);
     BoardModelPosGet(mapObjMdlId[MAPOBJ_ROUNDITEM], &roundItemPos);
     itemMdlId[0] = BoardModelIDGet(mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM]);
     BoardModelVisibilitySet(mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM], 1);
@@ -156,20 +156,20 @@ void RoundItemInit(s16 *itemTbl)
     borderTime = BoardModelMotionTimeGet(mapObjMdlId[MAPOBJ_ROUNDITEM_BORDER]);
     borderMaxTime = BoardModelMotionMaxTimeGet(mapObjMdlId[MAPOBJ_ROUNDITEM_BORDER]);
     for (i = 0; i < 4; i++) {
-        itemObj[i]->mdlId[0] = itemMdlId[i];
-        itemObj[i]->mdlId[1] = Hu3DModelCreateFile(itemMdlTbl[itemObj[i]->work[1]]);
+        itemObj[i]->model[0] = itemMdlId[i];
+        itemObj[i]->model[1] = Hu3DModelCreateFile(itemMdlTbl[itemObj[i]->work[1]]);
         if (itemObj[i]->work[1] == 5) {
-            Hu3DData[itemObj[i]->mdlId[1]].mtx[1][3] = -50.0f;
+            Hu3DData[itemObj[i]->model[1]].mtx[1][3] = -50.0f;
         }
         if (itemObj[i]->work[1] == 11) {
-            Hu3DModelAttrSet(itemObj[i]->mdlId[1], HU3D_MOTATTR_LOOP);
+            Hu3DModelAttrSet(itemObj[i]->model[1], HU3D_MOTATTR_LOOP);
         }
         if (itemObj[i]->work[1] == 4) {
-            Hu3DMotionSpeedSet(itemObj[i]->mdlId[1], 0.0f);
+            Hu3DMotionSpeedSet(itemObj[i]->model[1], 0.0f);
         }
         Hu3DModelAttrReset(itemMdlId[i], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(itemObj[i]->mdlId[1], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(itemObj[i]->mdlId[1], HU3D_MOTATTR_PAUSE);
+        Hu3DModelAttrSet(itemObj[i]->model[1], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(itemObj[i]->model[1], HU3D_MOTATTR_PAUSE);
         omSetTra(itemObj[i], roundItemPos.x, roundItemPos.y + 66.0f, roundItemPos.z);
         itemAngle = 90.0f - 90.0f * i + 360.0f * (borderTime / borderMaxTime);
         if (itemAngle >= 360.0f) {
@@ -179,7 +179,7 @@ void RoundItemInit(s16 *itemTbl)
             itemAngle += 360.0f;
         }
         omSetRot(itemObj[i], 0.0f, itemAngle, 0.0f);
-        itemObj[i]->work[0] = Hu3DAnimCreate(itemAnim, itemObj[i]->mdlId[0], "item01");
+        itemObj[i]->work[0] = Hu3DAnimCreate(itemAnim, itemObj[i]->model[0], "item01");
         Hu3DAnimAttrSet(itemObj[i]->work[0], 1);
         itemObj[i]->work[2] = i;
     }
@@ -194,13 +194,13 @@ void RoundItemKill(void)
 
     for (i = 0; i < 4; i++) {
         if (i != 0) {
-            Hu3DModelKill(itemObj[i]->mdlId[0]);
+            Hu3DModelKill(itemObj[i]->model[0]);
         }
         else {
             BoardModelVisibilitySet(mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM], 0);
             Hu3DAnimKill(itemObj[i]->work[0]);
         }
-        Hu3DModelKill(itemObj[i]->mdlId[1]);
+        Hu3DModelKill(itemObj[i]->model[1]);
         omDelObjEx(boardObjMan, itemObj[i]);
     }
     if (roundItemEffAnim) {
@@ -215,7 +215,7 @@ void RoundItemEventStart(void)
 
     BoardModelPosGet(mapObjMdlId[MAPOBJ_ROUNDITEM], &roundItemPos);
     for (i = 0; i < 4; i++) {
-        itemObj[i]->objFunc = RoundItemItemUpdate;
+        itemObj[i]->func = RoundItemItemUpdate;
     }
     roundItemMainObj = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, RoundItemMainUpdate);
     roundItemUmaObj = omAddObjEx(boardObjMan, 0x133, 0, 0, -1, RoundItemUmaStop);
@@ -249,7 +249,7 @@ static void RoundItemClose(void)
     BoardMGDoneFlagSet(0);
 }
 
-static void RoundItemMainUpdate(OMOBJ *obj)
+static void RoundItemMainUpdate(omObjData *obj)
 {
     if (roundItemStopF == 1 && BoardMGDoneFlagGet() == 1) {
         RoundItemClose();
@@ -259,7 +259,7 @@ static void RoundItemMainUpdate(OMOBJ *obj)
 
 static char *umaHookTbl[] = { "uma1", "uma2", "uma3", "uma4" };
 
-static void RoundItemUmaStop(OMOBJ *obj)
+static void RoundItemUmaStop(omObjData *obj)
 {
     Vec playerPos;
     Vec objPos;
@@ -308,12 +308,12 @@ static void RoundItemUmaStop(OMOBJ *obj)
         obj->rot.z = playerPos.y;
         obj->scale.x = 0.0f;
         BoardPlayerMotionShiftSet(roundItemPlayer, 4, 0.0f, 5.0f, HU3D_MOTATTR_NONE);
-        obj->objFunc = RoundItemPlayerJump;
+        obj->func = RoundItemPlayerJump;
     }
     BoardModelMotionSpeedSet(mapObjMdlId[MAPOBJ_ROUNDITEM_UMA], umaSpeed);
 }
 
-static void RoundItemPlayerJump(OMOBJ *obj)
+static void RoundItemPlayerJump(omObjData *obj)
 {
     Vec pos;
     s32 i;
@@ -332,17 +332,17 @@ static void RoundItemPlayerJump(OMOBJ *obj)
         BoardModelAttrSet(mapObjMdlId[MAPOBJ_ROUNDITEM_BORDER], HU3D_MOTATTR_LOOP);
         BoardModelMotionSpeedSet(mapObjMdlId[MAPOBJ_ROUNDITEM_BORDER], 0.0f);
         for (i = 0; i < 4; i++) {
-            itemObj[i]->objFunc = RoundItemItemUpdate;
+            itemObj[i]->func = RoundItemItemUpdate;
         }
         BoardPlayerMotionShiftSet(roundItemPlayer, jumpMotId, 0.0f, 5.0f, HU3D_MOTATTR_LOOP);
         seqStartId = MGSeqStartCreate();
         BoardMusStart(1, 0xE, 0x7F, 0);
-        obj->objFunc = RoundItemStartWait;
+        obj->func = RoundItemStartWait;
     }
     BoardPlayerPosSetV(roundItemPlayer, &pos);
 }
 
-static void RoundItemStartWait(OMOBJ *obj)
+static void RoundItemStartWait(omObjData *obj)
 {
     umaSpeed *= 1.05f;
     borderSpeed *= 1.05f;
@@ -355,7 +355,7 @@ static void RoundItemStartWait(OMOBJ *obj)
     if (MGSeqStatGet(seqStartId) == 0) {
         umaSpeed = 2.0f;
         borderSpeed = 4.0f;
-        obj->objFunc = RoundItemInputWait;
+        obj->func = RoundItemInputWait;
         timerSec = 5;
         timerFrame = REFRESH_RATE;
         timerSeqId = MGSeqTimerCreateXY(timerSec, 288, 64);
@@ -365,7 +365,7 @@ static void RoundItemStartWait(OMOBJ *obj)
     RoundItemUmaPlayerSet(obj->work[2]);
 }
 
-static void RoundItemComInputGet(OMOBJ *obj, u16 *btn)
+static void RoundItemComInputGet(omObjData *obj, u16 *btn)
 {
     *btn = 0;
     if (obj->work[3] != 0) {
@@ -376,7 +376,7 @@ static void RoundItemComInputGet(OMOBJ *obj, u16 *btn)
     }
 }
 
-static void RoundItemInputWait(OMOBJ *obj)
+static void RoundItemInputWait(omObjData *obj)
 {
     s16 padNo;
     u16 btn;
@@ -399,11 +399,11 @@ static void RoundItemInputWait(OMOBJ *obj)
         BoardModelMotionSpeedSet(mapObjMdlId[MAPOBJ_ROUNDITEM_UMA], 0.0f);
         MGSeqParamSet(timerSeqId, 2, -1);
         obj->scale.y = 0.0f;
-        obj->objFunc = RoundItemStop;
+        obj->func = RoundItemStop;
     }
 }
 
-static void RoundItemStop(OMOBJ *obj)
+static void RoundItemStop(omObjData *obj)
 {
     float maxTime;
     float time;
@@ -432,12 +432,12 @@ static void RoundItemStop(OMOBJ *obj)
             mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM_LIGHT], itemObj[obj->work[0]]->rot.x, itemObj[obj->work[0]]->rot.y + 1.0f, itemObj[obj->work[0]]->rot.z);
         obj->work[1] = 60;
         BoardAudSeqFadeOut(1, 100);
-        obj->objFunc = RoundItemLightFlicker;
+        obj->func = RoundItemLightFlicker;
         HuAudFXPlay(0x40A);
     }
 }
 
-static void RoundItemLightFlicker(OMOBJ *obj)
+static void RoundItemLightFlicker(omObjData *obj)
 {
     if ((obj->work[1] / 4) & 1) {
         BoardModelVisibilitySet(mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM_LIGHT], 0);
@@ -449,11 +449,11 @@ static void RoundItemLightFlicker(OMOBJ *obj)
         BoardModelVisibilitySet(mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM_LIGHT], 0);
         ItemGetCreate(obj->work[0]);
         HuAudFXPlay(0x310);
-        obj->objFunc = RoundItemUmaJumpWait;
+        obj->func = RoundItemUmaJumpWait;
     }
 }
 
-static void RoundItemUmaJumpWait(OMOBJ *obj)
+static void RoundItemUmaJumpWait(omObjData *obj)
 {
     Vec playerPos;
     Vec dir;
@@ -476,10 +476,10 @@ static void RoundItemUmaJumpWait(OMOBJ *obj)
     VECSubtract(&roundItemPlayerPos, &playerPos, &dir);
     VECNormalize(&dir, &dir);
     BoardPlayerRotSet(roundItemPlayer, 0.0f, RoundItemAngleGet(&dir), 0.0f);
-    obj->objFunc = RoundItemUmaJump;
+    obj->func = RoundItemUmaJump;
 }
 
-static void RoundItemUmaJump(OMOBJ *obj)
+static void RoundItemUmaJump(omObjData *obj)
 {
     Vec pos;
 
@@ -492,12 +492,12 @@ static void RoundItemUmaJump(OMOBJ *obj)
         pos.y = roundItemPos.y;
         BoardCameraMotionStart(BoardPlayerModelGet(roundItemPlayer), NULL, 700.0f, -1.0f);
         BoardPlayerMotionStart(roundItemPlayer, 2, HU3D_MOTATTR_LOOP);
-        obj->objFunc = RoundItemRotatePlayer;
+        obj->func = RoundItemRotatePlayer;
     }
     BoardPlayerPosSetV(roundItemPlayer, &pos);
 }
 
-static void RoundItemRotatePlayer(OMOBJ *obj)
+static void RoundItemRotatePlayer(omObjData *obj)
 {
     Vec rot;
 
@@ -505,8 +505,8 @@ static void RoundItemRotatePlayer(OMOBJ *obj)
     if (rot.y == 0.0f) {
         BoardPlayerMotionShiftSet(roundItemPlayer, 1, 0.0f, 10.0f, HU3D_MOTATTR_LOOP);
         itemGetObj->work[0] = 0;
-        itemGetObj->objFunc = ItemGetPlayerMove;
-        obj->objFunc = RoundItemStreamWait;
+        itemGetObj->func = ItemGetPlayerMove;
+        obj->func = RoundItemStreamWait;
     }
     else if (rot.y > 180.0f) {
         if (360.0f - rot.y < 3.0f) {
@@ -527,26 +527,26 @@ static void RoundItemRotatePlayer(OMOBJ *obj)
     BoardPlayerRotSetV(roundItemPlayer, &rot);
 }
 
-static void RoundItemStreamWait(OMOBJ *obj)
+static void RoundItemStreamWait(omObjData *obj)
 {
     if (itemGetObj->work[0] == 1) {
         BoardPlayerMotionShiftSet(roundItemPlayer, itemGetMotId, 0.0f, 10.0f, HU3D_MOTATTR_NONE);
         obj->work[0] = 30;
         roundItemStreamId = HuAudSStreamPlay(2);
-        obj->objFunc = RoundItemWinWait;
+        obj->func = RoundItemWinWait;
     }
 }
 
-static void RoundItemWinWait(OMOBJ *obj)
+static void RoundItemWinWait(omObjData *obj)
 {
-    HUPROCESS *proc;
+    Process *proc;
 
     if (obj->work[0] == 0) {
         if (HuAudSStreamStatGet(roundItemStreamId) == 0) {
             proc = HuPrcCreate(ItemGetWinExec, 0x2004, 0x1000, 0);
             proc->user_data = obj;
             BoardAudSeqPause(0, 0, 1000);
-            obj->objFunc = NULL;
+            obj->func = NULL;
         }
     }
     else {
@@ -556,7 +556,7 @@ static void RoundItemWinWait(OMOBJ *obj)
 
 static void ItemGetWinExec(void)
 {
-    OMOBJ *obj;
+    omObjData *obj;
 
     BoardWinCreate(2, MAKE_MESSID(10, 6), 0);
     BoardWinInsertMesSet(MAKE_MESSID(8, itemGetObj->work[1]), 0);
@@ -567,65 +567,65 @@ static void ItemGetWinExec(void)
     itemGetObj->work[0] = 0;
     HuAudFXPlay(0x30D);
     HuAudFXFadeOut(itemGetSeNo, 1000);
-    itemGetObj->objFunc = ItemGetShrink;
-    obj->objFunc = ItemGetShrinkWait;
+    itemGetObj->func = ItemGetShrink;
+    obj->func = ItemGetShrinkWait;
     HuPrcKill(NULL);
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-static void ItemGetShrinkWait(OMOBJ *obj)
+static void ItemGetShrinkWait(omObjData *obj)
 {
-    HUPROCESS *proc;
+    Process *proc;
 
     if (itemGetObj->work[0] == 1) {
         BoardPlayerItemAdd(roundItemPlayer, itemGetObj->work[1]);
         omVibrate(roundItemPlayer, 12, 6, 6);
         proc = HuPrcCreate(ItemGetReturnWinExec, 0x2004, 0x1000, 0);
         proc->user_data = obj;
-        obj->objFunc = NULL;
+        obj->func = NULL;
     }
 }
 
 static void ItemGetReturnWinExec(void)
 {
-    OMOBJ *obj;
+    omObjData *obj;
 
     BoardWinCreate(2, MAKE_MESSID(10, 7), 0);
     BoardWinWait();
     BoardWinKill();
     obj = HuPrcCurrentGet()->user_data;
-    obj->objFunc = RoundItemGameClose;
+    obj->func = RoundItemGameClose;
     HuPrcKill(NULL);
     while (TRUE) {
         HuPrcVSleep();
     }
 }
 
-static void RoundItemGameClose(OMOBJ *obj)
+static void RoundItemGameClose(omObjData *obj)
 {
     BoardStatusShowSetAll(1);
     BoardCameraTargetModelSet(mapObjMdlId[MAPOBJ_ROUNDITEM_ITEM_UP]);
     BoardCameraOffsetSet(0.0f, 0.0f, 0.0f);
     BoardCameraXRotZoomSet(1200.0f, -45.0f);
     BoardModelMotionSpeedSet(mapObjMdlId[MAPOBJ_ROUNDITEM_UMA], 1.0f);
-    Hu3DModelKill(itemGetObj->mdlId[0]);
-    Hu3DModelKill(itemGetObj->mdlId[1]);
-    Hu3DModelKill(itemGetObj->mdlId[2]);
+    Hu3DModelKill(itemGetObj->model[0]);
+    Hu3DModelKill(itemGetObj->model[1]);
+    Hu3DModelKill(itemGetObj->model[2]);
     omDelObjEx(HuPrcCurrentGet(), itemGetObj);
-    obj->objFunc = RoundItemGameEnd;
+    obj->func = RoundItemGameEnd;
 }
 
-static void RoundItemGameEnd(OMOBJ *obj)
+static void RoundItemGameEnd(omObjData *obj)
 {
     if (BoardStatusStopCheck(roundItemPlayer) && BoardCameraMotionIsDone()) {
         RoundItemEnd();
-        obj->objFunc = NULL;
+        obj->func = NULL;
     }
 }
 
-static void RoundItemItemUpdate(OMOBJ *obj)
+static void RoundItemItemUpdate(omObjData *obj)
 {
     float time;
     float rotY;
@@ -669,7 +669,7 @@ static s16 RoundItemItemGet(u32 umaNo)
 
 static void ItemGetCreate(s16 itemNo)
 {
-    OMOBJ *obj;
+    omObjData *obj;
     float *data;
     float borderAngle;
     float posX;
@@ -678,10 +678,10 @@ static void ItemGetCreate(s16 itemNo)
     float angle;
 
     obj = itemGetObj = omAddObjEx(boardObjMan, 0x165, 3, 0, -1, ItemGetObjUpdate);
-    obj->mdlId[0] = itemObj[itemNo]->mdlId[1];
-    Hu3DModelAttrReset(obj->mdlId[0], HU3D_ATTR_DISPOFF);
+    obj->model[0] = itemObj[itemNo]->model[1];
+    Hu3DModelAttrReset(obj->model[0], HU3D_ATTR_DISPOFF);
     itemGetObj->work[1] = itemObj[itemNo]->work[1];
-    itemGetObj->data = HuMemDirectMallocNum(HEAP_HEAP, 3 * sizeof(float), HU_MEMNUM_OVL);
+    itemGetObj->data = HuMemDirectMallocNum(HEAP_SYSTEM, 3 * sizeof(float), MEMORY_DEFAULT_NUM);
     data = itemGetObj->data;
     omSetRot(obj, 0.0f, 0.0f, 0.0f);
     omSetSca(obj, 0.0f, 0.0f, 0.0f);
@@ -698,22 +698,22 @@ static void ItemGetCreate(s16 itemNo)
     data[0] = 0.1f;
     data[2] = 20.0f;
     data[1] = 0.0f;
-    obj->mdlId[1] = Hu3DParticleCreate(roundItemEffAnim, 200);
-    obj->mdlId[2] = Hu3DParticleCreate(roundItemEffAnim, 100);
-    Hu3DParticleHookSet(obj->mdlId[1], ItemGetEff1Hook);
-    Hu3DParticleHookSet(obj->mdlId[2], ItemGetEff2Hook);
-    Hu3DParticleColSet(obj->mdlId[1], 0xFF, 0xFF, 0);
-    Hu3DParticleColSet(obj->mdlId[2], 0xFF, 0xFF, 0);
-    Hu3DModelPosSet(obj->mdlId[1], 0.0f, 0.0f, 0.0f);
-    Hu3DModelPosSet(obj->mdlId[2], posX, posY, posZ);
-    Hu3DParticleBlendModeSet(obj->mdlId[1], 1);
-    Hu3DParticleBlendModeSet(obj->mdlId[2], 1);
-    Hu3DModelLayerSet(obj->mdlId[1], 3);
-    Hu3DModelLayerSet(obj->mdlId[2], 3);
+    obj->model[1] = Hu3DParticleCreate(roundItemEffAnim, 200);
+    obj->model[2] = Hu3DParticleCreate(roundItemEffAnim, 100);
+    Hu3DParticleHookSet(obj->model[1], ItemGetEff1Hook);
+    Hu3DParticleHookSet(obj->model[2], ItemGetEff2Hook);
+    Hu3DParticleColSet(obj->model[1], 0xFF, 0xFF, 0);
+    Hu3DParticleColSet(obj->model[2], 0xFF, 0xFF, 0);
+    Hu3DModelPosSet(obj->model[1], 0.0f, 0.0f, 0.0f);
+    Hu3DModelPosSet(obj->model[2], posX, posY, posZ);
+    Hu3DParticleBlendModeSet(obj->model[1], 1);
+    Hu3DParticleBlendModeSet(obj->model[2], 1);
+    Hu3DModelLayerSet(obj->model[1], 3);
+    Hu3DModelLayerSet(obj->model[2], 3);
     itemGetSeNo = HuAudFXPlay(0x35F);
 }
 
-static void ItemGetObjUpdate(OMOBJ *obj)
+static void ItemGetObjUpdate(omObjData *obj)
 {
     float *data;
     float scale;
@@ -743,7 +743,7 @@ static void ItemGetObjUpdate(OMOBJ *obj)
     }
 }
 
-static void ItemGetPlayerMove(OMOBJ *obj)
+static void ItemGetPlayerMove(omObjData *obj)
 {
     Vec playerPos;
     Vec objPos;
@@ -778,7 +778,7 @@ static void ItemGetPlayerMove(OMOBJ *obj)
     }
 }
 
-static void ItemGetShrink(OMOBJ *obj)
+static void ItemGetShrink(omObjData *obj)
 {
     float *data;
 

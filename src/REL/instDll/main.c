@@ -1,3 +1,4 @@
+#include "game/disp.h"
 #include "game/frand.h"
 #include "game/gamework_data.h"
 #include "game/hu3d.h"
@@ -23,9 +24,9 @@
 
 static s16 instMode = 1;
 
-static OMOBJ *lbl_1_bss_60;
-static OMOBJ *outViewObj;
-HUPROCESS *objman;
+static omObjData *lbl_1_bss_60;
+static omObjData *outViewObj;
+Process *objman;
 Vec cameraRot[2];
 Vec cameraPos[2];
 float cameraZoom[2];
@@ -45,13 +46,13 @@ static void InstPlayerMain(void);
 static void InstHostMain(void);
 static void InstWinMain(void);
 static void InstNameMain(void);
-static void CameraOutView(OMOBJ *object);
-static void CameraDebug(OMOBJ *object);
+static void CameraOutView(omObjData *object);
+static void CameraDebug(omObjData *object);
 
 void ObjectSetup(void)
 {
     s32 i;
-    OMOVLHIS *his;
+    omOvlHisData *his;
     s32 lightId;
     OSReport("******* INST ObjectSetup *********\n");
     objman = omInitObjMan(50, 8192);
@@ -79,7 +80,7 @@ void ObjectSetup(void)
     }
     HuDataDirClose(mgInfoTbl[instMgNo].data_dir);
     his = omOvlHisGet(0);
-    omOvlHisChg(0, DLL_resultdll, his->evtno, his->stat);
+    omOvlHisChg(0, DLL_resultdll, his->event, his->stat);
     if (omovlevtno == 0 && mgInfoTbl[instMgNo].ovl == DLL_m430dll) {
         s32 team_cnt[2];
         s32 team_players[2][2];
@@ -129,9 +130,9 @@ void ObjectSetup(void)
     omSysPauseEnable(0);
     Hu3DCameraCreate(3);
     Hu3DCameraPerspectiveSet(1, 30.0f, 20.0f, 15000.0f, 1.2f);
-    Hu3DCameraViewportSet(1, 0, 0, 640, 480, 0, 1);
+    Hu3DCameraViewportSet(1, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT, 0, 1);
     Hu3DCameraPerspectiveSet(2, 30.0f, 20.0f, 15000.0f, 1.2f);
-    Hu3DCameraViewportSet(2, 0, 0, 640, 480, 0, 1);
+    Hu3DCameraViewportSet(2, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT, 0, 1);
     lightId = Hu3DGLightCreate(0, 100, 1000, 0, -0.5, -1, 255, 255, 255);
     Hu3DGLightInfinitytSet(lightId);
     HuPrcChildCreate(InstMain, 100, 12288, 0, objman);
@@ -182,7 +183,7 @@ static void InstMain(void)
     Vec up;
 
     Vec rot;
-    HUPROCESS *proc;
+    Process *proc;
 
     s16 i;
     s16 model;
@@ -193,7 +194,7 @@ static void InstMain(void)
     s32 endF;
     s16 grpId;
     s32 picFile;
-    OMOVLHIS *his;
+    omOvlHisData *his;
     s16 sprId;
     ANIMDATA *anim;
     float z;
@@ -204,7 +205,7 @@ static void InstMain(void)
     proc = HuPrcCurrentGet();
     statId = -1;
     grpId = HuSprGrpCreate(1);
-    anim = HuSprAnimRead(HuDataReadNum(instBackFile[mgInfoTbl[instMgNo].type], HU_MEMNUM_OVL));
+    anim = HuSprAnimRead(HuDataReadNum(instBackFile[mgInfoTbl[instMgNo].type], MEMORY_DEFAULT_NUM));
     sprId = HuSprCreate(anim, 0, 0);
     HuSprGrpMemberSet(grpId, 0, sprId);
     HuSprGrpDrawNoSet(grpId, 127);
@@ -215,7 +216,7 @@ static void InstMain(void)
     else {
         picFile = mgInfoTbl[instMgNo].inst_pic[GWMGTypeGet()];
     }
-    instPicAnim = HuSprAnimRead(HuDataReadNumHeapShortForce(picFile, HU_MEMNUM_OVL, HEAP_MODEL));
+    instPicAnim = HuSprAnimRead(HuDataReadNumHeapShortForce(picFile, MEMORY_DEFAULT_NUM, HEAP_DATA));
     Hu3DShadowCreate(20, 500, 8000);
     Hu3DShadowTPLvlSet(0);
     Hu3DShadowSizeSet(192);
@@ -515,7 +516,11 @@ static void InstPlayerMain(void)
             }
             if (time == 0) {
                 Hu3DModelAttrReset(playerMdlId[j], HU3D_MOTATTR_LOOP);
+#ifdef NON_MATCHING
+                CharMotionVoiceOnSet(charNo[j], motId[j][1], 1);
+#else
                 CharMotionVoiceOnSet(charNo[i], motId[i][1], 1);
+#endif
                 CharMotionSet(charNo[j], motId[j][1]);
             }
             if (time <= 30) {
@@ -960,7 +965,7 @@ static void InstNameMain(void)
 }
 
 
-static void CameraOutView(OMOBJ *object)
+static void CameraOutView(omObjData *object)
 {
     s16 i;
     static u16 cameraMask[] = { HU3D_CAM0, HU3D_CAM1 };
@@ -985,7 +990,7 @@ static void CameraOutView(OMOBJ *object)
     }
 }
 
-static void CameraDebug(OMOBJ *object)
+static void CameraDebug(omObjData *object)
 {
     Vec pos;
     Vec offset;
@@ -1178,4 +1183,7 @@ static void ShadowDraw(HU3DMODEL *model, Mtx mtx)
     GXPosition3f32(2000.0f, 0, 2000.0f);
     GXPosition3f32(-2000.0f, 0, 2000.0f);
     GXEnd();
+#ifdef TARGET_PC
+    GXDestroyTexObj(&tex);
+#endif
 }

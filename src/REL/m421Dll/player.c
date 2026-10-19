@@ -1,6 +1,7 @@
 #include "ext_math.h"
 #include "game/audio.h"
 #include "game/chrman.h"
+#include "game/disp.h"
 #include "game/gamework.h"
 #include "game/hu3d.h"
 #include "game/memory.h"
@@ -86,7 +87,7 @@ typedef struct M421DllPlayerDLWork {
     GXColor unk_40[4];
     Vec unk_50[4][0xE];
     u32 unk_2F0;
-    void *unk_2F4;
+    void *bmpData;
 } M421DllPlayerDLWork; /* size = 0x2F8 */
 
 typedef struct UnkData1BCStruct {
@@ -97,31 +98,31 @@ typedef struct UnkData1BCStruct {
     /* 0x10 */ u32 unk_10;
 } UnkData1BCStruct; /* size = 0x14 */
 
-void fn_1_48D4(OMOBJ *object);
-void fn_1_4F00(OMOBJ *object);
-void fn_1_5060(OMOBJ *object);
-void fn_1_53C8(OMOBJ *object);
-void fn_1_578C(OMOBJ *object);
-void fn_1_5B9C(OMOBJ *object);
-void fn_1_6184(OMOBJ *object);
-void fn_1_6400(OMOBJ *object);
-void fn_1_66B4(OMOBJ *object);
-void fn_1_676C(OMOBJ *object);
-void fn_1_6D48(OMOBJ *object);
-void fn_1_7478(OMOBJ *object);
-void fn_1_7670(OMOBJ *object);
-void fn_1_7AA0(OMOBJ *object);
-void fn_1_80C0(OMOBJ *object);
-void fn_1_893C(OMOBJ *object);
-void fn_1_9474(OMOBJ *object, Vec *arg1, Vec *arg2);
-void fn_1_956C(OMOBJ *object);
-void fn_1_982C(OMOBJ *object, u32 arg1);
-s32 fn_1_99B8(OMOBJ *object);
+void fn_1_48D4(omObjData *object);
+void fn_1_4F00(omObjData *object);
+void fn_1_5060(omObjData *object);
+void fn_1_53C8(omObjData *object);
+void fn_1_578C(omObjData *object);
+void fn_1_5B9C(omObjData *object);
+void fn_1_6184(omObjData *object);
+void fn_1_6400(omObjData *object);
+void fn_1_66B4(omObjData *object);
+void fn_1_676C(omObjData *object);
+void fn_1_6D48(omObjData *object);
+void fn_1_7478(omObjData *object);
+void fn_1_7670(omObjData *object);
+void fn_1_7AA0(omObjData *object);
+void fn_1_80C0(omObjData *object);
+void fn_1_893C(omObjData *object);
+void fn_1_9474(omObjData *object, Vec *arg1, Vec *arg2);
+void fn_1_956C(omObjData *object);
+void fn_1_982C(omObjData *object, u32 arg1);
+s32 fn_1_99B8(omObjData *object);
 void fn_1_9BFC(float arg8, float arg9, float *arg0);
 void fn_1_9C38(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
-void fn_1_9DD0(OMOBJ *object, Vec *arg1);
-void fn_1_A528(OMOBJ *object);
-void fn_1_AB68(OMOBJ *object);
+void fn_1_9DD0(omObjData *object, Vec *arg1);
+void fn_1_A528(omObjData *object);
+void fn_1_AB68(omObjData *object);
 void fn_1_AB6C(HU3DMODEL *model, Mtx matrix);
 void fn_1_ABDC(HU3DMODEL *model, Mtx matrix);
 
@@ -193,20 +194,20 @@ float lbl_1_data_2DC[3] = { -70.0f, -60.000004f, -70.0f };
 float lbl_1_data_2E8[3] = { VERSION_PAL ? 192.0f : 192.00003f, 357.0f, 550.0f };
 
 // M421DllPlayerWork
-OMOBJ *lbl_1_bss_48[4];
+omObjData *lbl_1_bss_48[4];
 // M421DllPlayerDLWork
-OMOBJ *lbl_1_bss_44;
+omObjData *lbl_1_bss_44;
 u32 lbl_1_bss_34[4];
 u32 lbl_1_bss_30;
 
-void fn_1_4648(HUPROCESS *process)
+void fn_1_4648(Process *process)
 {
     u32 sp18[4];
     u32 sp8[4];
     s16 var_r31;
     s16 var_r30;
     u32 var_r29;
-    OMOBJ *var_r27;
+    omObjData *var_r27;
 
     lbl_1_bss_30 = -1;
     for (var_r31 = 0; var_r31 < 4; var_r31++) {
@@ -243,7 +244,7 @@ void fn_1_48B0(void)
     CharModelKill(-1);
 }
 
-void fn_1_48D4(OMOBJ *object)
+void fn_1_48D4(omObjData *object)
 {
     s32 sp8;
 
@@ -259,7 +260,7 @@ void fn_1_48D4(OMOBJ *object)
     float spC[2][2] = { { 100.0f, 143.0f }, { 100.0f, 100.0f } };
     Vec sp2C[4] = { 0.0f, 1500.0f, 300.0f, -450.0f, 0.0f, -50.0f, 0.0f, 0.0f, -350.0f, 450.0f, 0.0f, -50.0f };
 
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M421DllPlayerWork), HU_MEMNUM_OVL);
+    object->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M421DllPlayerWork), MEMORY_DEFAULT_NUM);
     work = object->data;
     memset(work, 0, sizeof(M421DllPlayerWork));
     object->stat |= 0x100;
@@ -275,32 +276,32 @@ void fn_1_48D4(OMOBJ *object)
     fn_1_3F28(object->work[0], work->unk_0C, work->unk_00);
     work->unk_68 = sp1C[GWPlayerCfg[var_r24].diff & 3];
     work->unk_2C = GWPlayerCfg[object->work[0]].iscom;
-    object->mdlId[0] = CharModelCreate(var_r26, 4);
-    Hu3DModelLayerSet(object->mdlId[0], 1);
+    object->model[0] = CharModelCreate(var_r26, 4);
+    Hu3DModelLayerSet(object->model[0], 1);
     for (var_r29 = 0; var_r29 < 6; var_r29++) {
-        object->mtnId[var_r29] = CharMotionCreate(var_r26, lbl_1_data_1A4[var_r29]);
+        object->motion[var_r29] = CharMotionCreate(var_r26, lbl_1_data_1A4[var_r29]);
     }
     CharMotionDataClose(var_r26);
     if (var_r27 == 1) {
-        object->mdlId[1] = Hu3DModelCreateFile(lbl_1_data_164[var_r26]);
-        Hu3DModelLayerSet(object->mdlId[1], 1);
+        object->model[1] = Hu3DModelCreateFile(lbl_1_data_164[var_r26]);
+        Hu3DModelLayerSet(object->model[1], 1);
         fn_1_982C(object, 0);
-        Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(object->model[0], HU3D_ATTR_DISPOFF);
     }
-    object->mdlId[2] = Hu3DModelCreateFile(lbl_1_data_104[var_r26][var_r27]);
-    Hu3DModelLayerSet(object->mdlId[2], 1);
-    Hu3DModelShadowSet(object->mdlId[2]);
+    object->model[2] = Hu3DModelCreateFile(lbl_1_data_104[var_r26][var_r27]);
+    Hu3DModelLayerSet(object->model[2], 1);
+    Hu3DModelShadowSet(object->model[2]);
     if (var_r27 != 0) {
-        object->mdlId[3] = Hu3DModelCreateFile(lbl_1_data_104[var_r26][2]);
-        Hu3DModelLayerSet(object->mdlId[3], 1);
-        Hu3DModelShadowSet(object->mdlId[3]);
-        Hu3DModelAttrSet(object->mdlId[3], HU3D_ATTR_DISPOFF);
+        object->model[3] = Hu3DModelCreateFile(lbl_1_data_104[var_r26][2]);
+        Hu3DModelLayerSet(object->model[3], 1);
+        Hu3DModelShadowSet(object->model[3]);
+        Hu3DModelAttrSet(object->model[3], HU3D_ATTR_DISPOFF);
         work->unk_C8 = espEntry(0x120006, 1, 0);
         espDispOff(work->unk_C8);
         espAttrSet(work->unk_C8, HUSPR_ATTR_LINEAR);
     }
     var_r25 = Hu3DParticleCreate(HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_M421, 0x27)), 0x80);
-    object->mdlId[4] = var_r25;
+    object->model[4] = var_r25;
     Hu3DModelLayerSet(var_r25, 1);
     Hu3DParticleHookSet(var_r25, fn_1_9C38);
     for (var_r28 = ((HU3DPARTICLE *)Hu3DData[var_r25].hookData)->data, var_r29 = 0; var_r29 < 0x80; var_r29++, var_r28++) {
@@ -309,7 +310,7 @@ void fn_1_48D4(OMOBJ *object)
         var_r28->time = 0;
     }
     if (work->unk_0C == 0) {
-        work->unk_148 = HuMemDirectMallocNum(HEAP_HEAP, 441 * sizeof(float), HU_MEMNUM_OVL);
+        work->unk_148 = HuMemDirectMallocNum(HEAP_SYSTEM, 441 * sizeof(float), MEMORY_DEFAULT_NUM);
         memset(work->unk_148, 0, 441 * sizeof(float));
     }
     object->trans.x = work->unk_CC.x = sp2C[work->unk_0C].x;
@@ -337,18 +338,18 @@ void fn_1_48D4(OMOBJ *object)
     work->unk_3C = 1;
     work->unk_44 = 0;
     if (var_r27 == 0) {
-        Hu3DModelShadowSet(object->mdlId[0]);
-        object->objFunc = fn_1_4F00;
-        Hu3DModelReflectTypeSet(object->mdlId[2], 4);
+        Hu3DModelShadowSet(object->model[0]);
+        object->func = fn_1_4F00;
+        Hu3DModelReflectTypeSet(object->model[2], 4);
         work->unk_90 = lbl_1_data_184[work->unk_00];
-        Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
-        Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(object->model[0], HU3D_ATTR_DISPOFF);
+        Hu3DModelAttrSet(object->model[2], HU3D_ATTR_DISPOFF);
         return;
     }
-    object->objFunc = fn_1_5060;
+    object->func = fn_1_5060;
 }
 
-void fn_1_4F00(OMOBJ *object)
+void fn_1_4F00(omObjData *object)
 {
     M421DllPlayerWork *work = object->data;
     work->unk_10 = 0;
@@ -359,8 +360,8 @@ void fn_1_4F00(OMOBJ *object)
         case 0:
             if (work->unk_48 > REFRESH_RATE_F * 1.8f) {
                 HuAudFXPlay(0x601);
-                Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
-                Hu3DModelAttrReset(object->mdlId[2], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrReset(object->model[0], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrReset(object->model[2], HU3D_ATTR_DISPOFF);
                 work->unk_10 = 0x100;
                 work->unk_44++;
             }
@@ -378,11 +379,11 @@ void fn_1_4F00(OMOBJ *object)
     fn_1_7670(object);
     if (fn_1_3E34() == 2) {
         work->unk_44 = 0;
-        object->objFunc = fn_1_53C8;
+        object->func = fn_1_53C8;
     }
 }
 
-void fn_1_5060(OMOBJ *object)
+void fn_1_5060(omObjData *object)
 {
     M421DllPlayerWork *work = object->data;
     {
@@ -433,11 +434,11 @@ void fn_1_5060(OMOBJ *object)
     fn_1_7670(object);
     if (fn_1_3E34() == 2) {
         work->unk_44 = 0;
-        object->objFunc = fn_1_578C;
+        object->func = fn_1_578C;
     }
 }
 
-void fn_1_53C8(OMOBJ *object)
+void fn_1_53C8(omObjData *object)
 {
     float var_f31;
     float var_f30;
@@ -477,11 +478,11 @@ void fn_1_53C8(OMOBJ *object)
     fn_1_7670(object);
     if ((fn_1_3E4C() == 3) && (var_r29 != 0) && (fn_1_3FF8() != 0)) {
         work->unk_44 = 0;
-        object->objFunc = fn_1_6184;
+        object->func = fn_1_6184;
     }
 }
 
-void fn_1_578C(OMOBJ *object)
+void fn_1_578C(omObjData *object)
 {
     float var_f31;
     float var_f30;
@@ -521,7 +522,7 @@ void fn_1_578C(OMOBJ *object)
     fn_1_7670(object);
     if (work->unk_38 != 0) {
         if (fn_1_3E7C(work->unk_0C) != 0) {
-            object->objFunc = fn_1_5B9C;
+            object->func = fn_1_5B9C;
         }
         else {
             work->unk_38 = 0;
@@ -529,11 +530,11 @@ void fn_1_578C(OMOBJ *object)
     }
     if ((work->unk_38 == 0) && (fn_1_3E4C() == 3) && (var_r29 != 0) && (fn_1_3FF8() != 0)) {
         work->unk_44 = 0;
-        object->objFunc = fn_1_6184;
+        object->func = fn_1_6184;
     }
 }
 
-void fn_1_5B9C(OMOBJ *object)
+void fn_1_5B9C(omObjData *object)
 {
     Mtx sp34;
     Vec sp28;
@@ -557,16 +558,16 @@ void fn_1_5B9C(OMOBJ *object)
                 work->unk_20 = 0;
                 work->unk_58 = work->unk_5C = 0.0f;
                 MTXIdentity(work->unk_118);
-                Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
-                Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
-                Hu3DModelAttrReset(object->mdlId[3], HU3D_ATTR_DISPOFF);
-                Hu3DModelPosSetV(object->mdlId[3], &work->unk_F0);
-                Hu3DMotionTimeSet(object->mdlId[3], 0.0f);
-                Hu3DMotionSpeedSet(object->mdlId[3], 3.0f);
+                Hu3DModelAttrSet(object->model[1], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrSet(object->model[2], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrReset(object->model[3], HU3D_ATTR_DISPOFF);
+                Hu3DModelPosSetV(object->model[3], &work->unk_F0);
+                Hu3DMotionTimeSet(object->model[3], 0.0f);
+                Hu3DMotionSpeedSet(object->model[3], 3.0f);
                 HuAudFXEmiterPlay(0x5FC, &work->unk_F0);
                 work->unk_78 = CharFXPlayPos(work->unk_00, 0x123, &work->unk_CC);
                 omVibrate(object->work[0], 0xC, 4, 2);
-                Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrReset(object->model[0], HU3D_ATTR_DISPOFF);
                 fn_1_982C(object, 0);
                 fn_1_9DD0(object, &work->unk_F0);
                 var_r29 = fn_1_3C14(1);
@@ -622,7 +623,7 @@ void fn_1_5B9C(OMOBJ *object)
     fn_1_7670(object);
 }
 
-void fn_1_6184(OMOBJ *object)
+void fn_1_6184(omObjData *object)
 {
     M421DllPlayerWork *work = object->data;
     work->unk_10 = 0;
@@ -635,7 +636,7 @@ void fn_1_6184(OMOBJ *object)
                 work->unk_20 = 0;
                 work->unk_58 = work->unk_5C = 0.0f;
                 MTXIdentity(work->unk_118);
-                Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrSet(object->model[2], HU3D_ATTR_DISPOFF);
                 fn_1_982C(object, 0);
                 work->unk_CC = work->unk_E4;
             }
@@ -643,9 +644,9 @@ void fn_1_6184(OMOBJ *object)
                 work->unk_20 = 0;
                 work->unk_58 = work->unk_5C = 0.0f;
                 MTXIdentity(work->unk_118);
-                Hu3DModelAttrSet(object->mdlId[1], HU3D_ATTR_DISPOFF);
-                Hu3DModelAttrSet(object->mdlId[2], HU3D_ATTR_DISPOFF);
-                Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrSet(object->model[1], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrSet(object->model[2], HU3D_ATTR_DISPOFF);
+                Hu3DModelAttrReset(object->model[0], HU3D_ATTR_DISPOFF);
                 fn_1_982C(object, 0);
                 work->unk_CC = work->unk_E4;
             }
@@ -655,7 +656,7 @@ void fn_1_6184(OMOBJ *object)
             work->unk_44 = 3;
             break;
         case 3:
-            Hu3DModelShadowSet(object->mdlId[0]);
+            Hu3DModelShadowSet(object->model[0]);
             work->unk_D8.y += -980.0f * REFRESH_FREQ * REFRESH_FREQ;
             if (work->unk_CC.y <= 0.0f) {
                 work->unk_CC.y = 0.0f;
@@ -674,11 +675,11 @@ void fn_1_6184(OMOBJ *object)
     fn_1_66B4(object);
     fn_1_7670(object);
     if (fn_1_3E4C() == 5) {
-        object->objFunc = fn_1_6400;
+        object->func = fn_1_6400;
     }
 }
 
-void fn_1_6400(OMOBJ *object)
+void fn_1_6400(omObjData *object)
 {
     Vec sp8;
     float var_f31;
@@ -742,7 +743,7 @@ void fn_1_6400(OMOBJ *object)
     }
 }
 
-void fn_1_66B4(OMOBJ *object)
+void fn_1_66B4(omObjData *object)
 {
     M421DllPlayerWork *work = object->data;
     work->unk_50++;
@@ -758,7 +759,7 @@ void fn_1_66B4(OMOBJ *object)
     object->rot.y = work->unk_58;
 }
 
-void fn_1_676C(OMOBJ *object)
+void fn_1_676C(omObjData *object)
 {
     Mtx sp44;
     Mtx sp14;
@@ -852,7 +853,7 @@ void fn_1_676C(OMOBJ *object)
     }
 }
 
-void fn_1_6D48(OMOBJ *object)
+void fn_1_6D48(omObjData *object)
 {
     M421DllPlayerWork *work = object->data;
     if (work->unk_20 != 0) {
@@ -952,7 +953,7 @@ void fn_1_6D48(OMOBJ *object)
     }
 }
 
-void fn_1_7478(OMOBJ *object)
+void fn_1_7478(omObjData *object)
 {
     float var_f31;
     float var_f30;
@@ -985,7 +986,7 @@ void fn_1_7478(OMOBJ *object)
     fn_1_982C(object, 0);
 }
 
-void fn_1_7670(OMOBJ *object)
+void fn_1_7670(omObjData *object)
 {
     float var_f29;
 
@@ -996,33 +997,33 @@ void fn_1_7670(OMOBJ *object)
             work->unk_F0 = work->unk_CC;
             work->unk_F0.y += work->unk_88 * work->unk_94;
             work->unk_E4.y += work->unk_94 * (work->unk_88 - work->unk_84);
-            Hu3DModelPosSetV(object->mdlId[0], &work->unk_E4);
-            Hu3DModelRotSet(object->mdlId[0], 0.0f, work->unk_58, 0.0f);
-            Hu3DModelScaleSet(object->mdlId[0], work->unk_90, work->unk_90, work->unk_90);
-            Hu3DModelPosSetV(object->mdlId[2], &work->unk_F0);
-            MTXCopy(work->unk_118, Hu3DData[object->mdlId[2]].mtx);
-            Hu3DModelScaleSet(object->mdlId[2], 1.0f, work->unk_94, 1.0f);
+            Hu3DModelPosSetV(object->model[0], &work->unk_E4);
+            Hu3DModelRotSet(object->model[0], 0.0f, work->unk_58, 0.0f);
+            Hu3DModelScaleSet(object->model[0], work->unk_90, work->unk_90, work->unk_90);
+            Hu3DModelPosSetV(object->model[2], &work->unk_F0);
+            MTXCopy(work->unk_118, Hu3DData[object->model[2]].mtx);
+            Hu3DModelScaleSet(object->model[2], 1.0f, work->unk_94, 1.0f);
             return;
         }
         work->unk_E4.y += (2.0f * work->unk_88 * work->unk_94) - work->unk_8C;
-        Hu3DModelPosSetV(object->mdlId[0], &work->unk_E4);
-        Hu3DModelRotSet(object->mdlId[0], 0.0f, work->unk_58, 0.0f);
-        Hu3DModelPosSetV(object->mdlId[2], &work->unk_F0);
-        Hu3DModelRotSet(object->mdlId[2], 0.0f, work->unk_58, 0.0f);
+        Hu3DModelPosSetV(object->model[0], &work->unk_E4);
+        Hu3DModelRotSet(object->model[0], 0.0f, work->unk_58, 0.0f);
+        Hu3DModelPosSetV(object->model[2], &work->unk_F0);
+        Hu3DModelRotSet(object->model[2], 0.0f, work->unk_58, 0.0f);
         var_f29 = sqrtf(1.0f / work->unk_94);
-        Hu3DModelScaleSet(object->mdlId[2], var_f29, work->unk_94, var_f29);
-        Hu3DModelPosSet(object->mdlId[1], work->unk_F0.x, 15.000001f + (work->unk_F0.y + (work->unk_88 * work->unk_94)), work->unk_F0.z);
-        Hu3DModelRotSet(object->mdlId[1], 0.0f, work->unk_58, 0.0f);
+        Hu3DModelScaleSet(object->model[2], var_f29, work->unk_94, var_f29);
+        Hu3DModelPosSet(object->model[1], work->unk_F0.x, 15.000001f + (work->unk_F0.y + (work->unk_88 * work->unk_94)), work->unk_F0.z);
+        Hu3DModelRotSet(object->model[1], 0.0f, work->unk_58, 0.0f);
         return;
     }
     work->unk_90 += 0.1f * (1.0f - work->unk_90);
-    Hu3DModelPosSetV(object->mdlId[0], &work->unk_E4);
-    Hu3DModelRotSet(object->mdlId[0], 0.0f, work->unk_58, 0.0f);
-    Hu3DModelScaleSet(object->mdlId[0], work->unk_90, work->unk_90, work->unk_90);
-    MTXCopy(work->unk_118, Hu3DData[object->mdlId[0]].mtx);
+    Hu3DModelPosSetV(object->model[0], &work->unk_E4);
+    Hu3DModelRotSet(object->model[0], 0.0f, work->unk_58, 0.0f);
+    Hu3DModelScaleSet(object->model[0], work->unk_90, work->unk_90, work->unk_90);
+    MTXCopy(work->unk_118, Hu3DData[object->model[0]].mtx);
 }
 
-void fn_1_7AA0(OMOBJ *object)
+void fn_1_7AA0(omObjData *object)
 {
     Vec sp38;
     Vec sp2C;
@@ -1146,7 +1147,7 @@ void fn_1_7EB8(Vec *var_r26, float sp8, Vec *var_r27)
     }
 }
 
-void fn_1_80C0(OMOBJ *var_r28)
+void fn_1_80C0(omObjData *var_r28)
 {
     Vec sp38;
     Vec sp2C;
@@ -1271,7 +1272,7 @@ void fn_1_80C0(OMOBJ *var_r28)
     }
 }
 
-void fn_1_893C(OMOBJ *object)
+void fn_1_893C(omObjData *object)
 {
     Vec sp38;
     Vec sp2C;
@@ -1479,7 +1480,7 @@ void fn_1_893C(OMOBJ *object)
     lbl_1_bss_30 = object->work[0];
 }
 
-void fn_1_9474(OMOBJ *object, Vec *arg1, Vec *arg2)
+void fn_1_9474(omObjData *object, Vec *arg1, Vec *arg2)
 {
     Vec sp8;
     float var_f31;
@@ -1498,7 +1499,7 @@ void fn_1_9474(OMOBJ *object, Vec *arg1, Vec *arg2)
     *arg2 = sp8;
 }
 
-void fn_1_956C(OMOBJ *object)
+void fn_1_956C(omObjData *object)
 {
     Vec sp8;
     float var_f31;
@@ -1555,7 +1556,7 @@ void fn_1_956C(OMOBJ *object)
     }
 }
 
-void fn_1_982C(OMOBJ *object, u32 arg1)
+void fn_1_982C(omObjData *object, u32 arg1)
 {
 
     M421DllPlayerWork *work = object->data;
@@ -1566,14 +1567,14 @@ void fn_1_982C(OMOBJ *object, u32 arg1)
         }
         work->unk_08 = arg1;
         CharMotionShiftSet(
-            work->unk_00, object->mtnId[lbl_1_data_1BC[arg1].unk_00], REFRESH_RATE_F * lbl_1_data_1BC[arg1].unk_08, var_f31, lbl_1_data_1BC[arg1].unk_10);
+            work->unk_00, object->motion[lbl_1_data_1BC[arg1].unk_00], REFRESH_RATE_F * lbl_1_data_1BC[arg1].unk_08, var_f31, lbl_1_data_1BC[arg1].unk_10);
         if (lbl_1_data_1BC[arg1].unk_0C >= 0.0f) {
-            Hu3DMotionShiftStartEndSet(object->mdlId[0], REFRESH_RATE_F * lbl_1_data_1BC[arg1].unk_08, REFRESH_RATE_F * lbl_1_data_1BC[arg1].unk_0C);
+            Hu3DMotionShiftStartEndSet(object->model[0], REFRESH_RATE_F * lbl_1_data_1BC[arg1].unk_08, REFRESH_RATE_F * lbl_1_data_1BC[arg1].unk_0C);
         }
     }
 }
 
-s32 fn_1_99B8(OMOBJ *object)
+s32 fn_1_99B8(omObjData *object)
 {
 
     M421DllPlayerWork *work = object->data;
@@ -1584,7 +1585,7 @@ s32 fn_1_99B8(OMOBJ *object)
     return var_r30;
 }
 
-s32 fn_1_9A2C(OMOBJ *object, u32 arg1)
+s32 fn_1_9A2C(omObjData *object, u32 arg1)
 {
     s32 var_r27;
 
@@ -1627,7 +1628,7 @@ void fn_1_9C38(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
     DCStoreRange(particle->data, particle->maxCnt * sizeof(HU3DPARTICLEDATA));
 }
 
-void fn_1_9DD0(OMOBJ *object, Vec *arg1)
+void fn_1_9DD0(omObjData *object, Vec *arg1)
 {
     Vec sp18;
     GXColor sp14;
@@ -1643,7 +1644,7 @@ void fn_1_9DD0(OMOBJ *object, Vec *arg1)
     u32 var_r26;
 
     work = object->data;
-    var_r30 = Hu3DData[object->mdlId[4]].hookData;
+    var_r30 = Hu3DData[object->model[4]].hookData;
     GWCharColorGet(work->unk_00, &sp14);
     sp10[0] = 100.0f + (0.47058824f * sp14.r);
     sp10[1] = 100.0f + (0.47058824f * sp14.g);
@@ -1682,18 +1683,18 @@ void fn_1_9DD0(OMOBJ *object, Vec *arg1)
     }
 }
 
-void fn_1_A528(OMOBJ *object)
+void fn_1_A528(omObjData *object)
 {
     M421DllPlayerDLWork *work;
     s32 i;
 
     object->stat |= 0x100;
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M421DllPlayerDLWork), HU_MEMNUM_OVL);
+    object->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M421DllPlayerDLWork), MEMORY_DEFAULT_NUM);
     work = object->data;
     memset(work, 0, sizeof(M421DllPlayerDLWork));
-    work->unk_2F0 = GXGetTexBufferSize(0x280, 0x1E0, 5, 0, 0);
-    work->unk_2F4 = HuMemDirectMallocNum(HEAP_HEAP, work->unk_2F0, HU_MEMNUM_OVL);
-    DCFlushRange(work->unk_2F4, work->unk_2F0);
+    work->unk_2F0 = GXGetTexBufferSize(HU_FB_WIDTH, HU_FB_HEIGHT, 5, 0, 0);
+    work->bmpData = HuMemDirectMallocNum(HEAP_SYSTEM, work->unk_2F0, MEMORY_DEFAULT_NUM);
+    DCFlushRange(work->bmpData, work->unk_2F0);
     for (i = 0; i < 4; i++) {
         work->unk_40[i].r = work->unk_40[i].g = work->unk_40[i].b = 0xFF;
     }
@@ -1721,22 +1722,22 @@ void fn_1_A528(OMOBJ *object)
     DCStoreRangeNoSync(work->unk_40, sizeof(work->unk_40));
     DCStoreRangeNoSync(work->unk_50, sizeof(work->unk_50));
     PPCSync();
-    object->mdlId[0] = Hu3DHookFuncCreate(fn_1_AB6C);
-    Hu3DModelLayerSet(object->mdlId[0], 4);
-    object->mdlId[1] = Hu3DHookFuncCreate(fn_1_ABDC);
-    Hu3DModelLayerSet(object->mdlId[1], 6);
-    object->objFunc = fn_1_AB68;
+    object->model[0] = Hu3DHookFuncCreate(fn_1_AB6C);
+    Hu3DModelLayerSet(object->model[0], 4);
+    object->model[1] = Hu3DHookFuncCreate(fn_1_ABDC);
+    Hu3DModelLayerSet(object->model[1], 6);
+    object->func = fn_1_AB68;
 }
 
-void fn_1_AB68(OMOBJ *object) { }
+void fn_1_AB68(omObjData *object) { }
 
 void fn_1_AB6C(HU3DMODEL *model, Mtx matrix)
 {
     M421DllPlayerDLWork *work = lbl_1_bss_44->data;
     GXPixModeSync();
-    GXSetTexCopySrc(0, 0, 0x280, 0x1E0);
-    GXSetTexCopyDst(0x280, 0x1E0, GX_TF_RGB5A3, GX_FALSE);
-    GXCopyTex(work->unk_2F4, GX_FALSE);
+    GXSetTexCopySrc(0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
+    GXSetTexCopyDst(HU_FB_WIDTH, HU_FB_HEIGHT, GX_TF_RGB5A3, GX_FALSE);
+    GXCopyTex(work->bmpData, GX_FALSE);
     GXPixModeSync();
 }
 
@@ -1762,7 +1763,7 @@ void fn_1_ABDC(HU3DMODEL *model, Mtx matrix)
     GXLoadPosMtxImm(sp88, 0);
     GXSetNumChans(1);
     GXSetChanCtrl(GX_COLOR0A0, GX_FALSE, GX_SRC_REG, GX_SRC_VTX, 0, GX_DF_CLAMP, GX_AF_NONE);
-    GXInitTexObj(&sp8, work->unk_2F4, 0x280, 0x1E0, 5, GX_CLAMP, GX_CLAMP, GX_FALSE);
+    GXInitTexObj(&sp8, work->bmpData, 640, 480, 5, GX_CLAMP, GX_CLAMP, GX_FALSE);
     GXInitTexObjLOD(&sp8, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
     GXLoadTexObj(&sp8, GX_TEXMAP0);
     GXSetNumTexGens(1);
@@ -1804,8 +1805,8 @@ void fn_1_ABDC(HU3DMODEL *model, Mtx matrix)
         MTXConcat(sp58, sp88, sp118);
         MTXConcat(spB8, sp118, spE8);
         GXLoadTexMtxImm(spE8, 0x1E, GX_MTX3x4);
-        GXSetArray(GX_VA_POS, work->unk_50[var_r28], 0xC);
-        GXSetArray(GX_VA_CLR0, &work->unk_40[var_r28], 4);
+        GXSETARRAY(GX_VA_POS, work->unk_50[var_r28], 14 * sizeof(Vec), sizeof(Vec), TRUE);
+        GXSETARRAY(GX_VA_CLR0, &work->unk_40[var_r28], sizeof(GXColor), sizeof(GXColor), TRUE);
         GXBegin(GX_TRIANGLEFAN, GX_VTXFMT0, 0xE);
         GXPosition1x8(0);
         GXPosition1x8(0);
@@ -1813,14 +1814,15 @@ void fn_1_ABDC(HU3DMODEL *model, Mtx matrix)
             GXColor1x8(var_r29);
             GXColor1x8(1);
         }
+        GXEnd();
         MTXTrans(spE8, work->unk_00[var_r30].x, 0.0f, work->unk_00[var_r30].z);
         MTXConcat(Hu3DCameraMtx, spE8, sp88);
         GXLoadPosMtxImm(sp88, 0);
         MTXConcat(sp58, sp88, sp118);
         MTXConcat(spB8, sp118, spE8);
         GXLoadTexMtxImm(spE8, 0x1E, GX_MTX3x4);
-        GXSetArray(GX_VA_POS, work->unk_50[var_r28 + 1], 0xC);
-        GXSetArray(GX_VA_CLR0, &work->unk_40[var_r28], 4);
+        GXSETARRAY(GX_VA_POS, work->unk_50[var_r28 + 1], 14 * sizeof(Vec), sizeof(Vec), TRUE);
+        GXSETARRAY(GX_VA_CLR0, &work->unk_40[var_r28], sizeof(GXColor), sizeof(GXColor), TRUE);
         GXBegin(GX_TRIANGLEFAN, GX_VTXFMT0, 0xE);
         GXPosition1x8(0);
         GXPosition1x8(0);
@@ -1828,5 +1830,9 @@ void fn_1_ABDC(HU3DMODEL *model, Mtx matrix)
             GXColor1x8(var_r29);
             GXColor1x8(1);
         }
+        GXEnd();
     }
+#ifdef TARGET_PC
+    GXDestroyTexObj(&sp8);
+#endif
 }

@@ -8,28 +8,30 @@
 #include "ext_math.h"
 #include <string.h>
 
-#define HU3D_MOTATTR_SHIFT_ALL (HU3D_MOTATTR_SHIFT_LOOP|HU3D_MOTATTR_SHIFT_PAUSE|HU3D_MOTATTR_SHIFT_REV)
-#define HU3D_MOTATTR_NOSHIFT_ALL (HU3D_MOTATTR_LOOP|HU3D_MOTATTR_PAUSE|HU3D_MOTATTR_REV)
-#define HU3D_MOTATTR_ALL (HU3D_MOTATTR_SHIFT_ALL|HU3D_MOTATTR_NOSHIFT_ALL)
+#define HU3D_MOTATTR_SHIFT_ALL (HU3D_MOTATTR_SHIFT_LOOP | HU3D_MOTATTR_SHIFT_PAUSE | HU3D_MOTATTR_SHIFT_REV)
+#define HU3D_MOTATTR_NOSHIFT_ALL (HU3D_MOTATTR_LOOP | HU3D_MOTATTR_PAUSE | HU3D_MOTATTR_REV)
+#define HU3D_MOTATTR_ALL (HU3D_MOTATTR_SHIFT_ALL | HU3D_MOTATTR_NOSHIFT_ALL)
 
 static s32 SearchObjectIndex(HSFDATA *arg0, u32 arg1);
 static s32 SearchAttributeIndex(HSFDATA *arg0, u32 arg1);
 
-HU3DMOTION Hu3DMotion[HU3D_MOTION_MAX];
+SHARED_SYM HU3DMOTION Hu3DMotion[HU3D_MOTION_MAX];
 
 static HSFBITMAP *bitMapPtr;
 
-void Hu3DMotionInit(void) {
+void Hu3DMotionInit(void)
+{
     HU3DMOTION *var_r31;
     s16 i;
 
-    var_r31 = (HU3DMOTION*) Hu3DData;
+    var_r31 = (HU3DMOTION *)Hu3DData;
     for (i = 0; i < HU3D_MOTION_MAX; i++, var_r31++) {
         var_r31->hsf = 0;
     }
 }
 
-s16 Hu3DMotionCreate(void *arg0) {
+s16 Hu3DMotionCreate(void *arg0)
+{
     HU3DMOTION *var_r31;
     s16 i;
 
@@ -49,7 +51,8 @@ s16 Hu3DMotionCreate(void *arg0) {
     return i;
 }
 
-s16 Hu3DMotionModelCreate(s16 arg0) {
+s16 Hu3DMotionModelCreate(s16 arg0)
+{
     HU3DMODEL *temp_r29 = &Hu3DData[arg0];
     HU3DMOTION *var_r31;
     s16 i;
@@ -71,7 +74,8 @@ s16 Hu3DMotionModelCreate(s16 arg0) {
     return i;
 }
 
-s32 Hu3DMotionKill(s16 arg0) {
+s32 Hu3DMotionKill(s16 arg0)
+{
     HU3DMODEL *var_r30;
     HU3DMOTION *temp_r31;
     s16 i;
@@ -98,7 +102,8 @@ s32 Hu3DMotionKill(s16 arg0) {
     return 1;
 }
 
-void Hu3DMotionAllKill(void) {
+void Hu3DMotionAllKill(void)
+{
     HU3DMOTION *var_r27;
     s16 i;
 
@@ -110,7 +115,8 @@ void Hu3DMotionAllKill(void) {
     }
 }
 
-void Hu3DMotionSet(s16 arg0, s16 arg1) {
+void Hu3DMotionSet(s16 arg0, s16 arg1)
+{
     Hu3DData[arg0].motIdShift = -1;
     Hu3DData[arg0].motId = arg1;
     Hu3DData[arg0].motWork.time = 0.0f;
@@ -118,29 +124,35 @@ void Hu3DMotionSet(s16 arg0, s16 arg1) {
     Hu3DData[arg0].motWork.end = Hu3DMotionMaxTimeGet(arg0);
 }
 
-void Hu3DMotionOverlaySet(s16 arg0, s16 arg1) {
+void Hu3DMotionOverlaySet(s16 arg0, s16 arg1)
+{
     Hu3DData[arg0].motIdOvl = arg1;
     Hu3DData[arg0].motOvlWork.time = 0.0f;
     Hu3DData[arg0].motOvlWork.speed = 1.0f;
 }
 
-void Hu3DMotionOverlayReset(s16 arg0) {
+void Hu3DMotionOverlayReset(s16 arg0)
+{
     Hu3DData[arg0].motIdOvl = -1;
 }
 
-float Hu3DMotionOverlayTimeGet(s16 arg0) {
+float Hu3DMotionOverlayTimeGet(s16 arg0)
+{
     return Hu3DData[arg0].motOvlWork.time;
 }
 
-void Hu3DMotionOverlayTimeSet(s16 arg0, float arg1) {
+void Hu3DMotionOverlayTimeSet(s16 arg0, float arg1)
+{
     Hu3DData[arg0].motOvlWork.time = arg1;
 }
 
-void Hu3DMotionOverlaySpeedSet(s16 arg0, float arg1) {
+void Hu3DMotionOverlaySpeedSet(s16 arg0, float arg1)
+{
     Hu3DData[arg0].motOvlWork.speed = arg1;
 }
 
-void Hu3DMotionShiftSet(s16 arg0, s16 arg1, float arg2, float arg3, u32 arg4) {
+void Hu3DMotionShiftSet(s16 arg0, s16 arg1, float arg2, float arg3, u32 arg4)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
     HU3DMOTION *sp10 = &Hu3DMotion[arg1];
     s32 var_r30;
@@ -165,7 +177,8 @@ void Hu3DMotionShiftSet(s16 arg0, s16 arg1, float arg2, float arg3, u32 arg4) {
         temp_r31->motAttr &= ~HU3D_MOTATTR_ALL;
         temp_r31->motAttr |= var_r30;
         temp_r31->motAttr &= ~HU3D_MOTATTR;
-    } else {
+    }
+    else {
         temp_r31->motAttr &= ~HU3D_MOTATTR_SHIFT_ALL;
     }
     temp_r31->motIdShift = arg1;
@@ -189,7 +202,8 @@ void Hu3DMotionShiftSet(s16 arg0, s16 arg1, float arg2, float arg3, u32 arg4) {
     temp_r31->motAttr &= ~HU3D_MOTATTR;
 }
 
-void Hu3DMotionShapeSet(s16 arg0, s16 arg1) {
+void Hu3DMotionShapeSet(s16 arg0, s16 arg1)
+{
     Hu3DData[arg0].motIdShape = arg1;
     Hu3DData[arg0].motShapeWork.time = 0.0f;
     Hu3DData[arg0].motShapeWork.speed = 1.0f;
@@ -197,34 +211,40 @@ void Hu3DMotionShapeSet(s16 arg0, s16 arg1) {
     Hu3DData[arg0].motShapeWork.end = Hu3DMotionShapeMaxTimeGet(arg0);
 }
 
-s16 Hu3DMotionShapeIDGet(s16 arg0) {
+s16 Hu3DMotionShapeIDGet(s16 arg0)
+{
     return Hu3DData[arg0].motIdShape;
 }
 
-void Hu3DMotionShapeSpeedSet(s16 arg0, float arg1) {
+void Hu3DMotionShapeSpeedSet(s16 arg0, float arg1)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     temp_r31->motShapeWork.speed = arg1;
 }
 
-void Hu3DMotionShapeTimeSet(s16 arg0, float arg1) {
+void Hu3DMotionShapeTimeSet(s16 arg0, float arg1)
+{
     Hu3DData[arg0].motShapeWork.time = arg1;
 }
 
-float Hu3DMotionShapeMaxTimeGet(s16 arg0) {
+float Hu3DMotionShapeMaxTimeGet(s16 arg0)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     return Hu3DMotionMotionMaxTimeGet(temp_r31->motIdShape);
 }
 
-void Hu3DMotionShapeStartEndSet(s16 arg0, float arg1, float arg2) {
+void Hu3DMotionShapeStartEndSet(s16 arg0, float arg1, float arg2)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     temp_r31->motShapeWork.start = arg1;
     temp_r31->motShapeWork.end = arg2;
 }
 
-s16 Hu3DMotionClusterSet(s16 arg0, s16 arg1) {
+s16 Hu3DMotionClusterSet(s16 arg0, s16 arg1)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
     s16 i;
 
@@ -243,7 +263,8 @@ s16 Hu3DMotionClusterSet(s16 arg0, s16 arg1) {
     return -1;
 }
 
-s16 Hu3DMotionClusterNoSet(s16 arg0, s16 arg1, s16 arg2) {
+s16 Hu3DMotionClusterNoSet(s16 arg0, s16 arg1, s16 arg2)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     Hu3DMotionClusterReset(arg0, arg2);
@@ -255,11 +276,13 @@ s16 Hu3DMotionClusterNoSet(s16 arg0, s16 arg1, s16 arg2) {
     return arg2;
 }
 
-void Hu3DMotionShapeReset(s16 arg0) {
+void Hu3DMotionShapeReset(s16 arg0)
+{
     Hu3DData[arg0].motIdShape = -1;
 }
 
-void Hu3DMotionClusterReset(s16 arg0, s16 arg1) {
+void Hu3DMotionClusterReset(s16 arg0, s16 arg1)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
     s16 i;
 
@@ -268,7 +291,8 @@ void Hu3DMotionClusterReset(s16 arg0, s16 arg1) {
             temp_r31->motIdCluster[i] = -1;
         }
         temp_r31->attr &= ~HU3D_ATTR_CLUSTER_ON;
-    } else {
+    }
+    else {
         temp_r31->motIdCluster[arg1] = -1;
         for (i = 0; i < 4; i++) {
             if (temp_r31->motIdCluster[i] != -1) {
@@ -279,19 +303,22 @@ void Hu3DMotionClusterReset(s16 arg0, s16 arg1) {
     }
 }
 
-s16 Hu3DMotionIDGet(s16 arg0) {
+s16 Hu3DMotionIDGet(s16 arg0)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     return temp_r31->motId;
 }
 
-s16 Hu3DMotionShiftIDGet(s16 arg0) {
+s16 Hu3DMotionShiftIDGet(s16 arg0)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     return temp_r31->motIdShift;
 }
 
-void Hu3DMotionTimeSet(s16 arg0, float arg1) {
+void Hu3DMotionTimeSet(s16 arg0, float arg1)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     if (Hu3DMotionMaxTimeGet(arg0) <= arg1) {
@@ -301,7 +328,7 @@ void Hu3DMotionTimeSet(s16 arg0, float arg1) {
         arg1 = 0.0f;
     }
     temp_r31->motWork.time = arg1;
-    if (temp_r31->hsf != (HSFDATA*) -1 && temp_r31->hsf->cenvNum != 0 && (temp_r31->motAttr & HU3D_MOTATTR_PAUSE)) {
+    if (temp_r31->hsf != (HSFDATA *)-1 && temp_r31->hsf->cenvNum != 0 && (temp_r31->motAttr & HU3D_MOTATTR_PAUSE)) {
         Hu3DMotionExec(arg0, temp_r31->motId, arg1, 0);
         if (temp_r31->motIdShift != -1) {
             Hu3DSubMotionExec(arg0);
@@ -310,19 +337,22 @@ void Hu3DMotionTimeSet(s16 arg0, float arg1) {
     }
 }
 
-float Hu3DMotionTimeGet(s16 arg0) {
+float Hu3DMotionTimeGet(s16 arg0)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     return temp_r31->motWork.time;
 }
 
-float Hu3DMotionShiftTimeGet(s16 arg0) {
+float Hu3DMotionShiftTimeGet(s16 arg0)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     return temp_r31->motShiftWork.time;
 }
 
-float Hu3DMotionMaxTimeGet(s16 arg0) {
+float Hu3DMotionMaxTimeGet(s16 arg0)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
     HU3DMOTION *temp_r30;
     HSFMOTION *temp_r29;
@@ -337,7 +367,8 @@ float Hu3DMotionMaxTimeGet(s16 arg0) {
     return temp_r28;
 }
 
-float Hu3DMotionShiftMaxTimeGet(s16 arg0) {
+float Hu3DMotionShiftMaxTimeGet(s16 arg0)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
     HU3DMOTION *temp_r30;
     HSFMOTION *temp_r29;
@@ -352,14 +383,16 @@ float Hu3DMotionShiftMaxTimeGet(s16 arg0) {
     return temp_r28;
 }
 
-void Hu3DMotionShiftStartEndSet(s16 arg0, float arg1, float arg2) {
+void Hu3DMotionShiftStartEndSet(s16 arg0, float arg1, float arg2)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     temp_r31->motShiftWork.start = arg1;
     temp_r31->motShiftWork.end = arg2;
 }
 
-float Hu3DMotionMotionMaxTimeGet(s16 arg0) {
+float Hu3DMotionMotionMaxTimeGet(s16 arg0)
+{
     HU3DMOTION *temp_r31 = &Hu3DMotion[arg0];
     HSFMOTION *temp_r30;
     s16 temp_r29;
@@ -372,41 +405,48 @@ float Hu3DMotionMotionMaxTimeGet(s16 arg0) {
     return temp_r29;
 }
 
-void Hu3DMotionStartEndSet(s16 arg0, float arg1, float arg2) {
+void Hu3DMotionStartEndSet(s16 arg0, float arg1, float arg2)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     temp_r31->motWork.start = arg1;
     temp_r31->motWork.end = arg2;
 }
 
-s32 Hu3DMotionEndCheck(s16 arg0) {
+s32 Hu3DMotionEndCheck(s16 arg0)
+{
     if (!(Hu3DData[arg0].motAttr & HU3D_MOTATTR_REV)) {
         return (Hu3DMotionMaxTimeGet(arg0) <= Hu3DMotionTimeGet(arg0));
-    } else {
+    }
+    else {
         return (Hu3DMotionTimeGet(arg0) <= 0.0f);
     }
 }
 
-void Hu3DMotionSpeedSet(s16 arg0, float arg1) {
+void Hu3DMotionSpeedSet(s16 arg0, float arg1)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     temp_r31->motWork.speed = arg1;
 }
 
-void Hu3DMotionShiftSpeedSet(s16 arg0, float arg1) {
+void Hu3DMotionShiftSpeedSet(s16 arg0, float arg1)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     temp_r31->motShiftWork.speed = arg1;
 }
 
-void Hu3DMotionNoMotSet(s16 arg0, char *arg1, u32 arg2) {
+void Hu3DMotionNoMotSet(s16 arg0, char *arg1, u32 arg2)
+{
     HSFCONSTDATA *var_r29;
     HSFOBJECT *temp_r3;
 
     temp_r3 = Hu3DModelObjPtrGet(arg0, arg1);
     if (temp_r3->constData == 0) {
-        var_r29 = ObjConstantMake(temp_r3, (u32) Hu3DData[arg0].mallocNo);
-    } else {
+        var_r29 = ObjConstantMake(temp_r3, Hu3DData[arg0].mallocNo);
+    }
+    else {
         var_r29 = temp_r3->constData;
     }
     var_r29->attr |= arg2;
@@ -439,14 +479,16 @@ void Hu3DMotionNoMotReset(s16 arg0, char *arg1, u32 arg2) {
     temp_r30->attr &= ~arg2;
 }
 
-void Hu3DMotionForceSet(s16 arg0, char *arg1, u32 arg2, float arg3) {
+void Hu3DMotionForceSet(s16 arg0, char *arg1, u32 arg2, float arg3)
+{
     HSFCONSTDATA *var_r29;
     HSFOBJECT *temp_r3;
 
     temp_r3 = Hu3DModelObjPtrGet(arg0, arg1);
     if (temp_r3->constData == 0) {
-        var_r29 = ObjConstantMake(temp_r3, (u32) Hu3DData[arg0].mallocNo);
-    } else {
+        var_r29 = ObjConstantMake(temp_r3, Hu3DData[arg0].mallocNo);
+    }
+    else {
         var_r29 = temp_r3->constData;
     }
     var_r29->attr |= arg2;
@@ -470,7 +512,8 @@ void Hu3DMotionForceSet(s16 arg0, char *arg1, u32 arg2, float arg3) {
     }
 }
 
-void Hu3DMotionNext(s16 arg0) {
+void Hu3DMotionNext(s16 arg0)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
     HSFMOTION *temp_r29;
     HU3DMOTION *temp_r27;
@@ -485,18 +528,22 @@ void Hu3DMotionNext(s16 arg0) {
         if (!(temp_r28 & HU3D_MOTATTR_PAUSE)) {
             if (!(temp_r28 & HU3D_MOTATTR_REV)) {
                 temp_r31->motWork.time += temp_r31->motWork.speed * minimumVcountf;
-            } else {
+            }
+            else {
                 temp_r31->motWork.time -= temp_r31->motWork.speed * minimumVcountf;
             }
             if (temp_r28 & HU3D_MOTATTR_LOOP) {
                 if (temp_r31->motWork.time < temp_r31->motWork.start) {
                     temp_r31->motWork.time = temp_r31->motWork.end - (temp_r31->motWork.start - temp_r31->motWork.time);
-                } else if (temp_r31->motWork.time >= temp_r31->motWork.end) {
+                }
+                else if (temp_r31->motWork.time >= temp_r31->motWork.end) {
                     temp_r31->motWork.time = temp_r31->motWork.start + (temp_r31->motWork.time - temp_r31->motWork.end);
                 }
-            } else if (temp_r31->motWork.time < 0.0f) {
+            }
+            else if (temp_r31->motWork.time < 0.0f) {
                 temp_r31->motWork.time = 0.0f;
-            } else if (temp_r31->motWork.time >= temp_r31->motWork.end) {
+            }
+            else if (temp_r31->motWork.time >= temp_r31->motWork.end) {
                 temp_r31->motWork.time = temp_r31->motWork.end;
             }
         }
@@ -507,7 +554,8 @@ void Hu3DMotionNext(s16 arg0) {
         if (!(temp_r28 & HU3D_MOTATTR_OVL_PAUSE)) {
             if (!(temp_r28 & HU3D_MOTATTR_OVL_REV)) {
                 temp_r31->motOvlWork.time += temp_r31->motOvlWork.speed * minimumVcountf;
-            } else {
+            }
+            else {
                 temp_r31->motOvlWork.time -= temp_r31->motOvlWork.speed * minimumVcountf;
             }
             if (temp_r28 & HU3D_MOTATTR_OVL_LOOP) {
@@ -516,7 +564,8 @@ void Hu3DMotionNext(s16 arg0) {
                 } else if (temp_r31->motOvlWork.time >= temp_r29->maxTime) {
                     temp_r31->motOvlWork.time = 0.0f;
                 }
-            } else if (temp_r31->motOvlWork.time < 0.0f) {
+            }
+            else if (temp_r31->motOvlWork.time < 0.0f) {
                 temp_r31->motOvlWork.time = 0.0f;
             } else if (temp_r31->motOvlWork.time >= temp_r29->maxTime) {
                 temp_r31->motOvlWork.time = temp_r29->maxTime;
@@ -551,18 +600,22 @@ void Hu3DMotionNext(s16 arg0) {
             temp_r27 = &Hu3DMotion[temp_r31->motIdShift];
             if (!(temp_r31->motAttr & HU3D_MOTATTR_SHIFT_REV)) {
                 temp_r31->motShiftWork.time += temp_r31->motShiftWork.speed * minimumVcountf;
-            } else {
+            }
+            else {
                 temp_r31->motShiftWork.time -= temp_r31->motShiftWork.speed * minimumVcountf;
             }
             if (temp_r31->motAttr & HU3D_MOTATTR_SHIFT_LOOP) {
                 if (temp_r31->motShiftWork.time < temp_r31->motShiftWork.start) {
                     temp_r31->motShiftWork.time = temp_r31->motShiftWork.end;
-                } else if (temp_r31->motShiftWork.time >= temp_r31->motShiftWork.end) {
+                }
+                else if (temp_r31->motShiftWork.time >= temp_r31->motShiftWork.end) {
                     temp_r31->motShiftWork.time = temp_r31->motShiftWork.start;
                 }
-            } else if (temp_r31->motShiftWork.time < temp_r31->motShiftWork.start) {
+            }
+            else if (temp_r31->motShiftWork.time < temp_r31->motShiftWork.start) {
                 temp_r31->motShiftWork.time = temp_r31->motShiftWork.start;
-            } else if (temp_r31->motShiftWork.time >= temp_r31->motShiftWork.end) {
+            }
+            else if (temp_r31->motShiftWork.time >= temp_r31->motShiftWork.end) {
                 temp_r31->motShiftWork.time = temp_r31->motShiftWork.end;
             }
         }
@@ -572,18 +625,22 @@ void Hu3DMotionNext(s16 arg0) {
         temp_r29 = temp_r27->hsf->motion;
         if (!(temp_r28 & HU3D_MOTATTR_SHAPE_REV)) {
             temp_r31->motShapeWork.time += temp_r31->motShapeWork.speed * minimumVcountf;
-        } else {
+        }
+        else {
             temp_r31->motShapeWork.time -= temp_r31->motShapeWork.speed * minimumVcountf;
         }
         if (temp_r28 & HU3D_MOTATTR_SHAPE_LOOP) {
             if (temp_r31->motShapeWork.time < temp_r31->motShapeWork.start) {
                 temp_r31->motShapeWork.time = temp_r31->motShapeWork.end;
-            } else if (temp_r31->motShapeWork.time >= temp_r31->motShapeWork.end) {
+            }
+            else if (temp_r31->motShapeWork.time >= temp_r31->motShapeWork.end) {
                 temp_r31->motShapeWork.time = temp_r31->motShapeWork.start;
             }
-        } else if (temp_r31->motShapeWork.time < temp_r31->motShapeWork.start) {
+        }
+        else if (temp_r31->motShapeWork.time < temp_r31->motShapeWork.start) {
             temp_r31->motShapeWork.time = temp_r31->motShapeWork.start;
-        } else if (temp_r31->motShapeWork.time >= temp_r31->motShapeWork.end) {
+        }
+        else if (temp_r31->motShapeWork.time >= temp_r31->motShapeWork.end) {
             temp_r31->motShapeWork.time = temp_r31->motShapeWork.end;
         }
     }
@@ -603,7 +660,8 @@ void Hu3DMotionNext(s16 arg0) {
                     } else if (temp_r31->clusterTime[i] >= temp_r29->maxTime) {
                         temp_r31->clusterTime[i] = 0.0f;
                     }
-                } else if (temp_r31->clusterTime[i] < 0.0f) {
+                }
+                else if (temp_r31->clusterTime[i] < 0.0f) {
                     temp_r31->clusterTime[i] = 0.0f;
                 } else if (temp_r31->clusterTime[i] >= temp_r29->maxTime) {
                     temp_r31->clusterTime[i] = temp_r29->maxTime;
@@ -613,7 +671,8 @@ void Hu3DMotionNext(s16 arg0) {
     }
 }
 
-void Hu3DMotionExec(s16 arg0, s16 arg1, float arg2, s32 arg3) {
+void Hu3DMotionExec(s16 arg0, s16 arg1, float arg2, s32 arg3)
+{
     HU3DMOTION *sp18;
     HSFDATA *sp14;
     HSFTRACK *sp10;
@@ -623,7 +682,7 @@ void Hu3DMotionExec(s16 arg0, s16 arg1, float arg2, s32 arg3) {
     HSFOBJECT *temp_r31;
     HSFOBJECT *var_r19;
     HSFCLUSTER *var_r23;
-    HSFTRACK *var_r30;
+    HSFTRACK *track;
     HSFTRACK *temp_r25;
     HSFTRACK *temp_r22;
     HSFTRACK *var_r26;
@@ -637,7 +696,7 @@ void Hu3DMotionExec(s16 arg0, s16 arg1, float arg2, s32 arg3) {
     temp_r29 = temp_r27->hsf;
     sp14 = sp18->hsf;
     temp_r21 = sp14->motion;
-    var_r30 = temp_r21->track;
+    track = temp_r21->track;
     var_r19 = temp_r29->object;
     if (arg3 == 0) {
         for (var_r18 = 0; var_r18 < temp_r29->objectNum; var_r19++, var_r18++) {
@@ -672,75 +731,82 @@ void Hu3DMotionExec(s16 arg0, s16 arg1, float arg2, s32 arg3) {
             }
         }
     }
-    sp10 = &var_r30[temp_r21->numTracks];
-    for (; var_r30 < sp10; var_r30++) {
-        switch (var_r30->type) {
-            case 2:
-                if (var_r30->target < temp_r29->objectNum && var_r30->target != -1) {
-                    temp_r31 = &temp_r29->object[var_r30->target];
-                    if (var_r30->channel == 0x28) {
-                        temp_r31->mesh.mesh.baseMorph = GetCurve(var_r30, arg2);
-                    } else if (temp_r31->type == 7) {
+    sp10 = &track[temp_r21->numTracks];
+    for (; track < sp10; track++) {
+        switch (track->type) {
+            case HSF_TRACK_TRANSFORM:
+                if (track->target < temp_r29->objectNum && track->target != -1) {
+                    temp_r31 = &temp_r29->object[track->target];
+                    if (track->channel == 0x28) {
+                        temp_r31->mesh.mesh.baseMorph = GetCurve(track, arg2);
+                    }
+                    else if (temp_r31->type == HSF_OBJ_CAMERA) {
                         if (temp_r27->attr & HU3D_ATTR_CAMERA_MOTON) {
-                            SetObjCameraMotion(arg0, var_r30, GetCurve(var_r30, arg2));
+                            SetObjCameraMotion(arg0, track, GetCurve(track, arg2));
                         }
-                    } else if (temp_r31->type == 8) {
-                        SetObjLightMotion(arg0, var_r30, GetCurve(var_r30, arg2));
-                    } else if (var_r30->channel == 0x18) {
+                    }
+                    else if (temp_r31->type == HSF_OBJ_LIGHT) {
+                        SetObjLightMotion(arg0, track, GetCurve(track, arg2));
+                    }
+                    else if (track->channel == 0x18) {
                         if (temp_r31->constData) {
                             temp_r28 = temp_r31->constData;
-                            if (GetCurve(var_r30, arg2) == 1.0f) {
+                            if (GetCurve(track, arg2) == 1.0f) {
                                 temp_r28->attr &= ~0x1000;
-                            } else {
+                            }
+                            else {
                                 temp_r28->attr |= 0x1000;
                             }
                         }
-                    } else if (var_r30->channel == 0x1A) {
+                    }
+                    else if (track->channel == 0x1A) {
                         if (temp_r31->constData) {
                             temp_r28 = temp_r31->constData;
-                            if (GetCurve(var_r30, arg2) == 1.0f) {
+                            if (GetCurve(track, arg2) == 1.0f) {
                                 temp_r28->attr &= ~0x2000;
-                            } else {
+                            }
+                            else {
                                 temp_r28->attr |= 0x2000;
                             }
                         }
-                    } else {
-                        temp_r17 = GetObjTRXPtr(temp_r31, var_r30->channel);
-                        if (temp_r17 != (float*) -1) {
-                            *temp_r17 = GetCurve(var_r30, arg2);
+                    }
+                    else {
+                        temp_r17 = GetObjTRXPtr(temp_r31, track->channel);
+                        if (temp_r17 != (float *)-1) {
+                            *temp_r17 = GetCurve(track, arg2);
                         }
                     }
                 }
                 break;
-            case 3:
-                temp_r25 = var_r30;
+            case HSF_TRACK_MORPH:
+                temp_r25 = track;
                 if (temp_r25->target < temp_r29->objectNum) {
                     temp_r31 = &temp_r29->object[temp_r25->target];
                     temp_r31->mesh.mesh.morphWeight[temp_r25->morphWeight] = GetCurve(temp_r25, arg2);
                 }
                 break;
-            case 9:
+            case HSF_TRACK_MATERIAL:
                 if (!(temp_r27->attr & HU3D_ATTR_CURVE_MOTOFF)) {
-                    if (var_r30->attrIdx < temp_r29->materialNum) {
-                        SetObjMatMotion(arg0, var_r30, GetCurve(var_r30, arg2));
+                    if (track->attrIdx < temp_r29->materialNum) {
+                        SetObjMatMotion(arg0, track, GetCurve(track, arg2));
                     }
                 }
                 break;
-            case 5:
+            case HSF_TRACK_CLUSTER:
                 if (!(temp_r27->attr & HU3D_ATTR_CURVE_MOTOFF)) {
-                    var_r23 = &temp_r29->cluster[var_r30->cluster];
-                    var_r23->index = GetClusterCurve(var_r30, arg2);
+                    var_r23 = &temp_r29->cluster[track->cluster];
+                    var_r23->index = GetClusterCurve(track, arg2);
                 }
                 break;
-            case 6:
+            case HSF_TRACK_CLUSTER_WEIGHT:
                 if (!(temp_r27->attr & HU3D_ATTR_CURVE_MOTOFF)) {
-                    temp_r22 = var_r30;
+                    temp_r22 = track;
                     var_r23 = &temp_r29->cluster[temp_r22->cluster];
                     var_r23->weight[temp_r22->clusterWeight] = GetClusterWeightCurve(temp_r22, arg2);
                 }
                 break;
-            case 10:
-                var_r26 = var_r30;
+            case HSF_TRACK_ATTRIBUTE:
+                var_r26 = track;
                 if (var_r26->cluster != -1 || !(temp_r27->attr & HU3D_ATTR_CURVE_MOTOFF)) {
                     if (var_r26->attrIdx != -1 && var_r26->attrIdx < temp_r29->attributeNum) {
                         SetObjAttrMotion(arg0, var_r26, GetCurve(var_r26, arg2));
@@ -751,36 +817,38 @@ void Hu3DMotionExec(s16 arg0, s16 arg1, float arg2, s32 arg3) {
     }
 }
 
-void Hu3DCameraMotionExec(s16 arg0) {
+void Hu3DCameraMotionExec(s16 arg0)
+{
     HU3DMODEL *temp_r30;
     HU3DMOTION *temp_r28;
     HSFDATA *temp_r27;
-    HSFMOTION *temp_r29;
-    HSFTRACK *var_r31;
+    HSFMOTION *motion;
+    HSFTRACK *track;
     HSFTRACK *temp_r26;
 
     temp_r30 = &Hu3DData[arg0];
     temp_r28 = &Hu3DMotion[temp_r30->motId];
     temp_r27 = temp_r28->hsf;
-    temp_r29 = temp_r27->motion;
-    var_r31 = temp_r29->track;
+    motion = temp_r27->motion;
+    track = motion->track;
     if (temp_r30->attr & HU3D_ATTR_CAMERA_MOTON) {
-        temp_r26 = &var_r31[temp_r29->numTracks];
-        for (; var_r31 < temp_r26; var_r31++) {
-            if (var_r31->type == 2 && var_r31->index == 7) {
-                SetObjCameraMotion(arg0, var_r31, GetCurve(var_r31, temp_r30->motWork.time));
+        temp_r26 = &track[motion->numTracks];
+        for (; track < temp_r26; track++) {
+            if (track->type == HSF_TRACK_TRANSFORM && track->index == 7) {
+                SetObjCameraMotion(arg0, track, GetCurve(track, temp_r30->motWork.time));
             }
         }
     }
 }
 
-void Hu3DSubMotionExec(s16 arg0) {
+void Hu3DSubMotionExec(s16 arg0)
+{
     HU3DMODEL *temp_r30;
     HU3DMOTION *temp_r22;
     HSFDATA *temp_r28;
     HSFDATA *temp_r21;
-    HSFMOTION *temp_r25;
-    HSFTRACK *var_r29;
+    HSFMOTION *motion;
+    HSFTRACK *track;
     HSFOBJECT *var_r23;
     HSFOBJECT *temp_r26;
     float *temp_r31;
@@ -793,8 +861,8 @@ void Hu3DSubMotionExec(s16 arg0) {
     temp_r22 = &Hu3DMotion[temp_r30->motIdShift];
     temp_r28 = temp_r30->hsf;
     temp_r21 = temp_r22->hsf;
-    temp_r25 = temp_r21->motion;
-    var_r29 = temp_r25->track;
+    motion = temp_r21->motion;
+    track = motion->track;
     var_r23 = temp_r28->object;
     if (temp_r30->motId == -1) {
         for (var_r27 = 0; var_r27 < temp_r28->objectNum; var_r23++, var_r27++) {
@@ -804,19 +872,20 @@ void Hu3DSubMotionExec(s16 arg0) {
     }
     if (temp_r30->motOvlWork.end) {
         var_f30 = temp_r30->motOvlWork.start / temp_r30->motOvlWork.end;
-    } else {
+    }
+    else {
         var_f30 = 1.0f;
     }
-    for (var_r27 = 0; var_r27 < temp_r25->numTracks; var_r27++, var_r29++) {
-        switch (var_r29->type) {
-            case 2:
-                if (var_r29->target < temp_r28->objectNum && var_r29->target != -1) {
-                    temp_r26 = &temp_r28->object[var_r29->target];
-                    temp_r24 = var_r29->channel;
+    for (var_r27 = 0; var_r27 < motion->numTracks; var_r27++, track++) {
+        switch (track->type) {
+            case HSF_TRACK_TRANSFORM:
+                if (track->target < temp_r28->objectNum && track->target != -1) {
+                    temp_r26 = &temp_r28->object[track->target];
+                    temp_r24 = track->channel;
                     temp_r31 = GetObjTRXPtr(temp_r26, temp_r24);
-                    if (temp_r31 != (float*) -1) {
+                    if (temp_r31 != (float *)-1) {
                         if (temp_r24 == 0x1C || temp_r24 == 0x1D || temp_r24 == 0x1E) {
-                            var_f31 = GetCurve(var_r29, temp_r30->motShiftWork.time);
+                            var_f31 = GetCurve(track, temp_r30->motShiftWork.time);
                             if (var_f31 < 0.0f) {
                                 var_f31 += 360.0f;
                             }
@@ -827,12 +896,14 @@ void Hu3DSubMotionExec(s16 arg0) {
                                 if (*temp_r31 > (180.0f + var_f31)) {
                                     *temp_r31 -= 360.0f;
                                 }
-                            } else if (*temp_r31 < (var_f31 - 180.0f)) {
+                            }
+                            else if (*temp_r31 < (var_f31 - 180.0f)) {
                                 var_f31 -= 360.0f;
                             }
                             *temp_r31 = (1.0f - var_f30) * *temp_r31 + var_f30 * var_f31;
-                        } else {
-                            *temp_r31 = (1.0f - var_f30) * *temp_r31 + var_f30 * GetCurve(var_r29, temp_r30->motShiftWork.time);
+                        }
+                        else {
+                            *temp_r31 = (1.0f - var_f30) * *temp_r31 + var_f30 * GetCurve(track, temp_r30->motShiftWork.time);
                         }
                     }
                 }
@@ -841,38 +912,44 @@ void Hu3DSubMotionExec(s16 arg0) {
     }
 }
 
-__declspec(weak) float *GetObjTRXPtr(HSFOBJECT *arg0, u16 arg1) {
+#ifdef __MWERKS__
+__declspec(weak) float *GetObjTRXPtr(HSFOBJECT *arg0, u16 arg1)
+{
+#else
+float *GetObjTRXPtr(HSFOBJECT *arg0, u16 arg1)
+{
+#endif
     HSFCONSTDATA *temp_r31 = arg0->constData;
 
     switch (arg1) {
         case 8:
             if (temp_r31 && (temp_r31->attr & 0x10)) {
-                return (float*) -1;
+                return (float *)-1;
             }
             return &arg0->mesh.curr.pos.x;
         case 9:
             if (temp_r31 && (temp_r31->attr & 0x20)) {
-                return (float*) -1;
+                return (float *)-1;
             }
             return &arg0->mesh.curr.pos.y;
         case 10:
             if (temp_r31 && (temp_r31->attr & 0x40)) {
-                return (float*) -1;
+                return (float *)-1;
             }
             return &arg0->mesh.curr.pos.z;
         case 28:
             if (temp_r31 && (temp_r31->attr & 0x80)) {
-                return (float*) -1;
+                return (float *)-1;
             }
             return &arg0->mesh.curr.rot.x;
         case 29:
             if (temp_r31 && (temp_r31->attr & 0x100)) {
-                return (float*) -1;
+                return (float *)-1;
             }
             return &arg0->mesh.curr.rot.y;
         case 30:
             if (temp_r31 && (temp_r31->attr & 0x200)) {
-                return (float*) -1;
+                return (float *)-1;
             }
             return &arg0->mesh.curr.rot.z;
         case 31:
@@ -882,7 +959,7 @@ __declspec(weak) float *GetObjTRXPtr(HSFOBJECT *arg0, u16 arg1) {
         case 33:
             return &arg0->mesh.curr.scale.z;
         default:
-            return (float*) -1;
+            return (float *)-1;
     }
 }
 
@@ -898,7 +975,8 @@ void SetObjMatMotion(s16 arg0, HSFTRACK *arg1, float arg2) {
     var_f31 = arg2;
     if (arg2 > 1.0f) {
         var_f31 = 1.0f;
-    } else if (arg2 < 0.0f) {
+    }
+    else if (arg2 < 0.0f) {
         var_f31 = 0.0f;
     }
     switch (arg1->channel) {
@@ -953,7 +1031,8 @@ void SetObjAttrMotion(s16 arg0, HSFTRACK *arg1, float arg2) {
     var_f30 = arg2;
     if (arg2 > 1.0f) {
         var_f30 = 1.0f;
-    } else if (arg2 < 0.0f) {
+    }
+    else if (arg2 < 0.0f) {
         var_f30 = 0.0f;
     }
     switch (arg1->channel) {
@@ -968,7 +1047,7 @@ void SetObjAttrMotion(s16 arg0, HSFTRACK *arg1, float arg2) {
         case 0x21:
         case 0x43:
             if (temp_r30->animWorkP == 0) {
-                var_r31 = HuMemDirectMallocNum(HEAP_MODEL, sizeof(HU3DATTRANIM), (u32) Hu3DData[arg0].mallocNo);
+                var_r31 = HuMemDirectMallocNum(HEAP_DATA, sizeof(HU3DATTRANIM), Hu3DData[arg0].mallocNo);
                 temp_r30->animWorkP = var_r31;
                 var_r31->attr = 0;
                 var_r31->trans3D.x = var_r31->trans3D.y = var_r31->trans3D.z = 0.0f;
@@ -1027,91 +1106,93 @@ void SetObjAttrMotion(s16 arg0, HSFTRACK *arg1, float arg2) {
     }
 }
 
-void SetObjCameraMotion(s16 arg0, HSFTRACK *arg1, float arg2) {
-    HU3DMODEL *temp_r29;
-    Vec sp18;
-    Vec spC;
-    float var_f31;
-    float var_f30;
-    s16 var_r30;
-    s16 temp_r28;
+void SetObjCameraMotion(s16 modelId, HSFTRACK *trackP, float value)
+{
+    HU3DMODEL *modelP;
+    Vec upOfs;
+    Vec dir;
+    float weight;
+    float newValue;
+    s16 bit;
+    s16 cameraBit;
     s16 i;
 
-    temp_r29 = &Hu3DData[arg0];
-    temp_r28 = temp_r29->camInfoBit;
-    if (temp_r28 != 0) {
-        var_f31 = arg2;
-        if (arg2 > 1.0f) {
-            var_f31 = 1.0f;
-        } else if (arg2 < 0.0f) {
-            var_f31 = 0.0f;
+    modelP = &Hu3DData[modelId];
+    cameraBit = modelP->camInfoBit;
+    if (cameraBit != 0) {
+        weight = value;
+        if (value > 1.0f) {
+            weight = 1.0f;
         }
-        switch (arg1->channel) {
-            case 8:
-                var_f30 = temp_r29->scale.x * (arg2 + temp_r29->pos.x);
-                for (i = 0, var_r30 = 1; i < HU3D_CAM_MAX; i++, var_r30 <<= 1) {
-                    if (var_r30 & temp_r28) {
-                        Hu3DCamera[i].pos.x = var_f30;
+        else if (value < 0.0f) {
+            weight = 0.0f;
+        }
+        switch (trackP->channel) {
+            case HSF_CHANNEL_POSX:
+                newValue = modelP->scale.x * (value + modelP->pos.x);
+                for (i = 0, bit = 1; i < HU3D_CAM_MAX; i++, bit <<= 1) {
+                    if (bit & cameraBit) {
+                        Hu3DCamera[i].pos.x = newValue;
                     }
                 }
                 break;
-            case 9:
-                var_f30 = temp_r29->scale.y * (arg2 + temp_r29->pos.y);
-                for (i = 0, var_r30 = 1; i < HU3D_CAM_MAX; i++, var_r30 <<= 1) {
-                    if (var_r30 & temp_r28) {
-                        Hu3DCamera[i].pos.y = var_f30;
+            case HSF_CHANNEL_POSY:
+                newValue = modelP->scale.y * (value + modelP->pos.y);
+                for (i = 0, bit = 1; i < HU3D_CAM_MAX; i++, bit <<= 1) {
+                    if (bit & cameraBit) {
+                        Hu3DCamera[i].pos.y = newValue;
                     }
                 }
                 break;
-            case 10:
-                var_f30 = temp_r29->scale.z * (arg2 + temp_r29->pos.z);
-                for (i = 0, var_r30 = 1; i < HU3D_CAM_MAX; i++, var_r30 <<= 1) {
-                    if (var_r30 & temp_r28) {
-                        Hu3DCamera[i].pos.z = var_f30;
+            case HSF_CHANNEL_POSZ:
+                newValue = modelP->scale.z * (value + modelP->pos.z);
+                for (i = 0, bit = 1; i < HU3D_CAM_MAX; i++, bit <<= 1) {
+                    if (bit & cameraBit) {
+                        Hu3DCamera[i].pos.z = newValue;
                     }
                 }
                 break;
-            case 11:
-                var_f30 = temp_r29->scale.x * (arg2 + temp_r29->pos.x);
-                for (i = 0, var_r30 = 1; i < HU3D_CAM_MAX; i++, var_r30 <<= 1) {
-                    if (var_r30 & temp_r28) {
-                        Hu3DCamera[i].target.x = var_f30;
+            case HSF_CHANNEL_TARGETX:
+                newValue = modelP->scale.x * (value + modelP->pos.x);
+                for (i = 0, bit = 1; i < HU3D_CAM_MAX; i++, bit <<= 1) {
+                    if (bit & cameraBit) {
+                        Hu3DCamera[i].target.x = newValue;
                     }
                 }
                 break;
-            case 12:
-                var_f30 = temp_r29->scale.y * (arg2 + temp_r29->pos.y);
-                for (i = 0, var_r30 = 1; i < HU3D_CAM_MAX; i++, var_r30 <<= 1) {
-                    if (var_r30 & temp_r28) {
-                        Hu3DCamera[i].target.y = var_f30;
+            case HSF_CHANNEL_TARGETY:
+                newValue = modelP->scale.y * (value + modelP->pos.y);
+                for (i = 0, bit = 1; i < HU3D_CAM_MAX; i++, bit <<= 1) {
+                    if (bit & cameraBit) {
+                        Hu3DCamera[i].target.y = newValue;
                     }
                 }
                 break;
-            case 13:
-                var_f30 = temp_r29->scale.z * (arg2 + temp_r29->pos.z);
-                for (i = 0, var_r30 = 1; i < HU3D_CAM_MAX; i++, var_r30 <<= 1) {
-                    if (var_r30 & temp_r28) {
-                        Hu3DCamera[i].target.z = var_f30;
+            case HSF_CHANNEL_TARGETZ:
+                newValue = modelP->scale.z * (value + modelP->pos.z);
+                for (i = 0, bit = 1; i < HU3D_CAM_MAX; i++, bit <<= 1) {
+                    if (bit & cameraBit) {
+                        Hu3DCamera[i].target.z = newValue;
                     }
                 }
                 break;
-            case 14:
-                for (i = 0, var_r30 = 1; i < HU3D_CAM_MAX; i++, var_r30 <<= 1) {
-                    if (var_r30 & temp_r28) {
-                        VECSubtract(&Hu3DCamera[i].pos, &Hu3DCamera[i].target, &spC);
-                        VECNormalize(&spC, &spC);
-                        sp18.x = spC.x * spC.y * (1.0 - cosd(arg2)) - spC.z * sind(arg2);
-                        sp18.y = spC.y * spC.y + (1.0f - spC.y * spC.y) * cosd(arg2);
-                        sp18.z = spC.y * spC.z * (1.0 - cosd(arg2)) + spC.x * sind(arg2);
-                        VECNormalize(&sp18, &Hu3DCamera[i].up);
-                        Hu3DCamera[i].upRot = arg2;
+            case HSF_CHANNEL_UPROT:
+                for (i = 0, bit = 1; i < HU3D_CAM_MAX; i++, bit <<= 1) {
+                    if (bit & cameraBit) {
+                        VECSubtract(&Hu3DCamera[i].pos, &Hu3DCamera[i].target, &dir);
+                        VECNormalize(&dir, &dir);
+                        upOfs.x = dir.x * dir.y * (1.0 - cosd(value)) - dir.z * sind(value);
+                        upOfs.y = dir.y * dir.y + (1.0f - dir.y * dir.y) * cosd(value);
+                        upOfs.z = dir.y * dir.z * (1.0 - cosd(value)) + dir.x * sind(value);
+                        VECNormalize(&upOfs, &Hu3DCamera[i].up);
+                        Hu3DCamera[i].upRot = value;
                     }
                 }
                 break;
-            case 15:
-                for (i = 0, var_r30 = 1; i < HU3D_CAM_MAX; i++, var_r30 <<= 1) {
-                    if (var_r30 & temp_r28) {
-                        Hu3DCamera[i].fov = arg2;
+            case HSF_CHANNEL_FOV:
+                for (i = 0, bit = 1; i < HU3D_CAM_MAX; i++, bit <<= 1) {
+                    if (bit & cameraBit) {
+                        Hu3DCamera[i].fov = value;
                     }
                 }
                 break;
@@ -1119,84 +1200,89 @@ void SetObjCameraMotion(s16 arg0, HSFTRACK *arg1, float arg2) {
     }
 }
 
-void SetObjLightMotion(s16 arg0, HSFTRACK *arg1, float arg2) {
-    s16 var_r29;
-    HU3DMODEL *temp_r30;
-    HSFDATA *temp_r28;
-    HSFOBJECT *var_r26;
-    HSFOBJECT *var_r24;
-    HU3DLIGHT *temp_r31;
-    float var_f30;
+void SetObjLightMotion(s16 modelId, HSFTRACK *trackP, float value)
+{
+    s16 lightId;
+    HU3DMODEL *modelP;
+    HSFDATA *hsf;
+    HSFOBJECT *objectPtr;
+    HSFOBJECT *obj;
+    HU3DLIGHT *lightP;
+    float weight;
     s16 i;
 
-    temp_r30 = &Hu3DData[arg0];
-    temp_r28 = temp_r30->hsf;
-    var_r26 = temp_r28->object;
-    for (i = var_r29 = 0; i < temp_r28->objectNum; i++, var_r26++) {
-        var_r24 = var_r26;
-        if (var_r24->type == 8) {
-            if (i != arg1->target) {
-                var_r29++;
-            } else {
+    modelP = &Hu3DData[modelId];
+    hsf = modelP->hsf;
+    objectPtr = hsf->object;
+    for (i = lightId = 0; i < hsf->objectNum; i++, objectPtr++) {
+        obj = objectPtr;
+        if (obj->type == HSF_OBJ_LIGHT) {
+            if (i != trackP->target) {
+                lightId++;
+            }
+            else {
                 break;
             }
         }
     }
-    if (i != temp_r28->objectNum) {
-        temp_r31 = &Hu3DGlobalLight[temp_r30->lightId[var_r29]];
-        var_f30 = arg2;
-        if (arg2 > 1.0f) {
-            var_f30 = 1.0f;
-        } else if (arg2 < 0.0f) {
-            var_f30 = 0.0f;
+    if (i != hsf->objectNum) {
+        lightP = &Hu3DGlobalLight[modelP->lightId[lightId]];
+        weight = value;
+        if (value > 1.0f) {
+            weight = 1.0f;
         }
-        switch (arg1->channel) {
-            case 8:
-                temp_r31->pos.x = arg2;
+        else if (value < 0.0f) {
+            weight = 0.0f;
+        }
+        switch (trackP->channel) {
+            case HSF_CHANNEL_POSX:
+                lightP->pos.x = value;
                 break;
-            case 9:
-                temp_r31->pos.y = arg2;
+            case HSF_CHANNEL_POSY:
+                lightP->pos.y = value;
                 break;
-            case 10:
-                temp_r31->pos.z = arg2;
+            case HSF_CHANNEL_POSZ:
+                lightP->pos.z = value;
                 break;
-            case 11:
-                temp_r31->offset.x = arg2;
-                Hu3DGLightPosAimSetV(temp_r30->lightId[var_r29], &temp_r31->pos, &temp_r31->offset);
+            case HSF_CHANNEL_TARGETX:
+                lightP->offset.x = value;
+                Hu3DGLightPosAimSetV(modelP->lightId[lightId], &lightP->pos, &lightP->offset);
                 break;
-            case 12:
-                temp_r31->offset.y = arg2;
-                Hu3DGLightPosAimSetV(temp_r30->lightId[var_r29], &temp_r31->pos, &temp_r31->offset);
+            case HSF_CHANNEL_TARGETY:
+                lightP->offset.y = value;
+                Hu3DGLightPosAimSetV(modelP->lightId[lightId], &lightP->pos, &lightP->offset);
                 break;
-            case 13:
-                temp_r31->offset.z = arg2;
-                Hu3DGLightPosAimSetV(temp_r30->lightId[var_r29], &temp_r31->pos, &temp_r31->offset);
+            case HSF_CHANNEL_TARGETZ:
+                lightP->offset.z = value;
+                Hu3DGLightPosAimSetV(modelP->lightId[lightId], &lightP->pos, &lightP->offset);
                 break;
         }
     }
 }
 
-float GetCurve(HSFTRACK *arg0, float arg1) {
+float GetCurve(HSFTRACK *track, float arg1)
+{
     float *var_r30;
 
-    switch (arg0->curveType) {
-        case 1:
-            return GetLinear(arg0->numKeyframes, arg0->data, arg1);
-        case 2:
-            return GetBezier(arg0->numKeyframes, arg0, arg1);
-        case 3:
-            bitMapPtr = GetBitMap(arg0->numKeyframes, arg0->data, arg1);
+    switch (track->curveType) {
+        case HSF_CURVE_LINEAR:
+            return GetLinear(track->numKeyframes, track->data, arg1);
+        case HSF_CURVE_BEZIER:
+            return GetBezier(track->numKeyframes, track, arg1);
+        case HSF_CURVE_BITMAP:
+            bitMapPtr = GetBitMap(track->numKeyframes, track->data, arg1);
             break;
-        case 4:
-            var_r30 = &arg0->value;
+        case HSF_CURVE_CONST:
+            var_r30 = &track->value;
             return *var_r30;
-        case 0:
-            return GetConstant(arg0->numKeyframes, arg0->data, arg1);
+        case HSF_CURVE_STEP:
+            return GetConstant(track->numKeyframes, track->data, arg1);
     }
     return 0.0f;
 }
 
-float GetConstant(s32 arg0, float *arg1, float arg2) {
+float GetConstant(s32 arg0, float *arg1, float arg2)
+{
     float *var_r31;
     s16 i;
 
@@ -1212,7 +1298,8 @@ float GetConstant(s32 arg0, float *arg1, float arg2) {
     return var_r31[-1];
 }
 
-float GetLinear(s32 arg0, float arg1[][2], float arg2) {
+float GetLinear(s32 arg0, float arg1[][2], float arg2)
+{
     float var_f31;
     float var_f30;
     s16 temp_r30;
@@ -1232,7 +1319,13 @@ float GetLinear(s32 arg0, float arg1[][2], float arg2) {
     return arg1[arg0 - 1][1];
 }
 
-__declspec(weak) float GetBezier(s32 arg0, HSFTRACK *arg1, float arg2) {
+#ifdef __MWERKS__
+__declspec(weak) float GetBezier(s32 arg0, HSFTRACK *arg1, float arg2)
+{
+#else
+float GetBezier(s32 arg0, HSFTRACK *arg1, float arg2)
+{
+#endif
     float temp_f24;
     float temp_f29;
     float temp_f28;
@@ -1241,8 +1334,8 @@ __declspec(weak) float GetBezier(s32 arg0, HSFTRACK *arg1, float arg2) {
     float temp_f25;
     float temp_f30;
     float temp_f31;
-    float (*var_r31)[4];
-    float (*var_r29)[4];
+    float(*var_r31)[4];
+    float(*var_r29)[4];
     s32 i;
 
     var_r31 = arg1->data;
@@ -1254,7 +1347,7 @@ __declspec(weak) float GetBezier(s32 arg0, HSFTRACK *arg1, float arg2) {
         i = 0;
     }
     if (i == -1) {
-        var_r31 = (float(*)[4]) arg1->data + arg1->start;
+        var_r31 = (float(*)[4])arg1->data + arg1->start;
         var_r29 = var_r31 - 1;
         for (i = arg1->start; i < arg0; i++, var_r31++) {
             if (arg2 >= var_r29[0][0] && arg2 < var_r31[0][0]) {
@@ -1284,13 +1377,12 @@ __declspec(weak) float GetBezier(s32 arg0, HSFTRACK *arg1, float arg2) {
     temp_f27 = 3.0f * temp_f30;
     temp_f26 = temp_f31 * temp_f30;
     temp_f25 = temp_f31 * temp_f28;
-    return var_r31[0][1] * (temp_f25 - temp_f27 + 1.0f)
-        + var_r31[1][1] * (-temp_f25 + temp_f27)
-        + var_r31[0][2] * (temp_f26 - temp_f28 + temp_f31)
+    return var_r31[0][1] * (temp_f25 - temp_f27 + 1.0f) + var_r31[1][1] * (-temp_f25 + temp_f27) + var_r31[0][2] * (temp_f26 - temp_f28 + temp_f31)
         + var_r31[1][3] * (temp_f26 - temp_f30);
 }
 
-HSFBITMAP *GetBitMap(s32 arg0, HSFBITMAPKEY *arg1, float arg2) {
+HSFBITMAP *GetBitMap(s32 arg0, HSFBITMAPKEY *arg1, float arg2)
+{
     s16 var_r31;
 
     if (arg2 == 0.0f || arg0 == 1) {
@@ -1304,7 +1396,8 @@ HSFBITMAP *GetBitMap(s32 arg0, HSFBITMAPKEY *arg1, float arg2) {
     return arg1[-1].data;
 }
 
-s16 Hu3DJointMotion(s16 arg0, void *arg1) {
+s16 Hu3DJointMotion(s16 arg0, void *arg1)
+{
     s16 var_r29;
 
     var_r29 = Hu3DMotionCreate(arg1);
@@ -1312,13 +1405,14 @@ s16 Hu3DJointMotion(s16 arg0, void *arg1) {
     return var_r29;
 }
 
-void JointModel_Motion(s16 arg0, s16 arg1) {
+void JointModel_Motion(s16 arg0, s16 arg1)
+{
     HU3DMODEL *temp_r24;
     HU3DMOTION *temp_r23;
     HSFDATA *temp_r26;
     HSFDATA *temp_r22;
-    HSFMOTION *temp_r29;
-    HSFTRACK *var_r30;
+    HSFMOTION *motion;
+    HSFTRACK *track;
     HSFTRACK *var_r28;
     HSFTRACK *var_r27;
     HSFTRACK *var_r31;
@@ -1329,25 +1423,26 @@ void JointModel_Motion(s16 arg0, s16 arg1) {
     temp_r23 = &Hu3DMotion[arg1];
     temp_r26 = temp_r24->hsf;
     temp_r22 = temp_r23->hsf;
-    temp_r29 = temp_r22->motion;
-    var_r30 = temp_r29->track;
-    for (i = 0; i < temp_r29->numTracks; i++, var_r30++) {
-        switch (var_r30->type) {
-            case 2:
-                var_r28 = var_r30;
+    motion = temp_r22->motion;
+    track = motion->track;
+    for (i = 0; i < motion->numTracks; i++, track++) {
+        switch (track->type) {
+            case HSF_TRACK_TRANSFORM:
+                var_r28 = track;
                 var_r28->target = SearchObjectIndex(temp_r26, var_r28->target);
                 break;
-            case 3:
-                var_r27 = var_r30;
+            case HSF_TRACK_MORPH:
+                var_r27 = track;
                 var_r27->target = SearchObjectIndex(temp_r26, var_r27->target);
                 break;
-            case 10:
-                var_r31 = var_r30;
+            case HSF_TRACK_ATTRIBUTE:
+                var_r31 = track;
                 if (var_r31->attrIdx == -1) {
                     temp_r21 = SearchAttributeIndex(temp_r26, var_r31->cluster);
                     if (temp_r21 != -1) {
                         var_r31->attrIdx = temp_r21;
-                    } else {
+                    }
+                    else {
                         var_r31->attrIdx = -1;
                     }
                 }
@@ -1356,7 +1451,8 @@ void JointModel_Motion(s16 arg0, s16 arg1) {
     }
 }
 
-void Hu3DMotionCalc(s16 arg0) {
+void Hu3DMotionCalc(s16 arg0)
+{
     HU3DMODEL *temp_r31 = &Hu3DData[arg0];
 
     if ((temp_r31->attr & HU3D_ATTR_DISPOFF) || (temp_r31->attr & HU3D_ATTR_HOOK)) {
@@ -1377,11 +1473,12 @@ void Hu3DMotionCalc(s16 arg0) {
     if (temp_r31->motIdShape != -1) {
         if (temp_r31->motId == -1) {
             Hu3DMotionExec(arg0, temp_r31->motIdShape, temp_r31->motShapeWork.time, 0);
-        } else {
+        }
+        else {
             Hu3DMotionExec(arg0, temp_r31->motIdShape, temp_r31->motShapeWork.time, 1);
         }
     }
-    if (!(temp_r31->attr & (HU3D_ATTR_ENVELOPE_OFF|HU3D_ATTR_HOOKFUNC)) || !(temp_r31->motAttr & HU3D_MOTATTR_PAUSE)) {
+    if (!(temp_r31->attr & (HU3D_ATTR_ENVELOPE_OFF | HU3D_ATTR_HOOKFUNC)) || !(temp_r31->motAttr & HU3D_MOTATTR_PAUSE)) {
         InitVtxParm(temp_r31->hsf);
         if (temp_r31->motIdShape != -1) {
             ShapeProc(temp_r31->hsf);
@@ -1397,7 +1494,8 @@ void Hu3DMotionCalc(s16 arg0) {
     temp_r31->attr |= HU3D_ATTR_MOT_EXEC;
 }
 
-static s32 SearchObjectIndex(HSFDATA *arg0, u32 arg1) {
+static s32 SearchObjectIndex(HSFDATA *arg0, u32 arg1)
+{
     s32 i;
     char *temp_r28;
     HSFOBJECT *var_r30;
@@ -1412,7 +1510,8 @@ static s32 SearchObjectIndex(HSFDATA *arg0, u32 arg1) {
     return -1;
 }
 
-static s32 SearchAttributeIndex(HSFDATA *arg0, u32 arg1) {
+static s32 SearchAttributeIndex(HSFDATA *arg0, u32 arg1)
+{
     HSFATTRIBUTE *var_r31;
     size_t temp_r28;
     char *temp_r27;

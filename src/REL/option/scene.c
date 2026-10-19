@@ -24,11 +24,11 @@ typedef struct {
 static void FadeSprite(void);
 static void fn_1_354(s16 arg0, s32 arg1, s32 arg2);
 static void FadeModel(void);
-static void SceneMain(OMOBJ *arg0);
+static void SceneMain(omObjData *arg0);
 static void KillScene(void);
 
-HUPROCESS *optionObjMan;
-static OMOBJ *scene;
+Process *optionObjMan;
+static omObjData *scene;
 static s32 rumbleF;
 
 void ObjectSetup(void)
@@ -38,16 +38,16 @@ void ObjectSetup(void)
     HuWinInit(1);
     rumbleF = GWGameStat.rumble;
     scene = omAddObjEx(optionObjMan, 1000, 0, 0, 0, SceneMain);
-    scene->mode = 0;
+    scene->unk10 = 0;
     optionState = OptionStateCreate();
 }
 
 void OptionFadeSprite(s16 sprite, BOOL inF, s32 duration)
 {
     FaderWork *work;
-    HUPROCESS *process;
+    Process *process;
 
-    work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(FaderWork), HU_MEMNUM_OVL);
+    work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(FaderWork), MEMORY_DEFAULT_NUM);
     work->id = sprite;
     work->speed = 1.0f / duration;
     if (inF) {
@@ -92,9 +92,9 @@ static void FadeSprite(void)
 void OptionFadeModel(s16 model, BOOL inF, s32 duration)
 {
     FaderWork *work;
-    HUPROCESS *process;
+    Process *process;
 
-    work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(FaderWork), HU_MEMNUM_OVL);
+    work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(FaderWork), MEMORY_DEFAULT_NUM);
     work->id = model;
     work->speed = 1.0f / duration;
     if (inF) {
@@ -157,22 +157,22 @@ BOOL OptionPadDStkCheck(u16 dir)
     return (temp_r31 != 0);
 }
 
-static void SceneMain(OMOBJ *object)
+static void SceneMain(omObjData *object)
 {
-    switch (object->mode) {
+    switch (object->unk10) {
         case 0:
-            object->mode = 1;
+            object->unk10 = 1;
             /* fallthrough */
         case 1:
             if (!omSysExitReq) {
                 break;
             }
-            object->mode = 2;
+            object->unk10 = 2;
             /* fallthrough */
         case 2:
             WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
             HuAudFadeOut(1000);
-            object->mode = 3;
+            object->unk10 = 3;
             /* fallthrough */
         case 3:
             if (WipeStatGet() == 0) {

@@ -53,27 +53,27 @@ typedef struct M460DllWork {
     s32 unk_94;
 } M460DllWork; /* size = 0x98 */
 
-void fn_1_11EC(OMOBJ *object);
-void fn_1_1548(OMOBJ *object);
-void fn_1_197C(OMOBJ *object);
-void fn_1_201C(OMOBJ *object);
-OMOBJFUNC fn_1_24F4(HUPROCESS *arg1, OMOBJ *object);
-void fn_1_2564(OMOBJ *object);
-OMOBJFUNC fn_1_2D64(HUPROCESS *process, OMOBJ *object);
-void fn_1_2D70(OMOBJ *object);
-void fn_1_32CC(HUPROCESS *process);
-void fn_1_337C(OMOBJ *object);
-void fn_1_35F0(OMOBJ *object);
-void fn_1_3618(OMOBJ *object);
+void fn_1_11EC(omObjData *object);
+void fn_1_1548(omObjData *object);
+void fn_1_197C(omObjData *object);
+void fn_1_201C(omObjData *object);
+omObjFunc fn_1_24F4(Process *arg1, omObjData *object);
+void fn_1_2564(omObjData *object);
+omObjFunc fn_1_2D64(Process *process, omObjData *object);
+void fn_1_2D70(omObjData *object);
+void fn_1_32CC(Process *process);
+void fn_1_337C(omObjData *object);
+void fn_1_35F0(omObjData *object);
+void fn_1_3618(omObjData *object);
 void fn_1_3BC0(HU3DMODEL *model, Mtx mtx);
 M460DllCameraStruct *fn_1_3E90(s32 arg0);
 M460DllCameraStruct *fn_1_3F2C(s32 arg0);
 void fn_1_42BC(u32 arg0);
 s32 fn_1_4358(void);
-void fn_1_4C8(OMOBJ *object);
-void fn_1_7FC(OMOBJ *object);
-void fn_1_948(OMOBJ *object);
-void fn_1_D7C(OMOBJ *object);
+void fn_1_4C8(omObjData *object);
+void fn_1_7FC(omObjData *object);
+void fn_1_948(omObjData *object);
+void fn_1_D7C(omObjData *object);
 
 Vec lbl_1_data_0 = { 100.0f, 800.0f, -100.0f };
 Vec lbl_1_data_C = { 0.3f, -0.8f, 0.3f };
@@ -97,12 +97,12 @@ float lbl_1_data_A0[3] = { 0.0f, REFRESH_FREQ, 0.0f };
 s32 lbl_1_data_AC[3] = { -REFRESH_RATE, REFRESH_RATE, 0 };
 GXColor lbl_1_data_B8 = { 0, 0, 0, 0 };
 
-HUPROCESS *lbl_1_bss_30;
+Process *lbl_1_bss_30;
 // M460DllWork2
-OMOBJ *lbl_1_bss_2C;
-OMOBJ *lbl_1_bss_28;
+omObjData *lbl_1_bss_2C;
+omObjData *lbl_1_bss_28;
 // M460DllWork2
-OMOBJ *lbl_1_bss_24;
+omObjData *lbl_1_bss_24;
 s16 lbl_1_bss_20;
 s16 lbl_1_bss_1A[3];
 s16 lbl_1_bss_18;
@@ -118,7 +118,7 @@ s32 lbl_1_bss_0;
 void ObjectSetup(void)
 {
     Mtx sp2C;
-    HUPROCESS *var_r31;
+    Process *var_r31;
     HU3DLIGHT *var_r30;
 
     Vec sp20 = { 0.0f, 0.0f, 0.0f };
@@ -166,11 +166,11 @@ void ObjectSetup(void)
     fn_1_49A0(var_r31);
 }
 
-void fn_1_4C8(OMOBJ *var_r30)
+void fn_1_4C8(omObjData *var_r30)
 {
     M460DllWork *work;
 
-    var_r30->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M460DllWork), HU_MEMNUM_OVL);
+    var_r30->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M460DllWork), MEMORY_DEFAULT_NUM);
     work = var_r30->data;
     memset(work, 0, sizeof(M460DllWork));
     work->unk_00 = 0;
@@ -192,10 +192,10 @@ void fn_1_4C8(OMOBJ *var_r30)
     work->unk_24 = (work->unk_30 >> 0x18) & 0xFF;
     work->unk_30 = (u16)work->unk_30;
     fn_1_8CAC(lbl_1_bss_30, work->unk_30);
-    var_r30->objFunc = fn_1_948;
+    var_r30->func = fn_1_948;
 }
 
-void fn_1_5F0(OMOBJ *var_r29)
+void fn_1_5F0(omObjData *var_r29)
 {
     Vec sp14;
     Vec sp8;
@@ -221,7 +221,7 @@ void fn_1_5F0(OMOBJ *var_r29)
     HuAudFXListnerUpdate(&sp14, &sp8);
 }
 
-void fn_1_7FC(OMOBJ *object)
+void fn_1_7FC(omObjData *object)
 {
     M460DllWork *work = object->data;
 
@@ -233,40 +233,40 @@ void fn_1_7FC(OMOBJ *object)
                 fn_1_8FAC(0);
                 work->unk_00 = 1;
                 work->unk_10 = 0;
-                object->objFunc = fn_1_24F4(lbl_1_bss_30, object);
+                object->func = fn_1_24F4(lbl_1_bss_30, object);
                 break;
             case 1:
                 work->unk_00 = 2;
                 work->unk_18 = 0;
-                object->objFunc = fn_1_1548;
+                object->func = fn_1_1548;
                 break;
             case 2:
                 work->unk_00 = 3;
                 work->unk_50 = 0;
-                object->objFunc = fn_1_2D64(lbl_1_bss_30, object);
+                object->func = fn_1_2D64(lbl_1_bss_30, object);
                 break;
             case 3:
             case 4:
                 work->unk_08 = 1;
                 work->unk_00 = 5;
-                object->objFunc = fn_1_D7C;
+                object->func = fn_1_D7C;
                 break;
             case 5:
             default:
                 work->unk_00 = 5;
-                object->objFunc = fn_1_11EC;
+                object->func = fn_1_11EC;
         }
         work->unk_04 = 0;
     }
 }
 
-void fn_1_948(OMOBJ *object)
+void fn_1_948(omObjData *object)
 {
     fn_1_5F0(object);
     fn_1_7FC(object);
 }
 
-void fn_1_D7C(OMOBJ *object)
+void fn_1_D7C(omObjData *object)
 {
     M460DllWork *work = object->data;
     fn_1_5F0(object);
@@ -278,7 +278,7 @@ void fn_1_D7C(OMOBJ *object)
     }
 }
 
-void fn_1_11EC(OMOBJ *object)
+void fn_1_11EC(omObjData *object)
 {
     fn_1_5F0(object);
     if (WipeStatGet() == 0) {
@@ -291,7 +291,7 @@ void fn_1_11EC(OMOBJ *object)
     }
 }
 
-void fn_1_1548(OMOBJ *object)
+void fn_1_1548(omObjData *object)
 {
     M460DllWork *work = object->data;
     fn_1_5F0(object);
@@ -313,14 +313,14 @@ void fn_1_1548(OMOBJ *object)
                 work->unk_44 = 0;
                 if (work->unk_08 == 0) {
                     work->unk_18 = 0;
-                    object->objFunc = fn_1_197C;
+                    object->func = fn_1_197C;
                 }
             }
             break;
     }
 }
 
-void fn_1_197C(OMOBJ *object)
+void fn_1_197C(omObjData *object)
 {
     M460DllWork *work = object->data;
     s32 var_r26 = 0;
@@ -418,12 +418,12 @@ void fn_1_197C(OMOBJ *object)
         work->unk_14 = 5;
         work->unk_18 = 0;
         if (work->unk_08 == 0) {
-            object->objFunc = fn_1_201C;
+            object->func = fn_1_201C;
         }
     }
 }
 
-void fn_1_201C(OMOBJ *object)
+void fn_1_201C(omObjData *object)
 {
     M460DllWork *work = object->data;
 
@@ -444,7 +444,7 @@ void fn_1_201C(OMOBJ *object)
     }
 }
 
-OMOBJFUNC fn_1_24F4(HUPROCESS *process, OMOBJ *object)
+omObjFunc fn_1_24F4(Process *process, omObjData *object)
 {
     M460DllCameraStruct *var_r31;
 
@@ -456,7 +456,7 @@ OMOBJFUNC fn_1_24F4(HUPROCESS *process, OMOBJ *object)
     return fn_1_2564;
 }
 
-void fn_1_2564(OMOBJ *object)
+void fn_1_2564(omObjData *object)
 {
     Vec sp20;
     M460DllCameraStruct *var_r26;
@@ -508,12 +508,12 @@ void fn_1_2564(OMOBJ *object)
     }
 }
 
-OMOBJFUNC fn_1_2D64(HUPROCESS *process, OMOBJ *object)
+omObjFunc fn_1_2D64(Process *process, omObjData *object)
 {
     return fn_1_2D70;
 }
 
-void fn_1_2D70(OMOBJ *object)
+void fn_1_2D70(omObjData *object)
 {
     M460DllWork *work = object->data;
     s32 var_r23 = 1;
@@ -544,7 +544,7 @@ void fn_1_2D70(OMOBJ *object)
     }
 }
 
-void fn_1_32CC(HUPROCESS *process)
+void fn_1_32CC(Process *process)
 {
     Hu3DCameraCreate(0x1F);
     lbl_1_bss_28 = omAddObjEx(process, 0x7FDA, 0, 0, -1, omOutViewMulti);
@@ -553,7 +553,7 @@ void fn_1_32CC(HUPROCESS *process)
     lbl_1_bss_24->work[0] = 0;
 }
 
-void fn_1_337C(OMOBJ *object)
+void fn_1_337C(omObjData *object)
 {
     UnkM460DllStruct sp1C[5] = {
         { 320.0f, 240.0f, 640.0f, 480.0f },
@@ -567,12 +567,12 @@ void fn_1_337C(OMOBJ *object)
     s32 var_r29;
     M460DllCameraStruct *var_r28;
 
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, 10 * sizeof(M460DllCameraStruct), HU_MEMNUM_OVL);
+    object->data = HuMemDirectMallocNum(HEAP_SYSTEM, 10 * sizeof(M460DllCameraStruct), MEMORY_DEFAULT_NUM);
     var_r28 = object->data;
     memset(var_r28, 0, 10 * sizeof(M460DllCameraStruct));
-    object->mdlId[0] = Hu3DHookFuncCreate(fn_1_3BC0);
-    Hu3DModelLayerSet(object->mdlId[0], 0);
-    Hu3DModelCameraSet(object->mdlId[0], 0x1E);
+    object->model[0] = Hu3DHookFuncCreate(fn_1_3BC0);
+    Hu3DModelLayerSet(object->model[0], 0);
+    Hu3DModelCameraSet(object->model[0], 0x1E);
     for (var_r31 = var_r28, var_r29 = 0; var_r29 < 5; var_r29++, var_r31++) {
         var_r31->unk_00 = 0;
         var_r31->unk_04 = var_r29 * 0x64;
@@ -600,15 +600,15 @@ void fn_1_337C(OMOBJ *object)
     object->work[1] = object->work[2] = 0;
     object->work[0]++;
     fn_1_3618(object);
-    object->objFunc = fn_1_35F0;
+    object->func = fn_1_35F0;
 }
 
-void fn_1_35F0(OMOBJ *object)
+void fn_1_35F0(omObjData *object)
 {
     fn_1_3618(object);
 }
 
-void fn_1_3618(OMOBJ *var_r28)
+void fn_1_3618(omObjData *var_r28)
 {
     float var_f31;
     M460DllCameraStruct *var_r31;
@@ -648,10 +648,10 @@ void fn_1_3618(OMOBJ *var_r28)
                 break;
         }
         if (var_r24 != 0) {
-            Hu3DModelAttrReset(var_r28->mdlId[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrReset(var_r28->model[0], HU3D_ATTR_DISPOFF);
         }
         else {
-            Hu3DModelAttrSet(var_r28->mdlId[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(var_r28->model[0], HU3D_ATTR_DISPOFF);
         }
         for (var_r30 = 0; var_r30 < 4; var_r30++) {
             sp30[var_r30] = var_r27[var_r30 + 6].unk_04;
@@ -760,6 +760,7 @@ void fn_1_3BC0(HU3DMODEL *model, Mtx mtx)
     GXPosition3f32(var_f31, var_f30, -var_f29);
     GXPosition3f32(var_f31, -var_f30, -var_f29);
     GXPosition3f32(-var_f31, -var_f30, -var_f29);
+    GXEnd();
 }
 
 void fn_1_3E68(u32 arg0)
@@ -949,8 +950,6 @@ u32 fn_1_4370(void)
 void fn_1_4388(Vec *sp8, Vec *var_r31)
 {
     Vec sp10;
-    float var_f30;
-    float var_f29;
 
     VECSubtract(var_r31, sp8, &sp10);
     Center = *var_r31;

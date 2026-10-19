@@ -13,8 +13,19 @@
 ###
 
 import argparse
+import os
 import sys
 from pathlib import Path
+
+# Standalone copy of Chance Time's games/mp4/ (there, tools/ and extern/ sit two
+# levels up). Operate from the repository root whatever the invocation.
+GAME_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = GAME_ROOT
+sys.path.insert(0, str(REPO_ROOT))
+# tools/project.py derives the reconfigure command from sys.argv[0] relative to
+# the CWD, so pin it to the real path before that CWD moves out from under it.
+sys.argv[0] = str(Path(__file__).resolve())
+os.chdir(GAME_ROOT)
 
 # from typing import Any, Dict, List
 from tools.project import (
@@ -139,6 +150,7 @@ version_num = VERSIONS.index(config.version)
 
 # Apply arguments
 config.build_dir = args.build_dir
+config.tools_dir = Path("tools")
 config.dtk_path = args.dtk
 config.objdiff_path = args.objdiff
 config.binutils_path = args.binutils
@@ -159,7 +171,7 @@ config.compilers_tag = "20250520"
 config.dtk_tag = "v1.6.1"
 config.objdiff_tag = "v3.0.0-beta.8"
 config.sjiswrap_tag = "v1.2.1"
-config.wibo_tag = "0.6.16"
+config.wibo_tag = "1.1.0"
 
 # Project
 config.config_path = Path("config") / config.version / "config.yml"
@@ -168,6 +180,7 @@ config.asflags = [
     "-mgekko",
     "--strip-local-absolute",
     "-I include",
+    "-I libc",
     f"-I build/{config.version}/include",
     f"--defsym BUILD_VERSION={version_num}",
 ]
@@ -207,8 +220,11 @@ cflags_base = [
     "-fp_contract on",
     "-str reuse",
     "-i include",
+    "-i libc",
     "-i extern/musyx/include",
     f"-i build/{config.version}/include",
+    "-i libs/dolphin/include",
+    "-i libs/dolphin/include/dolphin",  # for types.h includes
     "-multibyte",
     f"-DVERSION={version_num}",
     "-DMUSY_TARGET=MUSY_TARGET_DOLPHIN",
@@ -290,6 +306,7 @@ cflags_musyx = [
     "-nodefaults",
     "-nosyspath",
     "-i include",
+    "-i libc",
     "-i extern/musyx/include",
     "-inline auto",
     "-O4,p",
@@ -300,6 +317,8 @@ cflags_musyx = [
     "-fp_contract off",
     "-DMUSY_TARGET=MUSY_TARGET_DOLPHIN",
     "-sym on",
+    "-i libs/dolphin/include",
+    "-i libs/dolphin/include/dolphin",  # for types.h includes
 ]
 
 cflags_musyx_debug = [
@@ -363,6 +382,8 @@ config.extra_clang_flags = ["-Wno-incompatible-function-pointer-types", "-fdecls
 def DolphinLib(lib_name, objects):
     return {
         "lib": lib_name,
+        "src_dir": "libs/dolphin/src",
+        "strip_prefix": "dolphin/",
         "mw_version": "GC/1.2.5n",
         "cflags": cflags_dolphin,
         "objects": objects,
@@ -372,6 +393,8 @@ def DolphinLib(lib_name, objects):
 def DolphinLibUnpatched(lib_name, objects):
     return {
         "lib": lib_name,
+        "src_dir": "libs/dolphin/src",
+        "strip_prefix": "dolphin/",
         "mw_version": "GC/1.2.5",
         "cflags": cflags_dolphin,
         "objects": objects,
@@ -672,6 +695,8 @@ config.libs = [
     ),
     {
         "lib": "thp",
+        "src_dir": "libs/dolphin/src",
+        "strip_prefix": "dolphin/",
         "mw_version": "GC/1.2.5",
         "cflags": cflags_thp,
         "objects": [

@@ -104,7 +104,7 @@ static s8 stealTarget;
 static s8 comStarStealTarget;
 static s32 comCoinStealTarget;
 static char stealAmountStr[8];
-static HUPROCESS *houseProc;
+static Process *houseProc;
 
 // sdata
 static s16 houseShowMot = 0xFFFF;
@@ -174,7 +174,7 @@ void BoardBooHouseExec(s32 arg0)
         BoardRollDispSet(0);
         houseProc = HuPrcChildCreate(&ExecBooHouse, 0x2003, 0x3800, 0, boardMainProc);
         HuPrcDestructorSet2(houseProc, &DestroyBooHouse);
-        while (houseProc != 0U) {
+        while (houseProc) {
             HuPrcVSleep();
         }
         BoardRollDispSet(1);

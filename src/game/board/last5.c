@@ -276,18 +276,18 @@ static s8 numTickets;
 static s8 last5Player;
 static s16 last5Space;
 static s16 hostMdl;
-static OMOBJ *last5RouletteObj;
-static HUPROCESS *last5Proc;
-static OMOBJ *teamResultObj;
-static OMOBJ *hostMoveObj;
-static OMOBJ *lotteryDrawObj;
-static OMOBJ *lotteryDrawWheelObj;
+static omObjData *last5RouletteObj;
+static Process *last5Proc;
+static omObjData *teamResultObj;
+static omObjData *hostMoveObj;
+static omObjData *lotteryDrawObj;
+static omObjData *lotteryDrawWheelObj;
 
 static Vec spacePos;
 static Vec focusPos;
 static Vec hostPos;
 static s16 hostMot[8];
-static OMOBJ *lotteryTicketObj[4];
+static omObjData *lotteryTicketObj[4];
 
 static void DestroyLast5(void);
 
@@ -304,30 +304,30 @@ static s32 CheckJump(s32 player);
 
 static void CreateLotteryDrawWheel(void);
 static void CreateLotteryDraw(Vec *pos);
-static void UpdateLotteryDraw(OMOBJ *object);
+static void UpdateLotteryDraw(omObjData *object);
 static void SetLotteryDrawState(s32 state);
 static s32 GetLotteryDrawState();
 static void KillLotteryDrawWheel(void);
-static void UpdateLotteryDrawWheel(OMOBJ *object);
+static void UpdateLotteryDrawWheel(omObjData *object);
 static void SetLotteryDrawWheelState(s32 state);
 static void ExecLotteryDraw(void);
 
 static void KillLotteryTicket(void);
 static void InitLotteryTicket(void);
-static void UpdateLotteryTicket(OMOBJ *object);
+static void UpdateLotteryTicket(omObjData *object);
 static void SetLotteryTicketState(s32 player, s32 state);
 static s32 GetLotteryTicketPlayer(void);
 static s32 CheckLotteryTicket(void);
 static void UpdateLotteryTicketMatch(s32 progress, s32 character);
 
 static void StartHostMove(Vec *from, Vec *to, s16 time);
-static void ExecHostMove(OMOBJ *object);
+static void ExecHostMove(omObjData *object);
 static s32 CheckHostMove(void);
 
 static void CreateStopWin(void);
 
 static void CreateLast5Roulette(void);
-static void UpdateLast5Roulette(OMOBJ *object);
+static void UpdateLast5Roulette(omObjData *object);
 
 static void SetLast5RouletteFade(s32 flag);
 static void SetLast5RouletteState(s32 state);
@@ -338,9 +338,9 @@ static void CreateTeamResult(void);
 static void GetTeamResultTarget(s32 team, Vec *pos);
 static void SetTeamResultTarget(s32 team, Vec *pos);
 static void KillTeamResult(void);
-static void UpdateTeamResult(OMOBJ *object);
+static void UpdateTeamResult(omObjData *object);
 
-void BoardLast5Exec()
+void BoardLast5Exec(void)
 {
 	GWSystem.player_curr = -1;
 	last5Proc = HuPrcChildCreate(ExecLast5, 8200, 14336, 0, boardMainProc);
@@ -703,10 +703,10 @@ static void Last5Main(void)
 	temp_r20 = GetLast5RouletteResult();
 	GWSystem.last5_effect = temp_r20;
 	if(GWSystem.last5_effect == 2) {
-		BoardSpaceTypeForce(2, 3);
+            BoardSpaceTypeForce(2, 3);
 	}
 	if(GWSystem.last5_effect == 3) {
-		BoardSpaceTypeForce(2, 7);
+	    BoardSpaceTypeForce(2, 7);
 	}
 	temp_r24 = 18+messBase+temp_r20;
 	BoardWinCreate(2, temp_r24, BoardWinPortraitGetStar());
@@ -778,16 +778,16 @@ typedef struct lottery_draw_work {
 
 static void CreateLotteryDrawWheel(void)
 {
-	OMOBJ *object;
+	omObjData *object;
 	DrawWheelWork *work;
 	DrawWheelMdl *mdl;
 	s32 i;
 	object = omAddObjEx(boardObjMan, 257, 0, 0, -1, UpdateLotteryDrawWheel);
 	lotteryDrawWheelObj = object;
-	work = omObjGetWork(object, DrawWheelWork);
+	work = OM_GET_WORK_PTR(object, DrawWheelWork);
 	work->kill = 0;
 	work->state = 0;
-	work->mdl = HuMemDirectMallocNum(HEAP_HEAP, sizeof(DrawWheelMdl), HU_MEMNUM_OVL);
+	work->mdl = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(DrawWheelMdl), MEMORY_DEFAULT_NUM);
 	work->hilite = 0;
 	work->hilite_vel = 2;
 	work->hilite_accel = 5;
@@ -811,11 +811,11 @@ static void CreateLotteryDrawWheel(void)
 
 static void CreateLotteryDraw(Vec *pos)
 {
-	OMOBJ *object;
+	omObjData *object;
 	LotteryDrawWork *work;
 	object = omAddObjEx(boardObjMan, 257, 0, 0, -1, UpdateLotteryDraw);
 	lotteryDrawObj = object;
-	work = omObjGetWork(object, LotteryDrawWork);
+	work = OM_GET_WORK_PTR(object, LotteryDrawWork);
 	work->kill = 0;
 	work->state = 0;
 	work->block_mdl = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BLAST5, 11), NULL, 0);
@@ -826,9 +826,9 @@ static void CreateLotteryDraw(Vec *pos)
 	BoardModelAlphaSet(work->block_mdl, 255);
 }
 
-static void UpdateLotteryDraw(OMOBJ *object)
+static void UpdateLotteryDraw(omObjData *object)
 {
-	LotteryDrawWork *work = omObjGetWork(object, LotteryDrawWork);
+	LotteryDrawWork *work = OM_GET_WORK_PTR(object, LotteryDrawWork);
 	Vec pos;
 	if(work->kill || BoardIsKill()) {
 		BoardModelKill(work->block_mdl);
@@ -877,7 +877,7 @@ static void SetLotteryDrawState(s32 state)
 	if(!lotteryDrawObj) {
 		return;
 	}
-	work = omObjGetWork(lotteryDrawObj, LotteryDrawWork);
+	work = OM_GET_WORK_PTR(lotteryDrawObj, LotteryDrawWork);
 	work->state = state;
 	if(state == 4) {
 		work->kill = 1;
@@ -892,7 +892,7 @@ static void SetLotteryDrawState(s32 state)
 
 static s32 GetLotteryDrawState(void)
 {
-	LotteryDrawWork *work = omObjGetWork(lotteryDrawObj, LotteryDrawWork);
+	LotteryDrawWork *work = OM_GET_WORK_PTR(lotteryDrawObj, LotteryDrawWork);
 	return work->state;
 }
 
@@ -901,9 +901,9 @@ static void KillLotteryDrawWheel(void)
 	SetLotteryDrawWheelState(5);
 }
 
-static void UpdateLotteryDrawWheel(OMOBJ *object)
+static void UpdateLotteryDrawWheel(omObjData *object)
 {
-	DrawWheelWork *work = omObjGetWork(object, DrawWheelWork);
+	DrawWheelWork *work = OM_GET_WORK_PTR(object, DrawWheelWork);
 	DrawWheelMdl *mdl = work->mdl;
 	s32 i;
 	if(work->kill || BoardIsKill()) {
@@ -986,7 +986,7 @@ static void SetLotteryDrawWheelState(s32 state)
 	if(!lotteryDrawWheelObj) {
 		return;
 	}
-	work = omObjGetWork(lotteryDrawWheelObj, DrawWheelWork);
+	work = OM_GET_WORK_PTR(lotteryDrawWheelObj, DrawWheelWork);
 	
 	work->state = state;
 	mdl = work->mdl;
@@ -1033,7 +1033,7 @@ static s32 GetLotteryDrawWheelState()
 	if(!lotteryDrawWheelObj) {
 		return -1;
 	}
-	work = omObjGetWork(lotteryDrawWheelObj, DrawWheelWork);
+	work = OM_GET_WORK_PTR(lotteryDrawWheelObj, DrawWheelWork);
 	return work->state;
 }
 
@@ -1043,7 +1043,7 @@ static s32 GetLotteryDrawWheelResult()
 	if(!lotteryDrawWheelObj) {
 		return -1;
 	}
-	work = omObjGetWork(lotteryDrawWheelObj, DrawWheelWork);
+	work = OM_GET_WORK_PTR(lotteryDrawWheelObj, DrawWheelWork);
 	return GWPlayer[work->hilite].character;
 }
 
@@ -1260,7 +1260,7 @@ static void InitLotteryTicket(void)
 	s16 sprite;
 	s32 member;
 	u8 ticket_player;
-	OMOBJ *object;
+	omObjData *object;
 	TicketWork *work;
 	currTicket = 0;
 	lotteryTicketObj[0] = lotteryTicketObj[1] = lotteryTicketObj[2] = lotteryTicketObj[3] = NULL;
@@ -1270,7 +1270,7 @@ static void InitLotteryTicket(void)
 		}
 		object = omAddObjEx(boardObjMan, 257, 0, 0, -1, UpdateLotteryTicket);
 		lotteryTicketObj[numTickets] = object;
-		work = omObjGetWork(object, TicketWork);
+		work = OM_GET_WORK_PTR(object, TicketWork);
 		work->kill = 0;
 		work->player = i;
 		work->index = numTickets;
@@ -1320,9 +1320,9 @@ static void InitLotteryTicket(void)
 	}
 }
 
-static void UpdateLotteryTicket(OMOBJ *object)
+static void UpdateLotteryTicket(omObjData *object)
 {
-	TicketWork *work = omObjGetWork(object, TicketWork);
+	TicketWork *work = OM_GET_WORK_PTR(object, TicketWork);
 	if(work->kill || BoardIsKill()) {
 		HuSprGrpKill(work->group);
 		omDelObjEx(HuPrcCurrentGet(), object);
@@ -1385,14 +1385,14 @@ static void UpdateLotteryTicket(OMOBJ *object)
 static void SetLotteryTicketState(s32 player, s32 state)
 {
 	TicketWork *work;
-	OMOBJ *object;
+	omObjData *object;
 	s32 i;
 	for(i=0; i<numTickets; i++) {
 		object = lotteryTicketObj[i];
 		if(!object) {
 			continue;
 		}
-		work = omObjGetWork(object, TicketWork);
+		work = OM_GET_WORK_PTR(object, TicketWork);
 		if(work->player == player) {
 			work->state = state;
 			work->angle = 0;
@@ -1436,8 +1436,8 @@ static s32 GetLotteryTicketPlayer(void)
 {
 	s32 i;
 	for(i=0; i<numTickets; i++) {
-		OMOBJ *object = lotteryTicketObj[i];
-		TicketWork *work = omObjGetWork(object, TicketWork);
+		omObjData *object = lotteryTicketObj[i];
+		TicketWork *work = OM_GET_WORK_PTR(object, TicketWork);
 		if(!work->done) {
 			return work->player;
 		}
@@ -1448,12 +1448,12 @@ static s32 GetLotteryTicketPlayer(void)
 static s32 CheckLotteryTicket(void)
 {
 	TicketWork *work;
-	OMOBJ *object;
+	omObjData *object;
 	
 	s32 i;
 	for(i=0; i<numTickets; i++) {
 		object = lotteryTicketObj[i];
-		work = omObjGetWork(object, TicketWork);
+		work = OM_GET_WORK_PTR(object, TicketWork);
 		if(!work->done) {
 			return 0;
 		}
@@ -1465,12 +1465,12 @@ static void UpdateLotteryTicketMatch(s32 progress, s32 character)
 {
 	s32 i;
 	TicketWork *work;
-	OMOBJ *object;
+	omObjData *object;
 	s32 match_state;
 	
 	for(i=0; i<numTickets; i++) {
 		object = lotteryTicketObj[i];
-		work = omObjGetWork(object, TicketWork);
+		work = OM_GET_WORK_PTR(object, TicketWork);
 		if(!work->done) {
 			if(work->character[progress] == character) {
 				match_state = 2;
@@ -1496,7 +1496,7 @@ typedef struct host_move_work {
 static void StartHostMove(Vec *from, Vec *to, s16 time)
 {
 	HostMoveWork *work;
-	OMOBJ *object;
+	omObjData *object;
 	float duration;
 	float angle;
 	if(time <= 0) {
@@ -1504,7 +1504,7 @@ static void StartHostMove(Vec *from, Vec *to, s16 time)
 	}
 	object = omAddObjEx(boardObjMan, 257, 0, 0, -1, ExecHostMove);
 	hostMoveObj = object;
-	work = omObjGetWork(object, HostMoveWork);
+	work = OM_GET_WORK_PTR(object, HostMoveWork);
 	work->kill = 0;
 	work->finish = 0;
 	work->time = time;
@@ -1520,9 +1520,9 @@ static void StartHostMove(Vec *from, Vec *to, s16 time)
 	BoardModelMotionSpeedSet(hostMdl, 3.0f);
 }
 
-static void ExecHostMove(OMOBJ *object)
+static void ExecHostMove(omObjData *object)
 {
-	HostMoveWork *work = omObjGetWork(object, HostMoveWork);
+	HostMoveWork *work = OM_GET_WORK_PTR(object, HostMoveWork);
 	float angle;
 	float angle_end;
 	if(work->kill || BoardIsKill()) {
@@ -1610,12 +1610,12 @@ typedef struct last5_roulette_work {
 static void CreateLast5Roulette(void)
 {
 	Last5RouletteWork *work;
-	OMOBJ *object;
+	omObjData *object;
 	s32 choice1, choice2;
 	Vec pos;
 	object = omAddObjEx(boardObjMan, 257, 0, 0, -1, UpdateLast5Roulette);
 	last5RouletteObj = object;
-	work = omObjGetWork(object, Last5RouletteWork);
+	work = OM_GET_WORK_PTR(object, Last5RouletteWork);
 	work->kill = 0;
 	work->choice = 0;
 	work->switch_timer = 0;
@@ -1641,9 +1641,9 @@ static void CreateLast5Roulette(void)
 	BoardModelMotionSpeedSet(work->model, 0);
 }
 
-static void UpdateLast5Roulette(OMOBJ *object)
+static void UpdateLast5Roulette(omObjData *object)
 {
-	Last5RouletteWork *work = omObjGetWork(object, Last5RouletteWork);
+	Last5RouletteWork *work = OM_GET_WORK_PTR(object, Last5RouletteWork);
 	if(work->kill || BoardIsKill()) {
 		BoardModelHookReset(wheelMdl);
 		if(work->model != -1) {
@@ -1713,7 +1713,7 @@ static void SetLast5RouletteFade(s32 flag)
 	if(!last5RouletteObj) {
 		return;
 	}
-	work = omObjGetWork(last5RouletteObj, Last5RouletteWork);
+	work = OM_GET_WORK_PTR(last5RouletteObj, Last5RouletteWork);
 	if(flag) {
 		work->fade_speed = 4;
 	} else {
@@ -1727,7 +1727,7 @@ static void SetLast5RouletteState(s32 state)
 	if(!last5RouletteObj) {
 		return;
 	}
-	work = omObjGetWork(last5RouletteObj, Last5RouletteWork);
+	work = OM_GET_WORK_PTR(last5RouletteObj, Last5RouletteWork);
 	work->state = state;
 }
 
@@ -1737,7 +1737,7 @@ static s32 GetLast5RouletteState(void)
 	if(!last5RouletteObj) {
 		return -1;
 	}
-	work = omObjGetWork(last5RouletteObj, Last5RouletteWork);
+	work = OM_GET_WORK_PTR(last5RouletteObj, Last5RouletteWork);
 	return work->state;
 }
 
@@ -1747,7 +1747,7 @@ static s32 GetLast5RouletteResult(void)
 	if(!last5RouletteObj) {
 		return -1;
 	}
-	work = omObjGetWork(last5RouletteObj, Last5RouletteWork);
+	work = OM_GET_WORK_PTR(last5RouletteObj, Last5RouletteWork);
 	return work->choices[work->choice];
 }
 
@@ -1765,7 +1765,7 @@ static void CreateTeamResultWork(TeamResultWork *work);
 static void CreateTeamResult(void)
 {
 	TeamResultWork *work;
-	OMOBJ *object;
+	omObjData *object;
 	s32 i;
 	s32 j;
 	s32 coins[2];
@@ -1775,7 +1775,7 @@ static void CreateTeamResult(void)
 	s32 rank1, rank2;
 	object = omAddObjEx(boardObjMan, 268, 0, 0, -1, UpdateTeamResult);
 	teamResultObj = object;
-	work = omObjGetWork(object, TeamResultWork);
+	work = OM_GET_WORK_PTR(object, TeamResultWork);
 	CreateTeamResultWork(work);
 	coins[0] = coins[1] = stars[0] = stars[1] = 0;
 	for(i=0; i<2; i++) {
@@ -1923,15 +1923,15 @@ static void KillTeamResult(void)
 	if(!teamResultObj) {
 		return;
 	}
-	work = omObjGetWork(teamResultObj, TeamResultWork);
+	work = OM_GET_WORK_PTR(teamResultObj, TeamResultWork);
 	work->kill = 1;
 }
 
-static void UpdateTeamResult(OMOBJ *object)
+static void UpdateTeamResult(omObjData *object)
 {
 	TeamResultWork *work;
 	s32 i, j;
-	work = omObjGetWork(object, TeamResultWork);
+	work = OM_GET_WORK_PTR(object, TeamResultWork);
 	if(work->kill || BoardIsKill()) {
 		HuSprGrpKill(work->group[0]);
 		HuSprGrpKill(work->group[1]);

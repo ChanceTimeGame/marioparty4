@@ -14,8 +14,8 @@
 // bss
 s32 lbl_1_bss_14;
 s32 lbl_1_bss_10;
-HUPROCESS *lbl_1_bss_C;
-OMOBJ *lbl_1_bss_8;
+Process *lbl_1_bss_C;
+omObjData *lbl_1_bss_8;
 s32 lbl_1_bss_4;
 unkStruct *lbl_1_bss_0;
 
@@ -40,7 +40,7 @@ void ObjectSetup(void)
     lbl_1_bss_4 = 0;
 }
 
-void fn_1_13C(OMOBJ *arg0)
+void fn_1_13C(omObjData *arg0)
 {
     switch (lbl_1_bss_4) {
         case 0:
@@ -94,7 +94,7 @@ unkStruct *m446FlowCreate(void)
     s32 var_r30;
     unkStruct *temp_r3;
 
-    temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, 0x9C, HU_MEMNUM_OVL);
+    temp_r3 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(unkStruct), MEMORY_DEFAULT_NUM);
     if (temp_r3 == 0) {
         OSReport("[!] m446FlowCreate() ERROR...\n");
         return NULL;
@@ -288,9 +288,6 @@ void fn_1_53C(unkStruct *arg0)
 
 void fn_1_958(unkStruct *arg0)
 {
-    s32 temp_r3;
-    s32 temp_r3_2;
-    s32 temp_r3_3;
     s32 var_r30;
 
     switch (arg0->unk10) {
@@ -681,7 +678,6 @@ void fn_1_19D4(void)
 {
     s16 temp_r3;
     s16 var_r30;
-    s32 temp_r0;
     s32 var_r29;
     u32 temp_r27;
 

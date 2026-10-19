@@ -54,18 +54,18 @@ static void ExecBattle(void);
 static void TakeCoins(void);
 static void InitExplode(void);
 static s32 CheckExplode(void);
-static void UpdateExplode(OMOBJ *arg0);
+static void UpdateExplode(omObjData *arg0);
 static void CreateBattleMain(void);
-static void UpdateBattleMain(OMOBJ *arg0);
-static void DescendBattleBomb(BattleWork *arg0, OMOBJ *arg1);
-static void EndBattle(BattleWork *arg0, OMOBJ *arg1);
-static void ShowBattleGame(BattleWork *arg0, OMOBJ *arg1);
-static void RaiseBattleGame(BattleWork *arg0, OMOBJ *arg1);
-static void UpdateBattleCoin(BattleWork *arg0, OMOBJ *arg1);
-static void ShowBattleCoin(BattleWork *arg0, OMOBJ *arg1);
-static void InitBattleGameSpr(BattleWork *arg0, OMOBJ *arg1);
+static void UpdateBattleMain(omObjData *arg0);
+static void DescendBattleBomb(BattleWork *arg0, omObjData *arg1);
+static void EndBattle(BattleWork *arg0, omObjData *arg1);
+static void ShowBattleGame(BattleWork *arg0, omObjData *arg1);
+static void RaiseBattleGame(BattleWork *arg0, omObjData *arg1);
+static void UpdateBattleCoin(BattleWork *arg0, omObjData *arg1);
+static void ShowBattleCoin(BattleWork *arg0, omObjData *arg1);
+static void InitBattleGameSpr(BattleWork *arg0, omObjData *arg1);
 static void HideBattleSpr(void);
-static void VibratePad(BattleWork *arg0, OMOBJ *arg1);
+static void VibratePad(BattleWork *arg0, omObjData *arg1);
 static void StopBattleBomb(void);
 static s32 GetBattleBombState(void);
 static void SetBattleBombState(s32 arg0);
@@ -82,9 +82,9 @@ static s8 battleMGIdx[2];
 static char totalCoinStr[8];
 static float battleCoinSpeed;
 static float battleCoinPosF;
-static OMOBJ *explodeObj;
-static OMOBJ *battleObj;
-static HUPROCESS *battleProc;
+static omObjData *explodeObj;
+static omObjData *battleObj;
+static Process *battleProc;
 
 static const s8 battleCoinTbl[] = {
     5, 10, 20, 30, 50
@@ -383,7 +383,7 @@ static void TakeCoins(void) {
         var_r24 = MAKE_MESSID(2, 2);
     }
     BoardWinCreate(2, var_r24, 1);
-    BoardWinInsertMesSet(MAKE_MESSID_PTR(totalCoinStr), 0);
+    BOARD_WIN_INSERT_MES_SET_PTR(MAKE_MESSID_PTR(totalCoinStr), 0);
     BoardWinWait();
     BoardWinKill();
 }
@@ -402,7 +402,7 @@ static void InitExplode(void) {
 
     BoardPlayerPosGet(currPlayer, &sp14);
     explodeObj = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, UpdateExplode);
-    temp_r31 = omObjGetWork(explodeObj, ExplodeWork);
+    temp_r31 = OM_GET_WORK_PTR(explodeObj, ExplodeWork);
     temp_r31->unk00_field0 = 0;
     temp_r31->unk00_field1 = 0;
     temp_r31->unk01 = 0x10;
@@ -425,12 +425,12 @@ static void InitExplode(void) {
 }
 
 static s32 CheckExplode(void) {
-    ExplodeWork *temp_r31 = omObjGetWork(explodeObj, ExplodeWork);
+    ExplodeWork *temp_r31 = OM_GET_WORK_PTR(explodeObj, ExplodeWork);
 
     return temp_r31->unk00_field1;
 }
 
-static void UpdateExplode(OMOBJ *arg0) {
+static void UpdateExplode(omObjData *arg0) {
     Vec sp14;
     Vec sp8;
     float temp_f31;
@@ -439,7 +439,7 @@ static void UpdateExplode(OMOBJ *arg0) {
     s32 i;
 
     (void) 1000.0f; // TODO: 1000.0f needs to appear right before 20.0f in sdata2 to match.
-    temp_r30 = omObjGetWork(arg0, ExplodeWork);
+    temp_r30 = OM_GET_WORK_PTR(arg0, ExplodeWork);
     if (temp_r30->unk00_field0 != 0 || BoardIsKill()) {
         BoardModelKill(temp_r30->unk02);
         for (i = 0; i < 4; i++) {
@@ -480,7 +480,7 @@ static void UpdateExplode(OMOBJ *arg0) {
             break;
         case 2:
             BoardCameraRotGet(&sp8);
-            PSMTXRotRad(sp20, 'x', MTXDegToRad(sp8.x + 10.0f));
+            MTXRotRad(sp20, 'x', MTXDegToRad(sp8.x + 10.0f));
             BoardModelMtxSet(temp_r30->unk02, &sp20);
             BoardModelRotSet(temp_r30->unk02, 0.0f, 0.0f, 0.0f);
             sp14.x = arg0->scale.x;
@@ -515,7 +515,7 @@ static void CreateBattleMain(void) {
     };
 
     battleObj = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, UpdateBattleMain);
-    temp_r31 = omObjGetWork(battleObj, BattleWork);
+    temp_r31 = OM_GET_WORK_PTR(battleObj, BattleWork);
     temp_r31->unk00_field0 = 0;
     temp_r31->unk00_field2 = 0;
     temp_r31->unk01 = 0;
@@ -540,12 +540,12 @@ static void CreateBattleMain(void) {
     BoardFilterFadeInit(30, 0xA0);
 }
 
-static void UpdateBattleMain(OMOBJ *arg0) {
+static void UpdateBattleMain(omObjData *arg0) {
     BattleWork *temp_r30;
     ExplodeWork *temp_r29;
     float var_f31;
 
-    temp_r30 = omObjGetWork(arg0, BattleWork);
+    temp_r30 = OM_GET_WORK_PTR(arg0, BattleWork);
     if (temp_r30->unk00_field0 != 0 || BoardIsKill()) {
         HuSprGrpKill(temp_r30->unk08);
         battleObj = NULL;
@@ -581,7 +581,7 @@ static void UpdateBattleMain(OMOBJ *arg0) {
             break;
     }
     var_f31 = arg0->trans.x + 240.0f;
-    temp_r29 = omObjGetWork(explodeObj, ExplodeWork);
+    temp_r29 = OM_GET_WORK_PTR(explodeObj, ExplodeWork);
     if (temp_r29->unk00_field1 == 2) {
         explodeObj->scale.x = 288.0f;
         explodeObj->scale.y = var_f31;
@@ -591,7 +591,7 @@ static void UpdateBattleMain(OMOBJ *arg0) {
     HuSprScaleSet(temp_r30->unk08, 0, arg0->trans.z, arg0->trans.z);
 }
 
-static void DescendBattleBomb(BattleWork *arg0, OMOBJ *arg1) {
+static void DescendBattleBomb(BattleWork *arg0, omObjData *arg1) {
     float temp_f31 = -132.0f - arg1->trans.x;
 
     if (temp_f31 < 0.1f) {
@@ -602,7 +602,7 @@ static void DescendBattleBomb(BattleWork *arg0, OMOBJ *arg1) {
     }
 }
 
-static void EndBattle(BattleWork *arg0, OMOBJ *arg1) {
+static void EndBattle(BattleWork *arg0, omObjData *arg1) {
     float temp_f31 = 548.0f - arg1->trans.x;
 
     if (temp_f31 < 0.1f) {
@@ -613,7 +613,7 @@ static void EndBattle(BattleWork *arg0, OMOBJ *arg1) {
     }
 }
 
-static void ShowBattleGame(BattleWork *arg0, OMOBJ *arg1) {
+static void ShowBattleGame(BattleWork *arg0, omObjData *arg1) {
     float var_r29;
 
     if (arg0->unk01 == 0) {
@@ -636,7 +636,7 @@ static void ShowBattleGame(BattleWork *arg0, OMOBJ *arg1) {
     arg0->unk01 += 4;
 }
 
-static void RaiseBattleGame(BattleWork *arg0, OMOBJ *arg1) {
+static void RaiseBattleGame(BattleWork *arg0, omObjData *arg1) {
     float temp_f31 = -60.0f - arg1->trans.y;
 
     if (ABS(temp_f31) < 0.1f) {
@@ -647,7 +647,7 @@ static void RaiseBattleGame(BattleWork *arg0, OMOBJ *arg1) {
     }
 }
 
-static void UpdateBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
+static void UpdateBattleCoin(BattleWork *arg0, omObjData *arg1) {
     s8 temp_r28;
 
     if (arg0->unk00_field2 != 0) {
@@ -694,7 +694,7 @@ static void UpdateBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
     arg1->rot.x = 50.0f;
 }
 
-static void ShowBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
+static void ShowBattleCoin(BattleWork *arg0, omObjData *arg1) {
     float temp_f29;
     float var_f30;
 
@@ -718,7 +718,7 @@ static void ShowBattleCoin(BattleWork *arg0, OMOBJ *arg1) {
     HuSprScaleSet(arg0->unk08, 1, temp_f29, temp_f29);
 }
 
-static void InitBattleGameSpr(BattleWork *arg0, OMOBJ *arg1) {
+static void InitBattleGameSpr(BattleWork *arg0, omObjData *arg1) {
     s8 temp_r30;
     s8 temp_r29;
     float sp8[2][2] = {
@@ -740,7 +740,7 @@ static void InitBattleGameSpr(BattleWork *arg0, OMOBJ *arg1) {
 }
 
 static void HideBattleSpr(void) {
-    BattleWork *temp_r30 = omObjGetWork(battleObj, BattleWork);
+    BattleWork *temp_r30 = OM_GET_WORK_PTR(battleObj, BattleWork);
     s32 i;
 
     for (i = 0; i < 11; i++) {
@@ -749,7 +749,7 @@ static void HideBattleSpr(void) {
 }
 
 
-static void VibratePad(BattleWork *arg0, OMOBJ *arg1) {
+static void VibratePad(BattleWork *arg0, omObjData *arg1) {
     s32 i;
 
     for (i = 0; i < 4; i++) {
@@ -760,16 +760,16 @@ static void VibratePad(BattleWork *arg0, OMOBJ *arg1) {
 
 static void StopBattleBomb(void) {
     if (battleObj) {
-        omObjGetWork(battleObj, BattleWork)->unk00_field0 = 1;
+        OM_GET_WORK_PTR(battleObj, BattleWork)->unk00_field0 = 1;
     }
 }
 
 static s32 GetBattleBombState(void) {
-    return omObjGetWork(battleObj, BattleWork)->unk00_field1;
+    return OM_GET_WORK_PTR(battleObj, BattleWork)->unk00_field1;
 }
 
 static void SetBattleBombState(s32 arg0) {
-    BattleWork *var_r31 = omObjGetWork(battleObj, BattleWork);
+    BattleWork *var_r31 = OM_GET_WORK_PTR(battleObj, BattleWork);
 
     var_r31->unk00_field1 = arg0;
     var_r31->unk01 = 0;

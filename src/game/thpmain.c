@@ -24,7 +24,7 @@ static s16 THPLoopF;
 static s16 THPStat;
 static u32 THPFrame;
 static s16 THPStart;
-HUPROCESS *THPProc;
+Process *THPProc;
 
 s16 HuTHPSprCreateVol(char *path, s16 loop, s16 prio, float volume)
 {
@@ -142,7 +142,7 @@ static void THPTestProc(void)
     THPSimpleGetVideoInfo(&audioTrack);
     temp_r29 = THPSimpleCalcNeedMemory();
     OSReport("Size %x\n", temp_r29);
-    temp_r30 = HuMemDirectMalloc(HEAP_MODEL, temp_r29);
+    temp_r30 = HuMemDirectMalloc(HEAP_DATA, temp_r29);
     memset(temp_r30, 0, temp_r29);
     DCFlushRange(temp_r30, temp_r29);
     if (temp_r30 == 0) {
@@ -154,7 +154,7 @@ static void THPTestProc(void)
         HuPrcVSleep();
     }
     HuPrcVSleep();
-    decodeStackP = HuMemDirectMalloc(HEAP_HEAP, THP_DECODE_STACK_SIZE);
+    decodeStackP = HuMemDirectMalloc(HEAP_SYSTEM, THP_DECODE_STACK_SIZE);
     decodeThread = OSSetIdleFunction(THPDecodeFunc, NULL, (decodeStackP + THP_DECODE_STACK_SIZE), THP_DECODE_STACK_SIZE);
     decodeRate = 0;
     THPStart = 1;
@@ -242,15 +242,15 @@ static void THPViewSprFunc(HUSPRITE *arg0)
         sp8.b = arg0->b;
         sp8.a = arg0->a;
         if (arg0->zRot != 0.0f) {
-            PSMTXRotAxisRad(sp18, &spC, MTXDegToRad(arg0->zRot));
-            PSMTXScale(sp48, arg0->scale.x, arg0->scale.y, 1.0f);
-            PSMTXConcat(sp18, sp48, sp48);
+            MTXRotAxisRad(sp18, &spC, MTXDegToRad(arg0->zRot));
+            MTXScale(sp48, arg0->scale.x, arg0->scale.y, 1.0f);
+            MTXConcat(sp18, sp48, sp48);
         }
         else {
-            PSMTXScale(sp48, arg0->scale.x, arg0->scale.y, 1.0f);
+            MTXScale(sp48, arg0->scale.x, arg0->scale.y, 1.0f);
         }
         mtxTransCat(sp48, arg0->pos.x, arg0->pos.y, 0.0f);
-        PSMTXConcat(*arg0->groupMtx, sp48, sp48);
+        MTXConcat(*arg0->groupMtx, sp48, sp48);
         temp_r30 = -((s32)audioTrack.unk00 / 2);
         temp_r29 = -((s32)audioTrack.unk04 / 2);
         GXSetZMode(GX_FALSE, GX_ALWAYS, GX_FALSE);

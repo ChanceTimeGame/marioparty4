@@ -9,7 +9,7 @@
 #include "game/board/basic_space.h"
 
 s32 lbl_1_bss_54;
-HUPROCESS* lbl_1_bss_50;
+Process* lbl_1_bss_50;
 
 /**
  * @brief Starts the gamble minigame sequence

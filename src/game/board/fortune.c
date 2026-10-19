@@ -39,8 +39,8 @@ static s8 comPlayer1;
 static s8 comPrize;
 static s8 comCoin;
 static s8 comStar;
-static OMOBJ *fortunePlatformObj;
-static HUPROCESS *fortuneProc;
+static omObjData *fortunePlatformObj;
+static Process *fortuneProc;
 
 static void FortuneExec(void);
 static void DestroyFortune(void);
@@ -48,7 +48,7 @@ static void FortuneMain(void);
 static void FortunePostMG(void);
 
 static void CreateFortunePlatform(void);
-static void ExecFortunePlatform(OMOBJ *object);
+static void ExecFortunePlatform(omObjData *object);
 
 static void CameraCalcFortune(BoardCameraData *camera);
 
@@ -153,7 +153,7 @@ static void FortuneMain(void)
 	_SetFlag(0x1000E);
 	BoardCameraPosCalcFuncSet(NULL);
 	if(fortunePlatformObj) {
-		omObjGetWork(fortunePlatformObj, PlatformWork)->kill = 1;
+		OM_GET_WORK_PTR(fortunePlatformObj, PlatformWork)->kill = 1;
 	}
 	while(fortunePlatformObj) {
 		HuPrcVSleep();
@@ -201,11 +201,10 @@ static void FortunePostMG(void)
 
 static void CreateFortunePlatform(void)
 {
-	PlayerState *player;
 	Vec pos, rot;
 	PlatformWork *work;
 	fortunePlatformObj = omAddObjEx(boardObjMan, 257, 0, 0, -1, ExecFortunePlatform);
-	work = omObjGetWork(fortunePlatformObj, PlatformWork);
+	work = OM_GET_WORK_PTR(fortunePlatformObj, PlatformWork);
 	work->kill = 0;
 	work->unk02 = 0;
 	work->model = BoardModelCreate(DATA_MAKE_NUM(DATADIR_BOARD, 3), NULL, 0);
@@ -229,9 +228,9 @@ static void CameraCalcFortune(BoardCameraData *camera)
 	camera->target = camTargetFortune;
 }
 
-static void ExecFortunePlatform(OMOBJ *object)
+static void ExecFortunePlatform(omObjData *object)
 {
-	PlatformWork *work = omObjGetWork(object, PlatformWork);
+	PlatformWork *work = OM_GET_WORK_PTR(object, PlatformWork);
 	if(work->kill || BoardIsKill()) {
 		Vec pos;
 		fortunePlatformObj = NULL;

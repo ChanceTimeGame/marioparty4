@@ -17,6 +17,11 @@
 
 #include "data_num/win.h"
 
+#ifdef TARGET_PC
+#include <assert.h>
+#include "port/port_version.h"
+#endif
+
 typedef struct {
     /* 0x00 */ ANIMDATA **anim;
     /* 0x04 */ s16 bank;
@@ -42,23 +47,26 @@ static s16 HuWinSpcFontEntry(WindowData *window, s16 entry, s16 x, s16 y);
 static void HuWinSpcFontClear(WindowData *window);
 static void HuWinChoice(WindowData *window);
 static void GetMesMaxSizeSub(u32 mess);
+#ifdef TARGET_PC
+static void GetMesMaxSizeSubPtr(uintptr_t mess);
+#endif
 static s32 GetMesMaxSizeSub2(WindowData *window, u8 *mess_data);
 
 void mtxTransCat(Mtx, float, float, float);
-WindowData ATTRIBUTE_ALIGN(32) winData[32];
-u32 winKey[4];
+SHARED_SYM WindowData ATTRIBUTE_ALIGN(32) winData[32];
+static u32 winKey[4];
 keyBufData winComKeyBuf[256];
 
 static ANIMDATA *iconAnim;
 static ANIMDATA *cursorAnim;
 static ANIMDATA *cardAnimA;
 static ANIMDATA *cardAnimB;
-static HUPROCESS *winProc;
-void *messDataPtr;
+static Process *winProc;
+SHARED_SYM void *messDataPtr;
 static s32 messDataNo;
 static s16 winMaxWidth;
 static s16 winMaxHeight;
-#if VERSION_NTSC
+#if VERSION_NTSC && !defined(TARGET_PC)
 static u8 mesWInsert[8];
 #else
 static u16 mesWInsert[8];
@@ -82,7 +90,7 @@ static spcFontTblData spcFontTbl[] = { { &iconAnim, 0, 20, 24, 10, 12 }, { &icon
     { &iconAnim, 15, 20, 24, 10, 12 }, { &iconAnim, 16, 20, 24, 10, 12 }, { &iconAnim, 17, 20, 24, 10, 12 }, { &iconAnim, 18, 20, 24, 10, 12 },
     { &iconAnim, 19, 24, 24, 12, 12 }, { &cursorAnim, 0, 40, 32, -15, 18 }, { &cardAnimA, 0, 32, 32, 16, 16 }, { &cardAnimB, 0, 32, 32, 16, 16 } };
 
-#if VERSION_ENG
+#if VERSION_ENG && !defined(TARGET_PC)
 u8 charWETbl[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 18, 20, 12, 12, 11, 14, 8, 13, 12, 12, 12, 12, 12, 12, 12, 9, 11, 12, 11, 15, 12, 13, 12,
     13, 12, 12, 11, 12, 11, 15, 12, 13, 11, 12, 6, 8, 8, 12, 20, 12, 11, 12, 11, 11, 9, 12, 11, 4, 8, 11, 4, 14, 11, 12, 11, 12, 9, 11, 9, 11, 11, 15,
@@ -129,7 +137,7 @@ static u8 ATTRIBUTE_ALIGN(32) charColPal[2 * 3 * 10] = { 0x00, 0x00, 0x00, 0x00,
 
 static s32 frameFileTbl[] = { WIN_FRAME1_ANM, WIN_FRAME2_ANM, WIN_FRAME3_ANM, WIN_FRAME1_ANM };
 
-#if VERSION_NTSC
+#if VERSION_NTSC && !defined(TARGET_PC)
 static char *mesDataTbl[] = { "mess/mini.dat", "mess/board.dat", "mess/mini_e.dat", "mess/board_e.dat" };
 #else
 static char *mesDataTbl[] = { "mess/mini.dat", "mess/board.dat", "mess/mini_e.dat", "mess/board_e.dat", "mess/mini_g.dat", "mess/board_g.dat",
@@ -171,30 +179,30 @@ void HuWinInit(s32 mess_data_no)
         }
         if (!fontAnim) {
             if (LanguageNo == 0) {
-                anim_data = HuDataReadNum(WIN_FONTJ_ANM, HU_MEMNUM_OVL);
+                anim_data = HuDataReadNum(WIN_FONTJ_ANM, MEMORY_DEFAULT_NUM);
             }
             else {
-                anim_data = HuDataReadNum(WIN_FONTE_ANM, HU_MEMNUM_OVL);
+                anim_data = HuDataReadNum(WIN_FONTE_ANM, MEMORY_DEFAULT_NUM);
             }
             fontAnim = HuSprAnimRead(anim_data);
         }
         if (!iconAnim) {
-            anim_data = HuDataReadNum(WIN_ICON_ANM, HU_MEMNUM_OVL);
+            anim_data = HuDataReadNum(WIN_ICON_ANM, MEMORY_DEFAULT_NUM);
             iconAnim = HuSprAnimRead(anim_data);
             HuSprAnimLock(iconAnim);
         }
         if (!cursorAnim) {
-            anim_data = HuDataReadNum(WIN_CURSOR_ANM, HU_MEMNUM_OVL);
+            anim_data = HuDataReadNum(WIN_CURSOR_ANM, MEMORY_DEFAULT_NUM);
             cursorAnim = HuSprAnimRead(anim_data);
             HuSprAnimLock(cursorAnim);
         }
         if (!cardAnimA) {
-            anim_data = HuDataReadNum(WIN_CARDA_ANM, HU_MEMNUM_OVL);
+            anim_data = HuDataReadNum(WIN_CARDA_ANM, MEMORY_DEFAULT_NUM);
             cardAnimA = HuSprAnimRead(anim_data);
             HuSprAnimLock(cardAnimA);
         }
         if (!cardAnimB) {
-            anim_data = HuDataReadNum(WIN_CARDB_ANM, HU_MEMNUM_OVL);
+            anim_data = HuDataReadNum(WIN_CARDB_ANM, MEMORY_DEFAULT_NUM);
             cardAnimB = HuSprAnimRead(anim_data);
             HuSprAnimLock(cardAnimB);
         }
@@ -244,7 +252,7 @@ s16 HuWinCreate(float x, float y, s16 w, s16 h, s16 frame)
     }
     HuSprGrpCenterSet(group, w / 2, h / 2);
     HuSprGrpPosSet(group, window->pos_x, window->pos_y);
-    frame_data = HuAR_ARAMtoMRAMFileRead(frameFileTbl[frame], HU_MEMNUM_OVL, HEAP_MODEL);
+    frame_data = HuAR_ARAMtoMRAMFileRead(frameFileTbl[frame], MEMORY_DEFAULT_NUM, HEAP_DATA);
     window->frame = HuSprAnimRead(frame_data);
     sprite = window->sprite_id[0] = HuSprCreate(window->frame, winPrio, 0);
     HuSprGrpMemberSet(group, 0, sprite);
@@ -262,7 +270,7 @@ s16 HuWinCreate(float x, float y, s16 w, s16 h, s16 frame)
 #else
     window->max_chars = (w / 8) * (h / 24) * 4;
 #endif
-    window->char_data = HuMemDirectMalloc(HEAP_HEAP, window->max_chars * sizeof(WinChar));
+    window->char_data = HuMemDirectMalloc(HEAP_SYSTEM, window->max_chars * sizeof(WinChar));
     window->attr = 0;
     window->stat = 0;
     window->unk8C = 0;
@@ -286,8 +294,8 @@ s16 HuWinCreate(float x, float y, s16 w, s16 h, s16 frame)
     window->w = w;
     window->h = h;
     window->scissor_x = window->scissor_y = 0;
-    window->scissor_w = 0x280;
-    window->scissor_h = 0x1E0;
+    window->scissor_w = HU_FB_WIDTH;
+    window->scissor_h = HU_FB_HEIGHT;
     window->tab_w = 24;
     window->push_key = 0x300;
 #if !VERSION_JP
@@ -402,9 +410,14 @@ static void MesDispFunc(HUSPRITE *sprite)
         GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
         GXSetVtxDesc(GX_VA_TEX0, GX_DIRECT);
         GXSetVtxDesc(GX_VA_CLR0, GX_DIRECT);
-        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_RGBA6, 0);
-        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_RGBA6, 0);
+        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+#ifdef TARGET_PC
+        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
+#else
+        //@bug: this passes GX_CLR_RGB but then uses GX_RGBA8 (should use either alpha variants of both or neither)
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGB, GX_RGBA8, 0);
+#endif
         GXSetCullMode(GX_CULL_NONE);
         GXSetNumTexGens(1);
         GXSetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);
@@ -453,16 +466,16 @@ static void MesDispFunc(HUSPRITE *sprite)
             }
             GXPosition3f32(char_x + 1.0f, char_y, 0.0f);
             GXColor4u8(window->mess_pal[color][0], window->mess_pal[color][1], window->mess_pal[color][2], alpha);
-            GXPosition2f32(uv_minx, uv_miny);
+            GXTexCoord2f32(uv_minx, uv_miny);
             GXPosition3f32(char_x + char_w, char_y, 0.0f);
             GXColor4u8(window->mess_pal[color][0], window->mess_pal[color][1], window->mess_pal[color][2], alpha);
-            GXPosition2f32(uv_maxx, uv_miny);
+            GXTexCoord2f32(uv_maxx, uv_miny);
             GXPosition3f32(char_x + char_w, char_y + 24.0f, 0.0f);
             GXColor4u8(window->mess_pal[color][0], window->mess_pal[color][1], window->mess_pal[color][2], alpha);
-            GXPosition2f32(uv_maxx, uv_maxy);
+            GXTexCoord2f32(uv_maxx, uv_maxy);
             GXPosition3f32(char_x + 1.0f, char_y + 24.0f, 0.0f);
             GXColor4u8(window->mess_pal[color][0], window->mess_pal[color][1], window->mess_pal[color][2], alpha);
-            GXPosition2f32(uv_minx, uv_maxy);
+            GXTexCoord2f32(uv_minx, uv_maxy);
         }
         GXEnd();
         mesCharCnt++;
@@ -485,7 +498,7 @@ static u8 winBGMake(ANIMDATA *bg, ANIMDATA *frame)
     h = bg->bmp->sizeY;
     block_w = (w + 7) & 0xF8;
     block_h = (h + 3) & 0xFC;
-    bmp_data = bg->bmp->data = HuMemDirectMallocNum(HEAP_HEAP, block_w * block_h, HU_MEMNUM_OVL);
+    bmp_data = bg->bmp->data = HuMemDirectMallocNum(HEAP_SYSTEM, block_w * block_h, MEMORY_DEFAULT_NUM);
     for (i = 0; i < h; i++) {
         if (i == 0) {
             for (j = 0; j < w; j++) {
@@ -531,10 +544,19 @@ static u8 winBGMake(ANIMDATA *bg, ANIMDATA *frame)
     bmp = frame->bmp;
     palette = bmp->palData;
     for (w = 0; w < bmp->palNum; w++, palette++) {
+#ifdef BYTESWAPPING
+        // Animation metadata is byte-swapped on PC, but palette texels stay in
+        // GameCube byte order for the texture decoder.
+        if (*palette == 0x00FC) {
+            *palette = 0x1461;
+            break;
+        }
+#else
         if (*palette == 0xFC00) {
             *palette = 0x6114;
             break;
         }
+#endif
     }
     DCStoreRangeNoSync(bmp->palData, 0x200);
     return w;
@@ -787,6 +809,34 @@ static void HuWinDrawMes(s16 window)
             }
             c = window_ptr->mess[0];
             window_ptr->attr |= 0x200;
+#ifdef TARGET_PC
+            if (partyboard_version_is_ntsc()) {
+                if (window_ptr->mess[1] == 128) {
+                    if (c >= 150 && c <= 164) {
+                        c = c + 106;
+                    }
+                    else if (c >= 170 && c <= 174) {
+                        c = c + 101;
+                    }
+                    else if (c >= 214 && c <= 228) {
+                        c = c + 67;
+                    }
+                    else if (c >= 234 && c <= 238) {
+                        c = c + 62;
+                    }
+                    window_ptr->mess++;
+                }
+                else if (window_ptr->mess[1] == 129) {
+                    if (c >= 170 && c <= 174) {
+                        c = c + 106;
+                    }
+                    else if (c >= 234 && c <= 238) {
+                        c = c + 67;
+                    }
+                    window_ptr->mess++;
+                }
+            }
+#else
 #if VERSION_NTSC
             if (window_ptr->mess[1] == 128) {
                 if (c >= 150 && c <= 164) {
@@ -812,6 +862,7 @@ static void HuWinDrawMes(s16 window)
                 }
                 window_ptr->mess++;
             }
+#endif
 #endif
             color = (window_ptr->attr & 0x20) ? 8 : window_ptr->mess_color;
             if (window_ptr->attr & 1) {
@@ -1295,6 +1346,18 @@ void HuWinMesRead(s32 mess_data_no)
         HuMemDirectFree(messDataPtr);
     }
     messDataNo = mess_data_no;
+#ifdef TARGET_PC
+    if (partyboard_version_is_ntsc()) {
+        if (LanguageNo == 0) {
+            mess_path = mesDataTbl[messDataNo];
+        }
+        else {
+            mess_path = mesDataTbl[messDataNo + 2];
+        }
+    } else {
+        mess_path = mesDataTbl[messDataNo + (LanguageNo * 2)];
+    }
+#else
 #if VERSION_NTSC
     if (LanguageNo == 0) {
         mess_path = mesDataTbl[messDataNo];
@@ -1305,8 +1368,9 @@ void HuWinMesRead(s32 mess_data_no)
 #else
     mess_path = mesDataTbl[messDataNo + (LanguageNo * 2)];
 #endif
+#endif
     dvd_mess = HuDvdDataRead(mess_path);
-    messDataPtr = HuMemDirectMalloc(HEAP_HEAP, DirDataSize);
+    messDataPtr = HuMemDirectMalloc(HEAP_SYSTEM, DirDataSize);
     memcpy(messDataPtr, dvd_mess, DirDataSize);
     HuMemDirectFree(dvd_mess);
 }
@@ -1316,6 +1380,9 @@ void HuWinMesSet(s16 window, u32 mess)
     WindowData *window_ptr = &winData[window];
 
     window_ptr->stat = 1;
+#ifdef TARGET_PC
+    assert(mess <= 0x10000000);
+#endif
     if ((mess & 0x80000000) == 0) {
         if (messDataPtr == 0) {
             OSReport("Error: No Message\n");
@@ -1330,9 +1397,11 @@ void HuWinMesSet(s16 window, u32 mess)
 #endif
         }
     }
+#ifndef TARGET_PC
     else {
         window_ptr->mess = (u8 *)mess;
     }
+#endif
     if (!(window_ptr->attr & 0x80)) {
         window_ptr->mess_color = 7;
 #if !VERSION_JP
@@ -1345,6 +1414,9 @@ void HuWinInsertMesSet(s16 window, u32 mess, s16 index)
 {
     WindowData *window_ptr = &winData[window];
 
+#ifdef TARGET_PC
+    assert(mess <= 0x10000000);
+#endif
     if (!(mess & 0x80000000)) {
         if (messDataPtr == 0) {
             OSReport("Error: No Message\n");
@@ -1355,10 +1427,35 @@ void HuWinInsertMesSet(s16 window, u32 mess, s16 index)
             OSReport("Error: No Message data\n");
         }
     }
+#ifndef TARGET_PC
     else {
         window_ptr->insert_mess[index] = (u8 *)mess;
     }
+#endif
 }
+
+#ifdef TARGET_PC
+void HuWinMesSetPtr(s16 window, uintptr_t mess)
+{
+    WindowData *window_ptr = &winData[window];
+
+    window_ptr->stat = 1;
+    window_ptr->mess = (u8 *)mess;
+
+    if (!(window_ptr->attr & 0x80)) {
+        window_ptr->mess_color = 7;
+#if !VERSION_JP
+        window_ptr->mess_time = 0;
+#endif
+    }
+}
+
+void HuWinInsertMesSetPtr(s16 window, uintptr_t mess, s16 index)
+{
+    WindowData *window_ptr = &winData[window];
+    window_ptr->insert_mess[index] = (u8 *)mess;
+}
+#endif
 
 s16 HuWinChoiceGet(s16 window, s16 start_choice)
 {
@@ -1632,6 +1729,16 @@ void HuWinInsertMesSizeGet(u32 mess, s16 index)
     mesWInsert[index] = winMaxWidth;
 }
 
+#ifdef TARGET_PC
+void HuWinInsertMesSizeGetPtr(uintptr_t mess, s16 index)
+{
+    winInsertF = 1;
+    winMaxWidth = winMaxHeight = 0;
+    GetMesMaxSizeSubPtr(mess);
+    mesWInsert[index] = winMaxWidth;
+}
+#endif
+
 void HuWinMesSizeCancelCRSet(s32 cancel_cr)
 {
     cancelCRF = cancel_cr;
@@ -1673,9 +1780,14 @@ static void GetMesMaxSizeSub(u32 mess)
 
     mess_start = NULL;
     cr_flag = 0;
+#ifdef TARGET_PC
+    assert(mess <= 0x10000000); // In this case we should be in GetMesMaxSizeSubPtr
+#endif
     if (mess > 0x80000000) {
+#ifndef TARGET_PC
         from_messdata = 0;
         mess_data = (u8 *)mess;
+#endif
     }
     else {
         from_messdata = 1;
@@ -1746,6 +1858,14 @@ static void GetMesMaxSizeSub(u32 mess)
                 char_w = mesWInsert[*mess_data - 1];
                 break;
         }
+#ifdef TARGET_PC
+        if ((*mess_data != 255 && *mess_data >= 32) || *mess_data == 16) {
+            cr_flag = 1;
+        }
+        if (partyboard_version_is_pal() && mess_data[-1] == 31) {
+            cr_flag = 1;
+        }
+#else
 #if VERSION_NTSC
         if ((*mess_data != 255 && *mess_data >= 32) || *mess_data == 16) {
             cr_flag = 1;
@@ -1754,6 +1874,7 @@ static void GetMesMaxSizeSub(u32 mess)
         if ((*mess_data != 255 && *mess_data >= 32) || *mess_data == 16 || mess_data[-1] == 31) {
             cr_flag = 1;
         }
+#endif
 #endif
         line_w += char_w;
         line_h += char_h;
@@ -1766,6 +1887,118 @@ static void GetMesMaxSizeSub(u32 mess)
         winMaxHeight = line_h;
     }
 }
+
+#ifdef TARGET_PC
+static void GetMesMaxSizeSubPtr(uintptr_t mess)
+{
+    s16 line_h;
+    s16 char_w;
+    s16 line_w;
+    u8 *mess_start;
+    s16 from_messdata;
+    s16 char_h;
+    s32 cr_flag;
+    u8 *mess_data;
+
+    mess_start = NULL;
+    cr_flag = 0;
+    from_messdata = 0;
+    mess_data = (u8 *)mess;
+    line_h = 26;
+    line_w = 0;
+    while (*mess_data != 0) {
+        char_h = 0;
+        char_w = fontWidthP[*mess_data] + 1;
+        switch (*mess_data) {
+            case 16:
+            case 32:
+                break;
+            case 30:
+                mess_data++;
+                char_w = 0;
+                break;
+            case 10:
+                if (cr_flag != 0) {
+                    if (cancelCRF == 0) {
+                        if (winMaxWidth < line_w) {
+                            winMaxWidth = line_w;
+                        }
+                        line_w = char_w = 0;
+                        if (mess_data[1] != 0) {
+                            char_h = 26;
+                        }
+                    }
+                    else {
+                        char_w = fontWidthP[16] + 1;
+                    }
+                }
+                break;
+            case 255:
+                line_w += char_w;
+                /* fallthrough */
+            case 11:
+                cr_flag = 0;
+                if (winInsertF == 0) {
+                    if (winMaxWidth < line_w) {
+                        winMaxWidth = line_w;
+                    }
+                    if (winMaxHeight < line_h) {
+                        winMaxHeight = line_h;
+                    }
+                    line_h = 26;
+                    char_h = 0;
+                    line_w = char_w = 0;
+                }
+                break;
+            case 28:
+                mess_data++;
+                /* fallthrough */
+            case 15:
+            case 29:
+                char_w = 0;
+                break;
+            case 12:
+                char_w = winTabSize * ((line_w + winTabSize) / winTabSize) - line_w;
+                break;
+            case 14:
+                mess_data++;
+                char_w = spcFontTbl[*mess_data - 1].w + 1;
+                break;
+            case 31:
+                mess_data++;
+                char_w = mesWInsert[*mess_data - 1];
+                break;
+        }
+#ifdef TARGET_PC
+        if ((*mess_data != 255 && *mess_data >= 32) || *mess_data == 16) {
+            cr_flag = 1;
+        }
+        if (partyboard_version_is_pal() && mess_data[-1] == 31) {
+            cr_flag = 1;
+        }
+#else
+#if VERSION_NTSC
+        if ((*mess_data != 255 && *mess_data >= 32) || *mess_data == 16) {
+            cr_flag = 1;
+        }
+#else
+        if ((*mess_data != 255 && *mess_data >= 32) || *mess_data == 16 || mess_data[-1] == 31) {
+            cr_flag = 1;
+        }
+#endif
+#endif
+        line_w += char_w;
+        line_h += char_h;
+        mess_data++;
+    }
+    if (winMaxWidth < line_w) {
+        winMaxWidth = line_w;
+    }
+    if (winMaxHeight < line_h) {
+        winMaxHeight = line_h;
+    }
+}
+#endif
 
 static s32 GetMesMaxSizeSub2(WindowData *window, u8 *mess_data)
 {
@@ -1841,13 +2074,18 @@ static s32 GetMesMaxSizeSub2(WindowData *window, u8 *mess_data)
     return mess_w;
 }
 
+
 s16 HuWinKeyWaitNumGet(u32 mess)
 {
     s16 wait_num;
     u8 *mess_data;
-
+#ifdef TARGET_PC
+    assert(mess <= 0x10000000);
+#endif
     if (mess > 0x80000000) {
+#ifndef TARGET_PC
         mess_data = (u8 *)mess;
+#endif
     }
     else {
         mess_data = MessData_MesPtrGet(messDataPtr, mess);
@@ -1859,6 +2097,20 @@ s16 HuWinKeyWaitNumGet(u32 mess)
     }
     return wait_num;
 }
+
+#if TARGET_PC
+s16 HuWinKeyWaitNumGetPtr(uintptr_t mess)
+{
+    s16 wait_num;
+    u8 *mess_data = (u8 *)mess;
+    for (wait_num = 0; *mess_data != 0; mess_data++) {
+        if (*mess_data == 0xFF) {
+            wait_num++;
+        }
+    }
+    return wait_num;
+}
+#endif
 
 void HuWinPushKeySet(s16 window, s16 push_key)
 {
@@ -1898,7 +2150,7 @@ static void HuWinExCreatePortrait(s16 window, s16 portrait, float x, float y)
     WindowData *window_ptr;
     void *data;
 
-    data = HuAR_ARAMtoMRAMFileRead(winPortraitTbl[portrait], HU_MEMNUM_OVL, 2);
+    data = HuAR_ARAMtoMRAMFileRead(winPortraitTbl[portrait], MEMORY_DEFAULT_NUM, HEAP_DATA);
     anim = HuSprAnimRead(data);
     window_ptr = &winData[window];
     sprite = HuSprCreate(anim, window_ptr->prio - 1, 0);

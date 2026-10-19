@@ -1,12 +1,21 @@
 #include "msm/msmmem.h"
 
+#include <stdint.h>
+
 typedef struct MSMBlock_s {
     struct MSMBlock_s* prev;
     struct MSMBlock_s* next;
     u32 freeSize;
     u32 size;
     void* ptr;
+#if UINTPTR_MAX <= 0xFFFFFFFFu
     char pad[12];
+#endif
+    // msmMemAlloc() reserves exactly 0x20 bytes of header per block
+    // (allocSize = size + 0x20) and hands out (block + 1), so this struct must
+    // stay 32 bytes wide. On a 64-bit host the three pointers already fill it,
+    // which is why the padding is 32-bit only -- keeping it there would push
+    // the user pointer 12 bytes past what the allocator accounted for.
 } MSMBLOCK;
 
 typedef struct MSMMem_s {
@@ -30,7 +39,8 @@ void msmMemFree(void* ptr) {
     block = &base[-1];
     blockPrev = block->prev;
     blockNext = block->next;
-    if (mem.ptr > block || ((u32)mem.ptr + (u32)mem.size) <= (u32)block) {
+    if ((uintptr_t)mem.ptr > (uintptr_t)block ||
+        ((uintptr_t)mem.ptr + mem.size) <= (uintptr_t)block) {
         return;
     }
 
@@ -83,9 +93,10 @@ void* msmMemAlloc(u32 size) {
     if (freeSize != 0) {
         freeSize -= 0x20;
     }
-    block = (void*)((u32)blockPrev->ptr + (freeSize));
+    block = (void*)((uintptr_t)blockPrev->ptr + (freeSize));
     blockNext = blockPrev->next;
-    if ((mem.ptr > block) || ((void*)((u32)mem.ptr + (u32)mem.size) <= block)) {
+    if ((uintptr_t)mem.ptr > (uintptr_t)block ||
+        ((uintptr_t)mem.ptr + mem.size) <= (uintptr_t)block) {
         return NULL;
     }
     block->freeSize = allocSize;
@@ -107,21 +118,22 @@ void* msmMemAlloc(u32 size) {
 
 void msmMemInit(void* ptr, u32 size) {
     MSMBLOCK* block;
-    s32 ofs;
+    uintptr_t base;
+    u32 ofs;
 
-    ofs = (s32)ptr & 0x1F;
-    switch (ofs) {
-        default:
-            ofs = 0x20 - ofs;
-            break;
-        case 0:
-            ofs = 0;
-            break;
-    }
-    
-    mem.ptr = (void*)((s32)ptr + ofs);
-    ofs = (s32)ptr + size;
-    mem.size = ((ofs - (s32)mem.ptr) & ~0x1F);
+    // Round the heap base up to 32 bytes, then take what is left of the heap,
+    // also rounded down to 32. Done in uintptr_t because the original 32-bit
+    // casts discarded the top half of a host pointer.
+    //
+    // Written the long way round on purpose: the round-up is a conditional
+    // rather than (base + 0x1F) & ~0x1F, and the size is computed by reading
+    // mem.ptr back rather than from a local. Both are what the original
+    // compiles to; the tidier forms are shorter and do not match.
+    base = (uintptr_t)ptr;
+    ofs = (u32)(base & 0x1F);
+    mem.ptr = (void*)(base + (ofs ? 0x20 - ofs : 0));
+    mem.size = (u32)(((base + size) - (uintptr_t)mem.ptr) & ~(uintptr_t)0x1F);
+
     block = &mem.first;
     block->freeSize = 0;
     block->size = mem.size;

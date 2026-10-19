@@ -1,102 +1,22 @@
-Mario Party 4  
-[![Build Status]][actions] [![Progress]][progress site] [![DOL Progress]][progress site] [![RELs Progress]][progress site] [![Discord Badge]][discord]
-=============
+# Mario Party 4 decompilation (Chance Time)
 
-[Build Status]: https://github.com/mariopartyrd/marioparty4/actions/workflows/build.yml/badge.svg
-[actions]: https://github.com/mariopartyrd/marioparty4/actions/workflows/build.yml
-[Progress]: https://decomp.dev/mariopartyrd/marioparty4.svg?mode=shield&measure=code&label=Code&category=all
-[DOL Progress]: https://decomp.dev/mariopartyrd/marioparty4.svg?mode=shield&measure=code&label=DOL&category=dol
-[RELs Progress]: https://decomp.dev/mariopartyrd/marioparty4.svg?mode=shield&measure=code&label=RELs&category=modules
-[progress site]: https://decomp.dev/mariopartyrd/marioparty4
-[Discord Badge]: https://img.shields.io/discord/994839212618690590?color=%237289DA&logo=discord&logoColor=%23FFFFFF
-[discord]: https://discord.gg/T4faGveujK
+The Mario Party 4 decompilation as the [Chance Time](https://github.com/ChanceTimeGame) PC port
+builds it. It started as [mariopartyrd/marioparty4](https://github.com/mariopartyrd/marioparty4),
+by way of the [mariopartyrd/partyboard](https://github.com/mariopartyrd/partyboard) port, and
+carries the port's host changes (`TARGET_PC`, 64-bit and byte-order fixes) while still building
+a byte-identical game: every unit matches, and the DOL and every REL pass the SHA-1 check for
+`GMPE01_01` (USA revision 1).
 
-A work-in-progress decompilation of Mario Party 4. While the two USA versions are completely matching, most non-game-engine code is not documented at all. Work on the PAL and JP versions is currently stale, as it involves a lot of repetitive work, which could be done much easier later when there is special tooling for porting splits and symbols between versions.
+Chance Time keeps its working copy of this tree in its own repository (`games/mp4/`); this
+repository is a snapshot of it, refreshed from there. Its names and labels follow the port's
+fork point and not later upstream relabelling.
 
-There is **NO** working PC port yet, but it is in the making.
+This repository contains no game data. To build, place your own extracted disc in
+`orig/GMPE01_01/` (`sys/` and `files/`), then:
 
-This repository does **not** contain any game assets or assembly whatsoever. An existing copy of the game is required.
-
-Version Completion:
-
-- `GMPE01_00`: Rev 0 (USA) ✅
-- `GMPE01_01`: Rev 1 (USA) ✅
-- `GMPP01_00`: Rev 0 (PAL) ❌
-- `GMPP01_01`: Rev 1 (PAL) ❌
-- `GMPP01_02`: Rev 2 (PAL) ❌
-- `GMPJ01_00`: Rev 0 (JP)  ❌
-
-Dependencies
-============
-
-Windows
---------
-
-On Windows, it's **highly recommended** to use native tooling. WSL or msys2 are **not** required.  
-When running under WSL, [objdiff](#diffing) is unable to get filesystem notifications for automatic rebuilds.
-
-- Install [Python](https://www.python.org/downloads/) and add it to `%PATH%`.
-  - Also available from the [Windows Store](https://apps.microsoft.com/store/detail/python-311/9NRWMJP3717K).
-- Download [ninja](https://github.com/ninja-build/ninja/releases) and add it to `%PATH%`.
-  - Quick install via pip: `pip install ninja`
-
-macOS
-------
-- Install [ninja](https://github.com/ninja-build/ninja/wiki/Pre-built-Ninja-packages):
-  ```
-  brew install ninja
-  ```
-- Install [wine-crossover](https://github.com/Gcenx/homebrew-wine):
-  ```
-  brew install --cask --no-quarantine gcenx/wine/wine-crossover
-  ```
-
-After OS upgrades, if macOS complains about `Wine Crossover.app` being unverified, you can unquarantine it using:
 ```sh
-sudo xattr -rd com.apple.quarantine '/Applications/Wine Crossover.app'
+python configure.py --version GMPE01_01
+ninja
 ```
 
-Linux
-------
-- Install [ninja](https://github.com/ninja-build/ninja/wiki/Pre-built-Ninja-packages).
-- For non-x86(_64) platforms: Install wine from your package manager.
-  - For x86(_64), [wibo](https://github.com/decompals/wibo), a minimal 32-bit Windows binary wrapper, will be automatically downloaded and used.
-
-Building
-========
-
-- Clone the repository:
-  ```
-  git clone https://github.com/mariopartyrd/marioparty4.git
-  ```
-
-- Initialize and update submodules:
-
-  ```sh
-  git submodule update --init --recursive
-  ```
-
-- Copy your game's disc image to `orig/[GAMEID]`. The supported game IDs are listed above.
-  - Supported formats: ISO (GCM), RVZ, WIA, WBFS, CISO, NFS, GCZ, TGC
-  - After the initial build, the disc image can be deleted to save space.
-
-- Configure:
-  ```
-  python configure.py
-  ```
-
-  To choose a version other than the USA Rev 0 one, add `--version [GAMEID]` to the command. 
-
-- Build:
-  ```
-  ninja
-  ```
-
-Diffing
-=======
-
-Once the initial build succeeds, an `objdiff.json` should exist in the project root. 
-
-Download the latest release from [encounter/objdiff](https://github.com/encounter/objdiff). Under project settings, set `Project directory`. The configuration should be loaded automatically. 
-
-Select an object from the left sidebar to begin diffing. Changes to the project will rebuild automatically: changes to source files, headers, `configure.py`, `splits.txt` or `symbols.txt`.
+The configure step downloads the compilers and tools. Licence: CC0 1.0 (`LICENSE`), as upstream.

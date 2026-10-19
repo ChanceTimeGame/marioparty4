@@ -1,16 +1,15 @@
 #include "ext_math.h"
-#include "game/audio.h"
+#include "game/disp.h"
 #include "game/flag.h"
 #include "game/hu3d.h"
 #include "game/minigame_seq.h"
 #include "game/objsub.h"
 #include "game/pad.h"
 #include "game/printfunc.h"
-#include "game/wipe.h"
 
 #include "REL/m420dll.h"
 
-HUPROCESS *lbl_1_bss_A8;
+Process *lbl_1_bss_A8;
 M420DllUnkStruct lbl_1_bss_8C;
 M420DllUnkStruct lbl_1_bss_70;
 M420DllUnkStruct lbl_1_bss_54;
@@ -26,7 +25,7 @@ float lbl_1_bss_30;
 
 s32 fn_1_D98(void)
 {
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 30.0f, 10.0f, 8000.0f, 1.2f);
     lbl_1_bss_8C.unk_00.x = 0.0f;
     lbl_1_bss_8C.unk_00.y = 0.0f;

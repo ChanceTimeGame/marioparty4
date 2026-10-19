@@ -28,7 +28,7 @@ typedef struct unkDominationData5 {
 //function signatures
 void fn_1_4B7C(void);
 void fn_1_4C3C(s32);
-void fn_1_4C6C(OMOBJ*);
+void fn_1_4C6C(omObjData*);
 void fn_1_4D0C(void);
 void fn_1_4D54(void);
 void fn_1_4E8C(void);
@@ -44,8 +44,8 @@ void fn_1_5A80(void);
 void fn_1_5BB0(void);
 
 //bss
-HUPROCESS* lbl_1_bss_3980;
-OMOBJ* lbl_1_bss_397C;
+Process* lbl_1_bss_3980;
+omObjData* lbl_1_bss_397C;
 s16 lbl_1_bss_3978;
 
 //data
@@ -79,13 +79,13 @@ Vec lbl_1_data_340 = {0.0f, 0.0f, 100.0f};
 Vec lbl_1_data_34C = {-53.0f, -680.0f, 0.0f};
 f32 lbl_1_data_358 = 1900.0f;
 
-void fn_1_4980(HUPROCESS* arg0) {
+void fn_1_4980(Process* arg0) {
     s32 i;
     unkDominationData5* temp_r31;
 
     lbl_1_bss_3980 = arg0;
     lbl_1_bss_397C = omAddObjEx(lbl_1_bss_3980, 0x40, 0, 0, 0, fn_1_4C6C);
-    lbl_1_bss_397C->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(unkDominationData5), HU_MEMNUM_OVL);
+    lbl_1_bss_397C->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(unkDominationData5), MEMORY_DEFAULT_NUM);
     temp_r31 = lbl_1_bss_397C->data;
     Hu3DShadowCreate(45.0f, 10.0f, 10000.0f);
     Hu3DShadowTPLvlSet(0.6f);
@@ -152,7 +152,7 @@ void fn_1_4C3C(s32 arg0) {
     temp_r31->unk_04 = 0;
 }
 
-void fn_1_4C6C(OMOBJ* obj) {
+void fn_1_4C6C(omObjData* obj) {
     unkDominationData5* temp_r30;
     
     temp_r30 = lbl_1_bss_397C->data;

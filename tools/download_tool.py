@@ -17,6 +17,8 @@ import platform
 import shutil
 import stat
 import urllib.request
+import subprocess
+import tempfile
 import zipfile
 from typing import Callable, Dict
 from pathlib import Path
@@ -78,8 +80,14 @@ def sjiswrap_url(tag: str) -> str:
 
 
 def wibo_url(tag: str) -> str:
+    uname = platform.uname()
+    arch = uname.machine.lower()
+    system = uname.system.lower()
+    if system == "darwin":
+        arch = "macos"
+
     repo = "https://github.com/decompals/wibo"
-    return f"{repo}/releases/download/{tag}/wibo"
+    return f"{repo}/releases/download/{tag}/wibo-{arch}"
 
 
 TOOLS: Dict[str, Callable[[str], str]] = {
@@ -107,6 +115,46 @@ def download(url, response, output) -> None:
         st = os.stat(output)
         os.chmod(output, st.st_mode | stat.S_IEXEC)
 
+def download(url, response, output) -> None:
+    if url.endswith(".zip"):
+        data = io.BytesIO(response.read())
+        with zipfile.ZipFile(data) as f:
+            f.extractall(output)
+        # Make all files executable
+        for root, _, files in os.walk(output):
+            for name in files:
+                os.chmod(os.path.join(root, name), 0o755)
+        output.touch(mode=0o755)  # Update dir modtime
+    else:
+        with open(output, "wb") as f:
+            shutil.copyfileobj(response, f)
+        st = os.stat(output)
+        os.chmod(output, st.st_mode | stat.S_IEXEC)
+
+
+# Chance Time keeps a private copy of every pinned tool (tools/deps_mirror/toolchains.tsv,
+# docs/DEPENDENCIES.md): when upstream no longer serves a release, it is fetched from there
+# with the GitHub CLI, which needs a login with access to the mirror.
+MIRROR_REPO = "ChanceTimeGame/chancetime-toolchains"
+MIRROR_RELEASE = {"objdiff-cli": "objdiff"}
+
+
+def download_from_mirror(tool: str, tag: str, url: str, output: Path) -> bool:
+    release = f"{MIRROR_RELEASE.get(tool, tool)}-{tag}"
+    asset = url.rsplit("/", 1)[-1]
+    with tempfile.TemporaryDirectory() as tmp:
+        result = subprocess.run(
+            ["gh", "release", "download", release, "-R", MIRROR_REPO, "-p", asset, "-D", tmp],
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            return False
+        print(f"Using the Chance Time mirror: {MIRROR_REPO} {release}/{asset}")
+        with open(os.path.join(tmp, asset), "rb") as response:
+            download(url, response, output)
+    return True
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("tool", help="Tool name")
@@ -124,16 +172,23 @@ def main() -> None:
             download(url, response, output)
     except urllib.error.URLError as e:
         if str(e).find("CERTIFICATE_VERIFY_FAILED") == -1:
+            if download_from_mirror(args.tool, args.tag, url, output):
+                return
             raise e
         try:
             import certifi
             import ssl
-        except:
-            print("\"certifi\" module not found. Please install it using \"python -m pip install certifi\".")
+        except ImportError:
+            print(
+                '"certifi" module not found. Please install it using "python -m pip install certifi".'
+            )
             return
-            
-        with urllib.request.urlopen(req, context=ssl.create_default_context(cafile=certifi.where())) as response:
+
+        with urllib.request.urlopen(
+            req, context=ssl.create_default_context(cafile=certifi.where())
+        ) as response:
             download(url, response, output)
+
 
 if __name__ == "__main__":
     main()

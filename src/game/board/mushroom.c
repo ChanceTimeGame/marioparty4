@@ -17,7 +17,7 @@
 #include "game/board/window.h"
 #include "game/hsfex.h"
 
-extern s32 boardTutorialData[4];
+SHARED_SYM extern s32 boardTutorialData[4];
 
 
 static void KillMushroom();
@@ -27,12 +27,12 @@ static void MarkKillBox(void);
 static void InitBox(s32 arg0);
 
 static const float boxOfs[2] = {-150.0f, 150.0f};
-static OMOBJ *boxObj[2] = {};
+static omObjData *boxObj[2] = {NULL, NULL};
 static s16 itemMdl = -1;
 static s8 itemResult;
 static u8 pickerChoice;
-static OMOBJ* itemGiveObj;
-static HUPROCESS* mushroomProc;
+static omObjData* itemGiveObj;
+static Process* mushroomProc;
 
 void BoardMushroomExec(s32 arg0) {
     omVibrate(arg0, 0xC, 6, 6);
@@ -75,9 +75,6 @@ static void WaitItemGive(void);
 static void MushroomMain(void) {
     Vec sp14[2];
     Vec sp8;
-    s32 temp_r0;
-    s32 temp_r0_2;
-    s32 var_r30;
     s32 curPlayer;
     s8 var_r29;
     boxObjWork* box;
@@ -120,7 +117,7 @@ static void MushroomMain(void) {
             }
     
             for (i = 0; i < 2; i++) {
-                box = omObjGetWork(boxObj[i], boxObjWork);
+                box = OM_GET_WORK_PTR(boxObj[i], boxObjWork);
                 BoardModelPosGet(box->unk_02, &sp8);
                 Hu3D3Dto2D(&sp8, 1, &sp14[i]);
                 sp14[i].y += 32.0f;
@@ -214,7 +211,7 @@ static void KillMushroom(void) {
     MarkKillBox();
     
     if (itemGiveObj) {
-        temp_r31 = omObjGetWork(itemGiveObj, ItemGiveWork2);
+        temp_r31 = OM_GET_WORK_PTR(itemGiveObj, ItemGiveWork2);
         temp_r31->unk00_field0 = 1;
     }
     
@@ -234,17 +231,16 @@ typedef struct {
     f32 unk_08;
 } itemObjWork;
 
-static void CenterBox(ItemGiveWork2*, OMOBJ*);
-static void ExitBox(ItemGiveWork2* arg0, OMOBJ* arg1);
-static void HideBox(ItemGiveWork2*, OMOBJ*);
-static void ShowBox(ItemGiveWork2*, OMOBJ*);
+static void CenterBox(ItemGiveWork2*, omObjData*);
+static void ExitBox(ItemGiveWork2* arg0, omObjData* arg1);
+static void HideBox(ItemGiveWork2*, omObjData*);
+static void ShowBox(ItemGiveWork2*, omObjData*);
 
 
-static void BoxMain(OMOBJ* arg0) {
-    s32 temp_r0;
+static void BoxMain(omObjData* arg0) {
     ItemGiveWork2* temp_r30;
 
-    temp_r30 = omObjGetWork(arg0, ItemGiveWork2);
+    temp_r30 = OM_GET_WORK_PTR(arg0, ItemGiveWork2);
 
     if ((temp_r30->unk00_field0) || (BoardIsKill() != 0)) {
         BoardModelKill(temp_r30->unk_02);
@@ -270,7 +266,7 @@ static void BoxMain(OMOBJ* arg0) {
     BoardModelRotSet(temp_r30->unk_02, arg0->rot.x, arg0->rot.y, arg0->rot.z);
 }
 
-static void ShowBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
+static void ShowBox(ItemGiveWork2* arg0, omObjData* arg1) {
     Vec sp8;
 
     BoardPlayerPosGet(arg0->unk00_field5, &sp8);
@@ -289,7 +285,7 @@ static void ShowBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
 }
 
 
-static void ExitBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
+static void ExitBox(ItemGiveWork2* arg0, omObjData* arg1) {
     Vec spC;
     s16 sp8;
     f32 temp;
@@ -310,7 +306,7 @@ static void ExitBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
     arg0->unk_06 -= 30;
 }
 
-static void HideBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
+static void HideBox(ItemGiveWork2* arg0, omObjData* arg1) {
     arg0->unk_04 -= 4;
 
     if (arg0->unk_04 < 0) {
@@ -321,7 +317,7 @@ static void HideBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
     BoardModelAlphaSet(arg0->unk_02, arg0->unk_04);
 }
 
-static void CenterBox(ItemGiveWork2* arg0, OMOBJ* arg1) {
+static void CenterBox(ItemGiveWork2* arg0, omObjData* arg1) {
     Vec sp20;
     Vec sp14;
     Vec sp8;
@@ -357,7 +353,7 @@ static void InitBox(s32 arg0) {
 
     for (i = 0; i < 2; i++) {
         boxObj[i] = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, BoxMain);
-        temp_r31 = omObjGetWork(boxObj[i], boxObjWork);
+        temp_r31 = OM_GET_WORK_PTR(boxObj[i], boxObjWork);
         temp_r31->unk00_field0 = 0;
         temp_r31->unk00_field7 = 0;
         temp_r31->unk00_field5 = arg0;
@@ -400,7 +396,7 @@ static void InitBox(s32 arg0) {
     }
     itemMdl = BoardModelCreate(sp8[itemResult], NULL, 0);
     BoardModelVisibilitySet(itemMdl, 0);
-    temp_r31 = omObjGetWork(boxObj[var_r29], boxObjWork);
+    temp_r31 = OM_GET_WORK_PTR(boxObj[var_r29], boxObjWork);
     BoardModelScaleSet(temp_r31->unk_02, 1.5f, 1.5f, 1.5f);
 }
 
@@ -410,33 +406,33 @@ static void MarkKillBox(void) {
 
     for (i = 0; i < 2; i++) {
         if (boxObj[i]) {
-            temp_r30 = omObjGetWork(boxObj[i], boxObjWork);
+            temp_r30 = OM_GET_WORK_PTR(boxObj[i], boxObjWork);
             temp_r30->unk00_field0 = 1;            
         }
     }
 }
 
 static void SetBoxHide(s32 arg0) {
-    boxObjWork* temp_r31 = omObjGetWork(boxObj[arg0], boxObjWork);
+    boxObjWork* temp_r31 = OM_GET_WORK_PTR(boxObj[arg0], boxObjWork);
 
     temp_r31->unk00_field2 = 3;
 }
 
 static void SetBoxCenter(s32 arg0) {
-    boxObjWork* temp_r31 = omObjGetWork(boxObj[arg0], boxObjWork);
+    boxObjWork* temp_r31 = OM_GET_WORK_PTR(boxObj[arg0], boxObjWork);
     
     temp_r31->unk00_field2 = 4;
     HuAudFXPlay(0x341);
 }
 
 static void SetBoxShow(s32 arg0) {
-    boxObjWork* temp_r31 = omObjGetWork(boxObj[arg0], boxObjWork);
+    boxObjWork* temp_r31 = OM_GET_WORK_PTR(boxObj[arg0], boxObjWork);
 
     temp_r31->unk00_field2 = 2;
 }
 
 static void WaitBoxOpen(s32 arg0) {
-    boxObjWork* temp_r31 = omObjGetWork(boxObj[arg0], boxObjWork);
+    boxObjWork* temp_r31 = OM_GET_WORK_PTR(boxObj[arg0], boxObjWork);
     
     BoardModelMotionSpeedSet(temp_r31->unk_02, 2.0f);
     do {
@@ -445,7 +441,7 @@ static void WaitBoxOpen(s32 arg0) {
 }
 
 static void WaitBoxCenter(s32 arg0) {
-    boxObjWork* temp_r31 = omObjGetWork(boxObj[arg0], boxObjWork);
+    boxObjWork* temp_r31 = OM_GET_WORK_PTR(boxObj[arg0], boxObjWork);
 
     while (temp_r31->unk00_field2 != 1) {
         HuPrcVSleep();
@@ -457,7 +453,7 @@ static s32 CheckBox(void) {
     boxObjWork* box;
     
     for (i = 0; i < 2; i++) {
-        box = omObjGetWork(boxObj[i], boxObjWork);
+        box = OM_GET_WORK_PTR(boxObj[i], boxObjWork);
         if (box->unk00_field7 == 0) {
             return 0;
         }
@@ -465,14 +461,14 @@ static s32 CheckBox(void) {
     return 1;
 }
 
-static void DoItemGive(OMOBJ* arg0) {
+static void DoItemGive(omObjData* arg0) {
     Vec sp28;
     Vec sp1C;
     Vec sp10;
     s32 sp8[2] = {0, 1};
     itemObjWork* temp_r31;
 
-    temp_r31 = omObjGetWork(arg0, itemObjWork);
+    temp_r31 = OM_GET_WORK_PTR(arg0, itemObjWork);
     
     if ((temp_r31->unk00_field0 != 0) || (BoardIsKill() != 0)) {
         KillItemMdl();
@@ -530,7 +526,7 @@ static void StartItemGive(s32 arg0) {
     boxObjWork* box;
 
     itemGiveObj = omAddObjEx(boardObjMan, 0x102, 0U, 0U, -1, DoItemGive);
-    temp_r31 = omObjGetWork(itemGiveObj, itemObjWork);
+    temp_r31 = OM_GET_WORK_PTR(itemGiveObj, itemObjWork);
 
     temp_r31->unk00_field0 = 0;
     temp_r31->unk00_field1 = arg0;
@@ -538,7 +534,7 @@ static void StartItemGive(s32 arg0) {
     temp_r31->unk_02 = 0;
     temp_r31->unk_04 = 0.0f;
     temp_r31->unk_08 = 1.0f;
-    box = omObjGetWork(boxObj[pickerChoice], boxObjWork);
+    box = OM_GET_WORK_PTR(boxObj[pickerChoice], boxObjWork);
     BoardModelPosGet(box->unk_02, &spC);
     BoardModelPosSetV(itemMdl, &spC);
 }
@@ -551,14 +547,14 @@ static void KillItemMdl(void) {
 }
 
 static void ShowItemMdl(void) {
-    itemObjWork* temp_r31 = omObjGetWork(itemGiveObj, itemObjWork);
+    itemObjWork* temp_r31 = OM_GET_WORK_PTR(itemGiveObj, itemObjWork);
     temp_r31->unk00_field2 = 2;
 
     BoardModelVisibilitySet(itemMdl, 1);
 }
 
 static void WaitItemGive(void) {
-    itemObjWork* temp_r31 = omObjGetWork(itemGiveObj, itemObjWork);
+    itemObjWork* temp_r31 = OM_GET_WORK_PTR(itemGiveObj, itemObjWork);
 
     while (temp_r31->unk00_field2 != 1) {
         HuPrcVSleep();

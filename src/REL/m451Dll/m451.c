@@ -66,8 +66,8 @@ s32 lbl_1_bss_B58;
 s32 lbl_1_bss_B54;
 Bss348Data lbl_1_bss_348[1];
 s32 lbl_1_bss_C[207];
-OMOBJ *lbl_1_bss_8;
-HUPROCESS *lbl_1_bss_4[1];
+omObjData *lbl_1_bss_8;
+Process *lbl_1_bss_4[1];
 s32 lbl_1_bss_0;
 
 CameraViewParams lbl_1_data_0[3]
@@ -232,7 +232,7 @@ void ObjectSetup(void)
     Vec up;
     Vec target;
     s32 i;
-    HUPROCESS *objman;
+    Process *objman;
     s32 type;
     type = GWSystem.mg_type;
     lbl_1_bss_B60 = type;
@@ -259,9 +259,9 @@ void ObjectSetup(void)
     Hu3DCameraPerspectiveSet(1, 15, 20, 25000, 1.2);
     Hu3DCameraPerspectiveSet(2, 15, 20, 25000, 1.2);
     Hu3DCameraViewportSet(1, 0, 0, 320, 240, 0, 1);
-    Hu3DCameraViewportSet(2, 0, 0, 640, 480, 0, 1);
+    Hu3DCameraViewportSet(2, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT, 0, 1);
     Hu3DCameraScissorSet(1, 0, 0, 320, 240);
-    Hu3DCameraScissorSet(2, 0, 0, 640, 480);
+    Hu3DCameraScissorSet(2, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
     lbl_1_bss_8 = omAddObjEx(objman, 32730, 0, 0, -1, omOutViewMulti);
     lbl_1_bss_8->work[0] = 2;
     for (i = 0; i < 1; i++) {
@@ -380,7 +380,7 @@ void fn_1_B2C(void)
     HSFTRANSFORM *temp_r27;
     s16 temp_r26;
     HSFTRANSFORM *temp_r25;
-    HUPROCESS *temp_r18;
+    Process *temp_r18;
     s32 temp_r17;
     ANIMDATA *sp2C[4];
     s32 sp10;
@@ -394,22 +394,22 @@ void fn_1_B2C(void)
         temp_r31->unk38 = temp_r30 + 1;
         temp_r31->unk44 = 0;
         temp_r31->unk804 = -1;
-        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_54[lbl_1_bss_B5C], HU_MEMNUM_OVL, HEAP_MODEL);
+        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_54[lbl_1_bss_B5C], MEMORY_DEFAULT_NUM, HEAP_DATA);
         temp_r31->unk0[0] = Hu3DModelCreate(temp_r29);
-        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_60[lbl_1_bss_B60], HU_MEMNUM_OVL, HEAP_MODEL);
+        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_60[lbl_1_bss_B60], MEMORY_DEFAULT_NUM, HEAP_DATA);
         Hu3DAnimCreate(temp_r29, temp_r31->unk0[0], lbl_1_data_78[lbl_1_bss_B5C]);
         Hu3DModelCameraSet(temp_r31->unk0[0], 1 << temp_r31->unk38);
         Hu3DModelPosSet(temp_r31->unk0[0], 0, 0, 0);
         Hu3DModelRotSet(temp_r31->unk0[0], 0, 0, 0);
         Hu3DModelAttrSet(temp_r31->unk0[0], HU3D_ATTR_NOCULL);
-        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_54[lbl_1_bss_B5C], HU_MEMNUM_OVL, HEAP_MODEL);
+        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_54[lbl_1_bss_B5C], MEMORY_DEFAULT_NUM, HEAP_DATA);
         temp_r31->unk0[1] = Hu3DModelCreate(temp_r29);
-        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0D), HU_MEMNUM_OVL, HEAP_MODEL);
+        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0D), MEMORY_DEFAULT_NUM, HEAP_DATA);
         Hu3DAnimCreate(temp_r29, temp_r31->unk0[1], lbl_1_data_78[lbl_1_bss_B5C]);
         Hu3DModelCameraSet(temp_r31->unk0[1], 1 << temp_r31->unk38);
         Hu3DModelPosSet(temp_r31->unk0[1], 0, 0, 0);
         Hu3DModelRotSet(temp_r31->unk0[1], 0, 0, 0);
-        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_54[lbl_1_bss_B5C], HU_MEMNUM_OVL, HEAP_MODEL);
+        temp_r29 = HuDataSelHeapReadNum(lbl_1_data_54[lbl_1_bss_B5C], MEMORY_DEFAULT_NUM, HEAP_DATA);
         temp_r31->unk0[2] = Hu3DModelCreate(temp_r29);
         Hu3DModelCameraSet(temp_r31->unk0[2], 1 << temp_r31->unk38);
         Hu3DModelPosSet(temp_r31->unk0[2], 0, 0, 0);
@@ -446,25 +446,25 @@ void fn_1_B2C(void)
                 OSPanic("m451.c", 561, "ObjPtr3");
             }
         }
-        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x00), HU_MEMNUM_OVL, HEAP_MODEL);
+        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x00), MEMORY_DEFAULT_NUM, HEAP_DATA);
         temp_r26 = Hu3DModelCreate(temp_r29);
         Hu3DModelCameraSet(temp_r26, 1 << temp_r31->unk38);
         Hu3DModelPosSet(temp_r26, 0, 0, 0);
         Hu3DModelRotSet(temp_r26, 0, 0, 0);
-        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x04), HU_MEMNUM_OVL, HEAP_MODEL);
+        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x04), MEMORY_DEFAULT_NUM, HEAP_DATA);
         temp_r31->unk0[4] = Hu3DModelCreate(temp_r29);
         Hu3DModelCameraSet(temp_r31->unk0[4], 1 << temp_r31->unk38);
         Hu3DModelPosSet(temp_r31->unk0[4], 0, 0, 0);
         Hu3DModelRotSet(temp_r31->unk0[4], 0, 0, 0);
-        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x08) + lbl_1_bss_B5C, HU_MEMNUM_OVL, HEAP_MODEL);
+        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x08) + lbl_1_bss_B5C, MEMORY_DEFAULT_NUM, HEAP_DATA);
         Hu3DAnimCreate(temp_r29, temp_r31->unk0[4], "s3puzzle00");
-        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x38) + GWPlayerCfg[temp_r30].character, HU_MEMNUM_OVL, HEAP_MODEL);
+        temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x38) + GWPlayerCfg[temp_r30].character, MEMORY_DEFAULT_NUM, HEAP_DATA);
         spC = HuSprAnimRead(temp_r29);
         temp_r26 = HuSprCreate(spC, 16384, 0);
         temp_r31->unkA = HuSprGrpCreate(1);
         HuSprGrpMemberSet(temp_r31->unkA, 0, temp_r26);
         HuSprAttrSet(temp_r31->unkA, 0, 7);
-        sp8 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0C), HU_MEMNUM_OVL));
+        sp8 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0C), MEMORY_DEFAULT_NUM));
         temp_r26 = Hu3DParticleCreate(sp8, 100);
         Hu3DModelPosSet(temp_r26, 0, 0, 0);
         Hu3DModelScaleSet(temp_r26, 1, 1, 1);
@@ -475,13 +475,13 @@ void fn_1_B2C(void)
         temp_r18->user_data = temp_r31;
         lbl_1_bss_4[temp_r30] = temp_r18;
     }
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x30), HU_MEMNUM_OVL, HEAP_MODEL);
+    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x30), MEMORY_DEFAULT_NUM, HEAP_DATA);
     sp2C[0] = HuSprAnimRead(temp_r29);
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x31), HU_MEMNUM_OVL, HEAP_MODEL);
+    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x31), MEMORY_DEFAULT_NUM, HEAP_DATA);
     sp2C[1] = HuSprAnimRead(temp_r29);
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x37), HU_MEMNUM_OVL, HEAP_MODEL);
+    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_MGCONST, 0x37), MEMORY_DEFAULT_NUM, HEAP_DATA);
     sp2C[2] = HuSprAnimRead(temp_r29);
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0B), HU_MEMNUM_OVL, HEAP_MODEL);
+    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M451, 0x0B), MEMORY_DEFAULT_NUM, HEAP_DATA);
     sp2C[3] = HuSprAnimRead(temp_r29);
     lbl_1_bss_CAE = HuSprGrpCreate(16);
     temp_r26 = HuSprCreate(sp2C[3], 16385, 0);
@@ -1133,7 +1133,7 @@ void fn_1_37C4(void)
     HSFTRANSFORM *temp_r28;
     s32 temp_r26;
     HSFTRANSFORM *temp_r25;
-    HUPROCESS *temp_r24;
+    Process *temp_r24;
     s32 temp_r23;
     Vec spCC;
     Vec spC0;

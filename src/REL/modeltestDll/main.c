@@ -1,3 +1,4 @@
+#include "game/disp.h"
 #define HUSPR_USE_OLD_DEFS
 #include "game/chrman.h"
 #include "game/gamework_data.h"
@@ -26,14 +27,14 @@ s32 lbl_1_data_0[8] = {
     DATA_MAKE_NUM(DATADIR_MARIOMOT, 0x04),
 };
 
-OMOBJ *lbl_1_bss_9A4;
-OMOBJ *lbl_1_bss_9A0;
+omObjData *lbl_1_bss_9A4;
+omObjData *lbl_1_bss_9A0;
 
 // -------------------------------------------------------------------------- //
 
 void ObjectSetup(void)
 {
-    HUPROCESS *prc;
+    Process *prc;
     OSReport("******* MODELTESTObjectSetup *********\n");
 
     prc = omInitObjMan(0x32, 0x2000);
@@ -49,7 +50,7 @@ void ObjectSetup(void)
 
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 45.0f, 20.0f, 20000.0f, 1.2f);
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
 
     lbl_1_bss_9A4 = omAddObjEx(prc, 0, 0x20, 0x20, -1, fn_1_29C);
     lbl_1_bss_9A0 = omAddObjEx(prc, 0x7FDA, 0, 0, -1, omOutView);
@@ -184,16 +185,16 @@ u8 lbl_1_bss_2C;
 f32 lbl_1_bss_28;
 s16 lbl_1_bss_24;
 f32 lbl_1_bss_20;
-HUPROCESS *lbl_1_bss_18[2];
-HUPROCESS *lbl_1_bss_14;
-HUPROCESS *lbl_1_bss_10;
+Process *lbl_1_bss_18[2];
+Process *lbl_1_bss_14;
+Process *lbl_1_bss_10;
 s32 lbl_1_bss_C;
 f32 lbl_1_bss_8;
 static u8 unk_bss[8];
 
 // -------------------------------------------------------------------------- //
 
-void fn_1_29C(OMOBJ *arg0)
+void fn_1_29C(omObjData *arg0)
 {
     Vec sp20;
     Vec sp14;
@@ -257,7 +258,7 @@ void fn_1_29C(OMOBJ *arg0)
     Hu3DModelScaleSet(var_r31, 5.0f, 5.0f, 5.0f);
     Hu3DModelShadowMapSet(var_r31);
     var_r31 = Hu3DModelCreateFile(DATA_MAKE_NUM(DATADIR_M407, 0x1E));
-    temp_r27 = Hu3DJointMotion(var_r31, HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M407, 0x2F), HU_MEMNUM_OVL, 2));
+    temp_r27 = Hu3DJointMotion(var_r31, HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M407, 0x2F), MEMORY_DEFAULT_NUM, 2));
     Hu3DMotionSet(var_r31, temp_r27);
     Hu3DModelAttrSet(var_r31, HU3D_MOTATTR_LOOP);
 
@@ -273,7 +274,7 @@ void fn_1_29C(OMOBJ *arg0)
         Hu3DModelAttrSet(lbl_1_bss_664[var_r31], HU3D_ATTR_NOCULL);
         Hu3DModelAttrSet(lbl_1_bss_664[var_r31], HU3D_MOTATTR_LOOP);
     }
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_SAF, 0x13), HU_MEMNUM_OVL, 2);
+    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_SAF, 0x13), MEMORY_DEFAULT_NUM, 2);
     temp_r28 = HuSprAnimRead(temp_r29);
     lbl_1_bss_99C = HuSprGrpCreate(0x14);
 
@@ -287,7 +288,7 @@ void fn_1_29C(OMOBJ *arg0)
     HuSprGrpDrawNoSet(lbl_1_bss_99C, 0x40);
     lbl_1_bss_458 = 0x293;
     lbl_1_bss_45A[0] = MGSeqTimerCreate(lbl_1_bss_458 / 60);
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 0x01), HU_MEMNUM_OVL, 2);
+    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 0x01), MEMORY_DEFAULT_NUM, 2);
     temp_r28 = HuSprAnimRead(temp_r29);
     lbl_1_bss_888 = Hu3DParManCreate(temp_r28, 0x3E8, &lbl_1_data_208);
     Hu3DParManAttrSet(lbl_1_bss_888, 0x45);
@@ -300,7 +301,7 @@ void fn_1_29C(OMOBJ *arg0)
     Hu3DParManVecSet(lbl_1_bss_884, 0.0f, 1.0f, 0.0f);
     Hu3DParManVacumeSet(lbl_1_bss_884, 500.0f, 0.0f, 0.0f, 1.0f);
     Hu3DParManColorSet(lbl_1_bss_884, 0);
-    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 0x02), HU_MEMNUM_OVL, 2);
+    temp_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 0x02), MEMORY_DEFAULT_NUM, 2);
     temp_r28 = HuSprAnimRead(temp_r29);
 
     for (var_r31 = 0; var_r31 < 10; ++var_r31) {
@@ -313,7 +314,7 @@ void fn_1_29C(OMOBJ *arg0)
 
     lbl_1_bss_C = 0;
     Hu3DFogSet(5000.0f, 10000.0f, 0x20U, 0x10U, 0x30U);
-    arg0->objFunc = fn_1_F9C;
+    arg0->func = fn_1_F9C;
 }
 
 // -------------------------------------------------------------------------- //
@@ -361,7 +362,7 @@ const HuUnkF9C2 lbl_1_rodata_B8 = { { 8, 6, 4, 7, 9, 10, 11 } };
 
 // -------------------------------------------------------------------------- //
 
-void fn_1_F9C(struct omObj_s *omData)
+void fn_1_F9C(struct om_obj_data *omData)
 {
     Vec sp3C;
     Vec sp30;
@@ -755,17 +756,17 @@ void fn_1_2B68(HU3DMODEL *mdl, Mtx arg1)
     f32 var_f27; // ! - uninitialized
 
     if (!lbl_1_bss_30[0]) {
-        lbl_1_bss_30[0] = HuMemDirectMallocNum(HEAP_HEAP, FB_SIZE(640, 480), HU_MEMNUM_OVL);
+        lbl_1_bss_30[0] = HuMemDirectMallocNum(HEAP_SYSTEM, FB_SIZE(HU_FB_WIDTHF, HU_FB_HEIGHT), MEMORY_DEFAULT_NUM);
     }
 
-    GXSetTexCopySrc(0, 0, 640, 480);
-    GXSetTexCopyDst(640, 480, GX_TF_RGB565, GX_FALSE);
+    GXSetTexCopySrc(0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
+    GXSetTexCopyDst(HU_FB_WIDTH, HU_FB_HEIGHT, GX_TF_RGB565, GX_FALSE);
     GXCopyTex(lbl_1_bss_30[0], GX_FALSE);
-    DCFlushRangeNoSync(lbl_1_bss_30[0], FB_SIZE(640, 480));
+    DCFlushRangeNoSync(lbl_1_bss_30[0], FB_SIZE(HU_FB_WIDTH, HU_FB_HEIGHT));
     C_MTXOrtho(sp50, 0.0f, 480.0f, 0.0f, 576.0f, 0.0f, 10.0f);
     GXSetProjection(sp50, GX_ORTHOGRAPHIC);
-    GXSetViewport(0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
-    GXSetScissor(0, 0, 640, 480);
+    GXSetViewport(0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
+    GXSetScissor(0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
     GXInvalidateTexAll();
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
@@ -805,7 +806,7 @@ void fn_1_2B68(HU3DMODEL *mdl, Mtx arg1)
     HuSprTexLoad(lbl_1_bss_454, 0, 1, GX_REPEAT, GX_REPEAT, GX_LINEAR);
 
     PPCSync();
-    GXInitTexObj(&sp30, lbl_1_bss_30[0], 0x280U, 0x1E0U, 4U, GX_CLAMP, GX_CLAMP, 0U);
+    GXInitTexObj(&sp30, lbl_1_bss_30[0], 640, 480, 4U, GX_CLAMP, GX_CLAMP, 0U);
     GXInitTexObjLOD(&sp30, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0U, 0U, GX_ANISO_1);
     GXLoadTexObj(&sp30, GX_TEXMAP0);
     GXSetNumIndStages(1U);
@@ -858,6 +859,9 @@ void fn_1_2B68(HU3DMODEL *mdl, Mtx arg1)
     GXSetNumIndStages(0U);
     GXSetTevDirect(GX_TEVSTAGE0);
     GXSetTevDirect(GX_TEVSTAGE1);
+#ifdef TARGET_PC
+    GXDestroyTexObj(&sp30);
+#endif
 }
 
 // -------------------------------------------------------------------------- //

@@ -19,7 +19,7 @@ static BOOL GetPolygonCircleMtx(s16 *arg0, Vec *arg1, float *arg2, float *arg3);
 static s32 PrecalcPntToTriangle(Vec *arg0, Vec *arg1, Vec *arg2, Vec* arg3, Vec *arg4, Vec *arg5);
 static void DefSetHitFace(float arg0, float arg1, float arg2);
 
-OMOBJ *MapObject[16];
+SHARED_SYM omObjData *MapObject[16];
 Mtx MapMT;
 Mtx MapMTR;
 static Vec MTRAdd;
@@ -30,10 +30,10 @@ static Vec OldXYZ;
 Vec HitFace[32];
 u8 CharObject[0x30];
 
-float AddX;
-float AddZ;
-s32 nMap;
-s32 nChar;
+SHARED_SYM float AddX;
+SHARED_SYM float AddZ;
+SHARED_SYM s32 nMap;
+SHARED_SYM s32 nChar;
 s32 HitFaceCount;
 static HSFDATA *AttrHsf;
 static Vec *topvtx;
@@ -45,7 +45,7 @@ void MapWall(float arg0, float arg1, float arg2, float arg3) {
     float var_f31;
     float var_f30;
     float var_f29;
-    OMOBJ *var_r25;
+    omObjData *var_r25;
     HU3DMODEL *var_r26;
     HSFDATA *temp_r29;
     HSFMAPATTR *sp14;
@@ -56,7 +56,7 @@ void MapWall(float arg0, float arg1, float arg2, float arg3) {
 
     for (i = 0; i < nMap; i++) {
         var_r25 = MapObject[i];
-        temp_r24 = MapObject[i]->mdlId[0];
+        temp_r24 = MapObject[i]->model[0];
         sp18[0] = sp28[0] = arg1;
         sp18[1] = sp28[1] = arg2;
         sp18[2] = sp28[2] = arg3;
@@ -96,8 +96,8 @@ void MapWallCheck(float *arg0, float *arg1, HSFMAPATTR *arg2) {
     MTRAdd.x = AddX;
     MTRAdd.z = AddZ;
     MTRAdd.y = 0.0f;
-    PSMTXInvXpose(MapMT, sp10);
-    PSMTXMultVec(sp10, &MTRAdd, &MTRAdd);
+    MTXInvXpose(MapMT, sp10);
+    MTXMultVec(sp10, &MTRAdd, &MTRAdd);
     for (var_r30 = 0; var_r30 < arg2->dataLen;) {
         temp_r29 = *var_r31;
         if (temp_r29 & 0x8000) {
@@ -117,7 +117,7 @@ float MapPos(float arg0, float arg1, float arg2, float arg3, Vec *arg4) {
     float var_f28;
     HSFMAPATTR *var_r29;
     HU3DMODEL *var_r24;
-    OMOBJ *temp_r27;
+    omObjData *temp_r27;
     s32 i;
     s32 j;
     HSFDATA *temp_r25;
@@ -127,7 +127,7 @@ float MapPos(float arg0, float arg1, float arg2, float arg3, Vec *arg4) {
     ColisionCount = 0;
     for (i = 0; i < nMap; i++) {
         temp_r27 = MapObject[i];
-        var_r24 = &Hu3DData[*temp_r27->mdlId];
+        var_r24 = &Hu3DData[*temp_r27->model];
         temp_r25 = var_r24->hsf;
         sp14.x = arg0;
         sp14.y = arg1;
@@ -144,7 +144,7 @@ float MapPos(float arg0, float arg1, float arg2, float arg3, Vec *arg4) {
                 sp14.x = var_f29;
                 sp14.y = sp10;
                 sp14.z = var_f28;
-                PSMTXMultVec(MapMT, &sp14, &sp14);
+                MTXMultVec(MapMT, &sp14, &sp14);
                 sp10 = sp14.y;
                 if (sp10 > arg1 + arg3 || fabs(arg1 - sp10) > fabs(arg1 - var_f31)) {
                     continue;
@@ -153,8 +153,8 @@ float MapPos(float arg0, float arg1, float arg2, float arg3, Vec *arg4) {
                 arg4->x = FieldVec.x;
                 arg4->y = FieldVec.y;
                 arg4->z = FieldVec.z;
-                PSMTXInvXpose(MapMT, sp20);
-                PSMTXMultVec(sp20, arg4, arg4);
+                MTXInvXpose(MapMT, sp20);
+                MTXMultVec(sp20, arg4, arg4);
                 var_f31 = sp14.y;
             }
         }
@@ -207,7 +207,7 @@ BOOL PolygonRangeCheck(HSFMAPATTR *arg0, float arg1, float arg2, float *arg3, fl
                             sp20.x = arg1;
                             sp20.y = temp_f29;
                             sp20.z = arg2;
-                            PSMTXMultVec(MapMT, &sp20, &sp20);
+                            MTXMultVec(MapMT, &sp20, &sp20);
                             if (arg4 > sp20.y && var_f27 > fabs(arg4 - sp20.y)) {
                                 var_f27 = fabs(arg4 - sp20.y);
                                 *arg3 = temp_f29;
@@ -226,7 +226,7 @@ BOOL PolygonRangeCheck(HSFMAPATTR *arg0, float arg1, float arg2, float *arg3, fl
                             sp20.x = arg1;
                             sp20.y = temp_f29;
                             sp20.z = arg2;
-                            PSMTXMultVec(MapMT, &sp20, &sp20);
+                            MTXMultVec(MapMT, &sp20, &sp20);
                             if (arg4 > sp20.y) {
                                 if (var_f27 > fabs(arg4 - sp20.y)) {
                                     var_f27 = fabs(arg4 - sp20.y);
@@ -722,7 +722,7 @@ static BOOL GetPolygonCircleMtx(s16 *arg0, Vec *arg1, float *arg2, float *arg3) 
         spD0[0] = arg2[0] + AddX;
         spD0[1] = arg2[1];
         spD0[2] = arg2[2] + AddZ;
-        PSMTXMultVec(MapMT, &spC4, &spC4);
+        MTXMultVec(MapMT, &spC4, &spC4);
         DefSetHitFace(spC4.x, spC4.y, spC4.z);
         temp_r29 = &HitFaceVec[HitFaceCount];
 #ifdef NON_MATCHING
@@ -739,7 +739,7 @@ static BOOL GetPolygonCircleMtx(s16 *arg0, Vec *arg1, float *arg2, float *arg3) 
             spE0[0] = OldXYZ.x;
             spE0[1] = OldXYZ.y;
             spE0[2] = OldXYZ.z;
-            PSMTXMultVec(MapMTR, (Vec*) &spE0, (Vec*) &spE0);
+            MTXMultVec(MapMTR, (Vec*) &spE0, (Vec*) &spE0);
             if (should_cull(spE0, temp_r31, arg1) < 0) {
                 spB8.x = spE0[0] - spD0[0];
                 spB8.y = spE0[1] - spD0[1];
@@ -757,8 +757,8 @@ static BOOL GetPolygonCircleMtx(s16 *arg0, Vec *arg1, float *arg2, float *arg3) 
             MTRAdd.x = AddX;
             MTRAdd.z = AddZ;
             MTRAdd.y = 0.0f;
-            PSMTXInvXpose(MapMT, spF0);
-            PSMTXMultVec(spF0, &MTRAdd, &MTRAdd);
+            MTXInvXpose(MapMT, spF0);
+            MTXMultVec(spF0, &MTRAdd, &MTRAdd);
         }
     }
     return var_r17;
@@ -906,22 +906,22 @@ void AppendAddXZ(float x_comp, float z_comp, float scale) {
     AddZ += dir_vec.z * scale;
 }
 
-void CharRotInv(Mtx arg0, Mtx arg1, Vec *arg2, OMOBJ *arg3) {
+void CharRotInv(Mtx arg0, Mtx arg1, Vec *arg2, omObjData *arg3) {
     Mtx sp8;
 
-    PSMTXTrans(arg0, arg3->trans.x, arg3->trans.y, arg3->trans.z);
+    MTXTrans(arg0, arg3->trans.x, arg3->trans.y, arg3->trans.z);
     if (arg3->rot.z) {
-        PSMTXRotRad(sp8, 'z', MTXDegToRad(arg3->rot.z));
-        PSMTXConcat(arg0, sp8, arg0);
+        MTXRotRad(sp8, 'z', MTXDegToRad(arg3->rot.z));
+        MTXConcat(arg0, sp8, arg0);
     }
     if (arg3->rot.y) {
-        PSMTXRotRad(sp8, 'y', MTXDegToRad(arg3->rot.y));
-        PSMTXConcat(arg0, sp8, arg0);
+        MTXRotRad(sp8, 'y', MTXDegToRad(arg3->rot.y));
+        MTXConcat(arg0, sp8, arg0);
     }
     if (arg3->rot.x) {
-        PSMTXRotRad(sp8, 'x', MTXDegToRad(arg3->rot.x));
-        PSMTXConcat(arg0, sp8, arg0);
+        MTXRotRad(sp8, 'x', MTXDegToRad(arg3->rot.x));
+        MTXConcat(arg0, sp8, arg0);
     }
-    PSMTXInverse(arg0, arg1);
-    PSMTXMultVec(arg1, arg2, arg2);
+    MTXInverse(arg0, arg1);
+    MTXMultVec(arg1, arg2, arg2);
 }

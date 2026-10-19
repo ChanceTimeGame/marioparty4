@@ -52,11 +52,11 @@ static void DoInput(s32 arg0);
 static void DiceWaitFull(s32 arg0);
 static void DiceSetHit(s32 arg0);
 static void RollDestroy(void);
-static void DiceMain(OMOBJ *arg0);
+static void DiceMain(omObjData *arg0);
 static void DicePause(s32 arg0);
 static void DicePauseAll(void);
 static void DiceHideEffect(s32 arg0, s32 arg1);
-static void DiceDigitMain(OMOBJ *arg0);
+static void DiceDigitMain(omObjData *arg0);
 static void DiceDigitKill(DiceDigitWork *arg0);
 static void DiceKill(void);
 static void DiceDigitMove(DiceDigitWork *arg0, s32 arg1);
@@ -77,14 +77,14 @@ static s8 diceSize;
 s32 lbl_801D4098;
 static char sameRollCoinStr[8];
 static s8 tutorialRollF;
-static HUPROCESS *rollProc;
+static Process *rollProc;
 
 static s16 diceMdl[3] = { -1, -1, -1 };
 static s16 diceEff[3] = { -1, -1, -1 };
 static s16 rollWin = -1;
 
-static OMOBJ *diceObj[3] = { NULL, NULL, NULL };
-static OMOBJ *diceDigitObj[3] = { NULL, NULL, NULL };
+static omObjData *diceObj[3] = { NULL, NULL, NULL };
+static omObjData *diceDigitObj[3] = { NULL, NULL, NULL };
 static s32 diceSndStatus[3] = { -1, -1, -1 };
 
 static HU3DPARMANPARAM diceEffParam = { 0x0096, { 0x00, 0x00 }, // padding?
@@ -96,9 +96,9 @@ static s32 diceDigitMdlTbl[10] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x0C), DATA_MAKE
     DATA_MAKE_NUM(DATADIR_BOARD, 0x0F), DATA_MAKE_NUM(DATADIR_BOARD, 0x10), DATA_MAKE_NUM(DATADIR_BOARD, 0x11), DATA_MAKE_NUM(DATADIR_BOARD, 0x12),
     DATA_MAKE_NUM(DATADIR_BOARD, 0x13), DATA_MAKE_NUM(DATADIR_BOARD, 0x14), DATA_MAKE_NUM(DATADIR_BOARD, 0x15) };
 
-s32 BoardRollExec(s32 arg0)
+s32 BoardRollExec(s32 playerNo)
 {
-    rollPlayer = arg0;
+    rollPlayer = playerNo;
     inputTimer = 0;
     numDice = 1;
     diceSize = 0;
@@ -117,11 +117,11 @@ s32 BoardRollExec(s32 arg0)
             numDice = 3;
             break;
     }
-    if (BoardPlayerSizeGet(arg0) == 1) {
+    if (BoardPlayerSizeGet(playerNo) == 1) {
         diceSize = 1;
         maxRoll = 5;
     }
-    else if (BoardPlayerSizeGet(arg0) == 2) {
+    else if (BoardPlayerSizeGet(playerNo) == 2) {
         diceSize = 2;
         maxRoll = 10;
         if (BoardMegaDoubleDiceCheck() != 0) {
@@ -131,7 +131,7 @@ s32 BoardRollExec(s32 arg0)
     if (GWPlayer[rollPlayer].bowser_suit != 0) {
         diceSize = 3;
     }
-    GWPlayer[arg0].num_dice = numDice;
+    GWPlayer[playerNo].num_dice = numDice;
     rollProc = HuPrcChildCreate(RollMain, 0x2005, 0x6000, 0, boardMainProc);
     HuPrcDestructorSet2(rollProc, RollDestroy);
     while (rollProc != NULL) {
@@ -151,7 +151,7 @@ static void RollWinCreate(s32 playerNo)
     s32 var_r29;
     s32 var_r27;
     s32 temp_r25;
-    
+
     if (!_CheckFlag(FLAG_ID_MAKE(1, 11))) {
         var_r27 = BoardPlayerItemCount(playerNo);
         if (GWTeamGet()) {
@@ -168,28 +168,25 @@ static void RollWinCreate(s32 playerNo)
             var_r29 = MAKE_MESSID(0x30, 0x25);
         }
         HuWinMesMaxSizeGet(1, sp8, var_r29);
-        #if VERSION_PAL
-        posY = HU_DISP_HEIGHT - 176; 
+#if VERSION_PAL
+        posY = HU_DISP_HEIGHT - 176;
         switch (GWGameStat.language) {
             case 0:
             case 4:
                 posX = -10000.0f;
                 break;
-            
             case 3:
                 posX = HU_DISP_CENTERX - (sp8[0] / 2 - 32.0f);
                 break;
-            
             case 5:
                 posX = HU_DISP_CENTERX - (sp8[0] / 2 - 16.0f);
-                posY = 258; 
+                posY = 258;
                 break;
-            
             default:
                 posX = HU_DISP_CENTERX - (sp8[0] / 2 - 16.0f);
                 break;
         }
-        #else
+#else
         switch (GWGameStat.language) {
             case 0:
                 posX = -10000.0f;
@@ -198,9 +195,9 @@ static void RollWinCreate(s32 playerNo)
                 posX = HU_DISP_CENTERX - (sp8[0] / 2 - 16.0f);
                 break;
         }
-        posY = HU_DISP_HEIGHT - 176; 
-        #endif
-        
+        posY = HU_DISP_HEIGHT - 176;
+#endif
+
         rollWin = HuWinCreate(posX, posY, sp8[0], sp8[1], 0);
         HuWinBGTPLvlSet(rollWin, 0.0f);
         HuWinMesSpeedSet(rollWin, 0);
@@ -246,11 +243,8 @@ void BoardRollWinDispSet(s32 arg0)
 
 static void RollMain(void)
 {
-    
     s32 var_r28;
-    
     s32 var_r30;
-    
     s32 i;
 
     diceValue[0] = diceValue[1] = diceValue[2] = 0;
@@ -323,7 +317,7 @@ static void DiceCreate(s32 arg0)
     Vec sp1C;
     float temp_f30;
     float var_f31;
-    OMOBJ *temp_r31;
+    omObjData *temp_r31;
     DiceWork *temp_r30;
     s32 sp8;
     s32 spC[4] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x18), DATA_MAKE_NUM(DATADIR_BOARD, 0x19), DATA_MAKE_NUM(DATADIR_BOARD, 0x1A),
@@ -339,7 +333,7 @@ static void DiceCreate(s32 arg0)
     BoardModelMotionTimeSet(diceMdl[arg0], temp_f30);
     BoardModelScaleSet(diceMdl[arg0], 0.001f, 0.001f, 0.001f);
     temp_r31 = omAddObjEx(boardObjMan, 0x102, 0, 0, -1, DiceMain);
-    temp_r30 = omObjGetWork(temp_r31, DiceWork);
+    temp_r30 = OM_GET_WORK_PTR(temp_r31, DiceWork);
     temp_r30->unk00_field0 = 0;
     temp_r30->unk00_field1 = 0;
     temp_r30->unk00_field2 = 0;
@@ -417,7 +411,7 @@ static void DoInput(s32 arg0)
 
 static void DiceWaitFull(s32 arg0)
 {
-    DiceWork *temp_r31 = omObjGetWork(diceObj[arg0], DiceWork);
+    DiceWork *temp_r31 = OM_GET_WORK_PTR(diceObj[arg0], DiceWork);
 
     while (temp_r31->unk00_field2 != 1) {
         HuPrcVSleep();
@@ -426,7 +420,7 @@ static void DiceWaitFull(s32 arg0)
 
 static void DiceSetHit(s32 arg0)
 {
-    DiceWork *temp_r30 = omObjGetWork(diceObj[arg0], DiceWork);
+    DiceWork *temp_r30 = OM_GET_WORK_PTR(diceObj[arg0], DiceWork);
 
     temp_r30->unk00_field2 = 2;
     temp_r30->unk04 = 0;
@@ -453,9 +447,9 @@ static void RollDestroy(void)
     rollProc = NULL;
 }
 
-static void DiceMain(OMOBJ *arg0)
+static void DiceMain(omObjData *arg0)
 {
-    DiceWork *temp_r29 = omObjGetWork(arg0, DiceWork);
+    DiceWork *temp_r29 = OM_GET_WORK_PTR(arg0, DiceWork);
     float temp_f29;
     float var_f28;
     float var_f27;
@@ -579,10 +573,10 @@ static void DiceMain(OMOBJ *arg0)
 
 static void DicePause(s32 arg0)
 {
-    OMOBJ *temp_r31 = diceObj[arg0];
+    omObjData *temp_r31 = diceObj[arg0];
 
     if (temp_r31) {
-        omObjGetWork(temp_r31, DiceWork)->unk00_field0 = 1;
+        OM_GET_WORK_PTR(temp_r31, DiceWork)->unk00_field0 = 1;
     }
 }
 
@@ -600,7 +594,7 @@ s16 BoardDiceEffectCreate(void)
     ANIMDATA *temp_r29;
     void *temp_r28;
 
-    temp_r28 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_BOARD, 0x6B), HU_MEMNUM_OVL, HEAP_MODEL);
+    temp_r28 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_BOARD, 0x6B), MEMORY_DEFAULT_NUM, HEAP_DATA);
     temp_r29 = HuSprAnimRead(temp_r28);
     temp_r31 = Hu3DParManCreate(temp_r29, 0x64, &diceEffParam);
     Hu3DParManAttrSet(temp_r31, 0x108);
@@ -636,7 +630,7 @@ void BoardDicePauseAll(void)
 
     for (i = 0; i < numDice; i++) {
         if (diceDigitObj[i]) {
-            temp_r30 = omObjGetWork(diceDigitObj[i], DiceDigitWork);
+            temp_r30 = OM_GET_WORK_PTR(diceDigitObj[i], DiceDigitWork);
             temp_r30->unk00_field1 = 1;
             temp_r30->unk00_field2 = 1;
             temp_r30->unk02 = 0;
@@ -651,7 +645,7 @@ BOOL BoardDiceDoneCheck(void)
 
     for (i = 0; i < numDice; i++) {
         if (diceDigitObj[i]) {
-            temp_r30 = omObjGetWork(diceDigitObj[i], DiceDigitWork);
+            temp_r30 = OM_GET_WORK_PTR(diceDigitObj[i], DiceDigitWork);
             if (temp_r30->unk00_field2 != 0) {
                 return FALSE;
             }
@@ -667,7 +661,7 @@ void BoardDiceStop(s32 arg0)
     if (!diceDigitObj[arg0]) {
         return;
     }
-    temp_r31 = omObjGetWork(diceDigitObj[arg0], DiceDigitWork);
+    temp_r31 = OM_GET_WORK_PTR(diceDigitObj[arg0], DiceDigitWork);
     temp_r31->unk00_field0 = 1;
 }
 
@@ -678,7 +672,7 @@ void BoardDiceVisibleSet(s32 arg0, s32 arg1)
     if (!diceDigitObj[arg0]) {
         return;
     }
-    temp_r31 = omObjGetWork(diceDigitObj[arg0], DiceDigitWork);
+    temp_r31 = OM_GET_WORK_PTR(diceDigitObj[arg0], DiceDigitWork);
     if ((temp_r31->unk01 / 10) == 0) {
         BoardModelVisibilitySet(temp_r31->unk04[1], 0);
     }
@@ -690,7 +684,7 @@ void BoardDiceVisibleSet(s32 arg0, s32 arg1)
 
 void BoardDiceValueSet(s32 arg0, s32 arg1)
 {
-    OMOBJ *temp_r27;
+    omObjData *temp_r27;
     DiceDigitWork *temp_r31;
     Vec spC;
     s16 sp8[2];
@@ -705,7 +699,7 @@ void BoardDiceValueSet(s32 arg0, s32 arg1)
     BoardPlayerPosGet(GWSystem.player_curr, &spC);
     spC.y += 300.0f;
     temp_r27 = omAddObjEx(boardObjMan, 0x102, 0, 0, -1, DiceDigitMain);
-    temp_r31 = omObjGetWork(temp_r27, DiceDigitWork);
+    temp_r31 = OM_GET_WORK_PTR(temp_r27, DiceDigitWork);
     temp_r31->unk00_field0 = 0;
     temp_r31->unk00_field1 = 0;
     temp_r31->unk00_field2 = 0;
@@ -728,9 +722,9 @@ void BoardDiceValueSet(s32 arg0, s32 arg1)
     diceDigitObj[arg0] = temp_r27;
 }
 
-static void DiceDigitMain(OMOBJ *arg0)
+static void DiceDigitMain(omObjData *arg0)
 {
-    DiceDigitWork *temp_r31 = omObjGetWork(arg0, DiceDigitWork);
+    DiceDigitWork *temp_r31 = OM_GET_WORK_PTR(arg0, DiceDigitWork);
 
     if (temp_r31->unk00_field0 != 0 || BoardIsKill()) {
         DiceDigitKill(temp_r31);
@@ -760,7 +754,7 @@ static void DiceKill(void)
 
     for (i = 0; i < 3; i++) {
         if (diceDigitObj[i]) {
-            temp_r29 = omObjGetWork(diceDigitObj[i], DiceDigitWork);
+            temp_r29 = OM_GET_WORK_PTR(diceDigitObj[i], DiceDigitWork);
             DiceDigitKill(temp_r29);
         }
     }
@@ -915,7 +909,7 @@ static void SameRollExec(void)
     }
     BoardAudSeqPause(0, 0, 0x3E8);
     BoardWinCreate(0, MAKE_MESSID(9, 0), -1);
-    BoardWinInsertMesSet(MAKE_MESSID_PTR(sameRollCoinStr), 0);
+    BOARD_WIN_INSERT_MES_SET_PTR(MAKE_MESSID_PTR(sameRollCoinStr), 0);
     BoardWinWait();
     BoardWinKill();
     if (var_r31 >= 0x32) {

@@ -1,7 +1,7 @@
 #ifndef REL_W06DLL_H
 #define REL_W06DLL_H
 
-#include "dolphin/types.h"
+#include "types.h"
 
 enum {
     MAPOBJ_MAX = 6

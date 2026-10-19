@@ -11,6 +11,9 @@ void HuMemInitAll(void)
     void *ptr;
     u32 free_size;
     for(i=0; i<4; i++) {
+#ifdef TARGET_PC
+        HeapSizeTbl[i] *= 4;
+#endif
         ptr = OSAlloc(HeapSizeTbl[i]);
         if(ptr == NULL) {
             OSReport("HuMem> Failed OSAlloc Size:%d\n", HeapSizeTbl[i]);
@@ -29,7 +32,7 @@ void HuMemInitAll(void)
     HeapSizeTbl[4] = free_size;
 }
 
-void *HuMemInit(void *ptr, s32 size)
+void *HuMemInit(void *ptr, size_t size)
 {
     return HuMemHeapInit(ptr, size);
 }
@@ -45,55 +48,71 @@ void HuMemDCFlush(HeapID heap)
     DCFlushRangeNoSync(HeapTbl[heap], HeapSizeTbl[heap]);
 }
 
-void *HuMemDirectMalloc(HeapID heap, s32 size)
+void *HuMemDirectMalloc(HeapID heap, size_t size)
 {
+#ifdef TARGET_PC
+    u32 retaddr = 0;
+#else
     register u32 retaddr;
     asm {
         mflr retaddr
     }
-    size = (size+31) & 0xFFFFFFE0;
+#endif
+    size = (size + 31) & ~0x1F;
     return HuMemMemoryAlloc(HeapTbl[heap], size, retaddr);
 }
 
-void *HuMemDirectMallocNum(HeapID heap, s32 size, u32 num)
+void *HuMemDirectMallocNum(HeapID heap, size_t size, uintptr_t num)
 {
+#ifdef TARGET_PC
+    u32 retaddr = 0;
+#else
     register u32 retaddr;
     asm {
         mflr retaddr
     }
-    size = (size+31) & 0xFFFFFFE0;
+#endif
+    size = (size + 31) & ~0x1F;
     return HuMemMemoryAllocNum(HeapTbl[heap], size, num, retaddr);
 }
 
 void HuMemDirectFree(void *ptr)
 {
+#ifdef TARGET_PC
+    u32 retaddr = 0;
+#else
     register u32 retaddr;
     asm {
         mflr retaddr
     }
+#endif
     HuMemMemoryFree(ptr, retaddr);
 }
 
-void HuMemDirectFreeNum(HeapID heap, u32 num)
+void HuMemDirectFreeNum(HeapID heap, uintptr_t num)
 {
+#ifdef TARGET_PC
+    u32 retaddr = 0;
+#else
     register u32 retaddr;
     asm {
         mflr retaddr
     }
+#endif
     HuMemMemoryFreeNum(HeapTbl[heap], num, retaddr);
 }
 
-s32 HuMemUsedMallocSizeGet(HeapID heap)
+size_t HuMemUsedMallocSizeGet(HeapID heap)
 {
     return HuMemUsedMemorySizeGet(HeapTbl[heap]);
 }
 
-s32 HuMemUsedMallocBlockGet(HeapID heap)
+size_t HuMemUsedMallocBlockGet(HeapID heap)
 {
     return HuMemUsedMemoryBlockGet(HeapTbl[heap]);
 }
 
-u32 HuMemHeapSizeGet(HeapID heap)
+size_t HuMemHeapSizeGet(HeapID heap)
 {
     return HeapSizeTbl[heap];
 }

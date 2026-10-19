@@ -1,4 +1,3 @@
-#include "dolphin/card.h"
 #include "game/audio.h"
 #include "game/card.h"
 #include "game/gamework.h"
@@ -19,6 +18,10 @@ s32 msmSysGetOutputMode(void);
 #ifndef __MWERKS__
 #include "game/esprite.h"
 #include "game/hsfex.h"
+#endif
+
+#ifdef TARGET_PC
+#include "port/port_version.h"
 #endif
 
 s16 lbl_1_data_100 = -1;
@@ -88,14 +91,69 @@ void fn_1_5D30(void);
 s32 fn_1_61B4(void);
 void fn_1_AAB8(void);
 
+#ifdef TARGET_PC
+static void FileSelectUseDefaultGameStat(void)
+{
+    SLSaveFlagSet(0);
+    GWGameStatReset();
+    if (partyboard_version_is_pal()) {
+        _ClearFlag(0x1000B);
+    }
+    GWGameStat.sound_mode = msmSysGetOutputMode();
+}
+
+s32 FileSelectAutoLoadDefault(void)
+{
+    const s16 boxNo = 0;
+    s32 result;
+    BOOL mounted = FALSE;
+
+    SLCurSlotNoSet(0);
+    SLCurBoxNoSet(boxNo);
+    SLSaveFlagSet(1);
+
+    result = HuCardMount(curSlotNo);
+    if (result == CARD_RESULT_READY) {
+        mounted = TRUE;
+        SLSerialNoGet();
+        result = HuCardOpen(curSlotNo, SaveFileNameTbl[boxNo], &curFileInfo);
+        if (result == CARD_RESULT_READY) {
+            result = HuCardRead(&curFileInfo, &saveBuf.buf[0], SAVE_BUF_SIZE, 0);
+            HuCardClose(&curFileInfo);
+            if (result == CARD_RESULT_READY && SLCheckSumCheck()) {
+                SLLoadGameStat();
+                if (partyboard_version_is_pal()) {
+                    if (GwLanguageSave != -1) {
+                        GWGameStat.language = GwLanguageSave;
+                    }
+                    GwLanguage = GWGameStat.language;
+                    _ClearFlag(0x1000B);
+                }
+                HuCardUnMount(curSlotNo);
+                OSReport("File select skipped: loaded %s from slot %d\n", SaveFileNameTbl[boxNo], curSlotNo);
+                return 1;
+            }
+        }
+    }
+
+    if (mounted) {
+        HuCardUnMount(curSlotNo);
+    }
+    FileSelectUseDefaultGameStat();
+    OSReport("File select skipped: using default save state (slot %d file %s result %d)\n",
+        curSlotNo, SaveFileNameTbl[boxNo], result);
+    return 1;
+}
+#endif
+
 s32 fn_1_37DC(void)
 {
     s16 i;
     s16 result;
     WindowData *window;
     s16 fxstat;
-    HUPROCESS *process = HuPrcCurrentGet();
-    HUPROCESS *child;
+    Process *process = HuPrcCurrentGet();
+    Process *child;
     float winSize[2];
     for (i = 0; i < 3; i++) {
         lbl_1_bss_13A[i] = lbl_1_bss_134[i] = -1;
@@ -129,9 +187,15 @@ s32 fn_1_37DC(void)
         }
         if (!SLSaveFlagGet()) {
             GWGameStatReset();
+#ifdef TARGET_PC
+            if (partyboard_version_is_pal()) {
+                _ClearFlag(0x1000B);
+            }
+#else
             #if VERSION_PAL
             _ClearFlag(0x1000B);
             #endif
+#endif
             GWGameStat.sound_mode = msmSysGetOutputMode();
             result = 1;
             break;
@@ -166,7 +230,7 @@ s32 fn_1_3AAC(void)
 {
     s16 temp_r31;
     s16 temp_r30;
-    s32 errorF;
+    s32 temp_r29;
     s32 temp_r28;
     s16 temp_r27;
     s16 temp_r26;
@@ -237,7 +301,7 @@ repeat:
             temp_r27 = HuWinChoiceGet(lbl_1_bss_148, 1);
             if (temp_r27 == 0) {
                 SLSaveFlagSet(0);
-                errorF = 1;
+                temp_r29 = 1;
                 goto cleanup;
             }
             HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x52), 0);
@@ -264,7 +328,7 @@ repeat:
             temp_r27 = HuWinChoiceGet(lbl_1_bss_148, 1);
             if (temp_r27 == 0) {
                 SLSaveFlagSet(0);
-                errorF = 1;
+                temp_r29 = 1;
                 goto cleanup;
             }
             HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x52), 0);
@@ -349,37 +413,37 @@ loop_exit:
     lbl_1_bss_11C = temp_r31;
     SLCurSlotNoSet(temp_r31);
     temp_r28 = HuCardMount(temp_r31);
-    if (temp_r28 == CARD_RESULT_READY) {
+    if (temp_r28 == 0) {
         SLSerialNoGet();
         temp_r28 = HuCardOpen(temp_r31, SaveFileNameTbl[0], &sp34);
         if (temp_r28 != 0 && temp_r28 != -4) {
-            errorF = 1;
+            temp_r29 = 1;
         }
         else {
-            errorF = 0;
+            temp_r29 = 0;
         }
         HuCardClose(&sp34);
     }
     else {
-        if (temp_r28 == CARD_RESULT_NOCARD) {
+        if (temp_r28 == -3) {
             goto repeat;
         }
-        errorF = 1;
+        temp_r29 = 1;
     }
     temp_r27 = HuCardSectorSizeGet(curSlotNo);
     if (temp_r27 > 0 && temp_r27 != 8192) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x39));
         HuWinMesWait(lbl_1_bss_148);
-        errorF = 1;
+        temp_r29 = 1;
         goto skip_check;
     }
     else {
         if (temp_r27 == -128) {
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
             HuWinMesWait(lbl_1_bss_148);
-            errorF = 1;
+            temp_r29 = 1;
             goto skip_check;
         }
         else {
@@ -398,7 +462,7 @@ loop_exit:
 
                 if (temp_r30 > 20) {
                     temp_f31 = (temp_r30 - 20) / 20.0f;
-                    if (errorF) {
+                    if (temp_r29) {
                         sp28.x = 288.0f + ((1.0 - temp_f31) * (100 * GET_ZEROSIGN(temp_r31)));
                         sp28.y = 250.0 - (100.0 * sind(180.0f * temp_f31));
                         sp28.z = 600.0f;
@@ -430,36 +494,44 @@ loop_exit:
                 }
                 HuPrcVSleep();
             }
-            if (errorF == 0) {
+            if (temp_r29 == 0) {
                 HuWinKill(lbl_1_bss_146);
                 return 1;
             }
             HuWinDispOff(lbl_1_bss_146);
-            errorF = 0;
-            if (temp_r28 == CARD_RESULT_WRONGDEVICE) {
-                HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[temp_r31]), 0);
+            temp_r29 = 0;
+            if (temp_r28 == -2) {
+                HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[temp_r31]), 0);
+#ifdef TARGET_PC
+                if (partyboard_version_is_ntsc()) {
+                    HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x39));
+                } else {
+                    HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x37));
+                }
+#else
                 #if VERSION_PAL
                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x39));
                 #else
                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x37));
                 #endif
+#endif
                 HuWinMesWait(lbl_1_bss_148);
-                errorF = 1;
+                temp_r29 = 1;
             }
-            else if (temp_r28 == CARD_RESULT_FATAL_ERROR) {
-                HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[temp_r31]), 0);
+            else if (temp_r28 == -128) {
+                HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[temp_r31]), 0);
                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
                 HuWinMesWait(lbl_1_bss_148);
-                errorF = 1;
+                temp_r29 = 1;
             }
-            else if (temp_r28 == CARD_RESULT_NOCARD) {
+            else if (temp_r28 == -3) {
                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x02));
                 HuWinMesWait(lbl_1_bss_148);
-                errorF = 1;
+                temp_r29 = 1;
             }
-            else if (temp_r28 == CARD_RESULT_BROKEN) {
+            else if (temp_r28 == -6) {
                 UnMountCnt = 0;
-                HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[temp_r31]), 0);
+                HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[temp_r31]), 0);
                 HuWinAttrSet(lbl_1_bss_148, 0x10);
                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x04));
                 HuWinMesWait(lbl_1_bss_148);
@@ -477,43 +549,43 @@ loop_exit:
                             fn_1_BA20();
                             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x50));
                             HuWinMesWait(lbl_1_bss_148);
-                            errorF = 1;
+                            temp_r29 = 1;
                             goto cleanup;
                         }
                         else {
                             _SetFlag(0x30000);
                             temp_r28 = HuCardFormat(temp_r31);
                             _ClearFlag(FLAG_ID_MAKE(3, 0));
-                            if (temp_r28 == CARD_RESULT_READY) {
+                            if (temp_r28 == 0) {
                                 SLSerialNoGet();
                             }
                             fn_1_BA20();
-                            if (temp_r28 == CARD_RESULT_FATAL_ERROR) {
+                            if (temp_r28 == -128) {
                                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x36));
                                 HuWinMesWait(lbl_1_bss_148);
-                                HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+                                HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
                                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
                                 HuWinMesWait(lbl_1_bss_148);
-                                errorF = 1;
+                                temp_r29 = 1;
                             }
-                            else if (temp_r28 == CARD_RESULT_NOCARD) {
+                            else if (temp_r28 == -3) {
                                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x02));
                                 HuWinMesWait(lbl_1_bss_148);
-                                errorF = 1;
+                                temp_r29 = 1;
                             }
                         }
                     }
                     else {
-                        errorF = 1;
+                        temp_r29 = 1;
                     }
                 }
                 else {
-                    errorF = 1;
+                    temp_r29 = 1;
                 }
             }
         }
     }
-    if (errorF == 0) {
+    if (temp_r29 == 0) {
         goto cleanup;
     }
 skip_check:
@@ -538,7 +610,7 @@ cleanup:
     lbl_1_bss_8C += 720.0f;
     for (temp_r30 = 0; temp_r30 <= 20; temp_r30++) {
         temp_f31 = temp_r30 / 20.0f;
-        if (errorF) {
+        if (temp_r29) {
             temp_f31 = 1.5 * cosd(90.0f * temp_f31);
             Hu3DModelScaleSet(lbl_1_bss_19A[0], temp_f31, temp_f31, temp_f31);
             Hu3DModelScaleSet(lbl_1_bss_19A[1], temp_f31, temp_f31, temp_f31);
@@ -570,7 +642,7 @@ cleanup:
         }
         HuPrcVSleep();
     }
-    if (errorF && SLSaveFlagGet()) {
+    if (temp_r29 && SLSaveFlagGet()) {
         goto repeat;
     }
     HuWinKill(lbl_1_bss_146);
@@ -586,19 +658,19 @@ s32 fn_1_562C(void)
     for (i = 0; i < 2; i++) {
         result = HuCardSlotCheck((s32)i);
         if (result == -2) {
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[i]), 0);
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[i]), 0);
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x37));
             HuWinMesWait(lbl_1_bss_148);
             ret = 0;
         }
         else if (result > 0 && result != 8192) {
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[i]), 0);
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[i]), 0);
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x39));
             HuWinMesWait(lbl_1_bss_148);
             ret = 0;
         }
         else if (result == -128) {
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[i]), 0);
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[i]), 0);
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
             HuWinMesWait(lbl_1_bss_148);
             ret = 0;
@@ -630,7 +702,7 @@ void fn_1_5850(void)
     WorkFilesel *work;
     s16 i;
     s32 param;
-    HUPROCESS *curr;
+    Process *curr;
     curr = HuPrcCurrentGet();
     work = curr->user_data;
     index = work->index;
@@ -674,11 +746,11 @@ void fn_1_5850(void)
 void fn_1_5BAC(s16 arg0, s32 arg1)
 {
     WorkFilesel *work;
-    HUPROCESS *child;
-    HUPROCESS *parent;
+    Process *child;
+    Process *parent;
     parent = HuPrcCurrentGet();
     child = HuPrcChildCreate(fn_1_5850, 50, 8192, 0, parent);
-    work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WorkFilesel), HU_MEMNUM_OVL);
+    work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(WorkFilesel), MEMORY_DEFAULT_NUM);
     child->user_data = work;
     work->index = arg0;
     work->param = arg1;
@@ -885,7 +957,7 @@ s32 fn_1_61B4(void)
                 }
                 HuWinDispOff(lbl_1_bss_146);
                 HuAudFXPlay(2);
-                HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_288[temp_r30]), 1);
+                HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_288[temp_r30]), 1);
                 HuWinAttrSet(lbl_1_bss_148, 0x10);
                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x08));
                 HuWinMesWait(lbl_1_bss_148);
@@ -970,7 +1042,7 @@ s32 fn_1_61B4(void)
                 }
                 if (SLSerialNoCheck() == 0) {
                     HuAudFXPlay(4);
-                    HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+                    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
                     HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x45));
                     HuWinMesWait(lbl_1_bss_148);
                     temp_r31 = 0;
@@ -984,9 +1056,15 @@ s32 fn_1_61B4(void)
                     sp8 = OSGetTime();
                     SLSaveDataMake(1, &sp8);
                     GWGameStatReset();
+#ifdef TARGET_PC
+                    if (partyboard_version_is_pal()) {
+                        _ClearFlag(0x1000B);
+                    }
+#else
                     #if VERSION_PAL
                     _ClearFlag(0x1000B);
                     #endif
+#endif
                     GWGameStat.sound_mode = msmSysGetOutputMode();
                     SLCommonSet();
                     fn_1_B8CC(MAKE_MESSID(16, 0x3C));
@@ -1028,6 +1106,14 @@ s32 fn_1_61B4(void)
                             if (SLCheckSumCheck()) {
                                 fn_1_9E14();
                                 SLLoadGameStat();
+#ifdef TARGET_PC
+                                if (partyboard_version_is_pal()) {
+                                    if(GwLanguageSave != -1) {
+                                        GWGameStat.language = GwLanguageSave;
+                                    }
+                                    GwLanguage = GWGameStat.language;
+                                }
+#else
                                 #if VERSION_PAL
                                 if(GwLanguageSave != -1) {
                                     GWGameStat.language = GwLanguageSave;
@@ -1035,6 +1121,7 @@ s32 fn_1_61B4(void)
                                 GwLanguage = GWGameStat.language;
                                 _ClearFlag(0x1000B);
                                 #endif
+#endif
                                 temp_r31 = 1;
                                 break;
                             }
@@ -1046,7 +1133,7 @@ s32 fn_1_61B4(void)
                                 temp_r31 = 0;
                                 break;
                             }
-                            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_288[temp_r30]), 0);
+                            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_288[temp_r30]), 0);
                             HuWinAttrSet(lbl_1_bss_148, 0x10);
                             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x3A));
                             HuWinMesWait(lbl_1_bss_148);
@@ -1121,7 +1208,7 @@ void fn_1_72DC(void)
     WorkFilesel *work;
     s16 i;
     s32 param;
-    HUPROCESS *curr;
+    Process *curr;
     curr = HuPrcCurrentGet();
     work = curr->user_data;
     index = work->index;
@@ -1166,12 +1253,12 @@ void fn_1_72DC(void)
 void fn_1_7628(s16 boxno, s32 flag)
 {
     WorkFilesel *work;
-    HUPROCESS *parent;
-    HUPROCESS *child;
+    Process *parent;
+    Process *child;
 
     parent = HuPrcCurrentGet();
     child = HuPrcChildCreate(fn_1_72DC, 50, 8192, 0, parent);
-    work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(WorkFilesel), HU_MEMNUM_OVL);
+    work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(WorkFilesel), MEMORY_DEFAULT_NUM);
     child->user_data = work;
     work->index = boxno;
     work->param = flag;
@@ -1186,45 +1273,53 @@ s32 fn_1_76B4(char *name, s16 slotno)
     while (1) {
         filecnt++;
         result = HuCardMount(slotno);
-        if (result == CARD_RESULT_READY) {
+        if (result == 0) {
             result = HuCardOpen(slotno, name, &curFileInfo);
-            if (result == CARD_RESULT_READY || result == CARD_RESULT_NOFILE) {
+            if (result == 0 || result == -4) {
                 if (SLSerialNoCheck()) {
                     return result;
                 }
             }
         }
-        if (result == CARD_RESULT_WRONGDEVICE) {
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[slotno]), 0);
+        if (result == -2) {
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[slotno]), 0);
+#ifdef TARGET_PC
+            if (partyboard_version_is_pal()) {
+                HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x39));
+            } else {
+                HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x37));
+            }
+#else
             #if VERSION_PAL
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x39));
             #else
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x37));
             #endif
+#endif
             HuWinMesWait(lbl_1_bss_148);
             return result;
         }
-        if (result == CARD_RESULT_FATAL_ERROR || filecnt > 3) {
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[slotno]), 0);
+        if (result == -128 || filecnt > 3) {
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[slotno]), 0);
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
             HuWinMesWait(lbl_1_bss_148);
             return result;
         }
-        else if (result == CARD_RESULT_NOCARD) {
+        else if (result == -3) {
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x02));
             HuWinMesWait(lbl_1_bss_148);
             return result;
         }
-        else if (result == CARD_RESULT_NOFILE || !SLSerialNoCheck()) {
+        else if (result == -4 || !SLSerialNoCheck()) {
             OSReport("Card Open Error:No File\n");
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x45));
             HuWinMesWait(lbl_1_bss_148);
             break;
         }
-        else if (result == CARD_RESULT_BROKEN) {
+        else if (result == -6) {
             UnMountCnt = 0;
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[slotno]), 0);
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[slotno]), 0);
             HuWinAttrSet(lbl_1_bss_148, 0x10);
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x04));
             HuWinMesWait(lbl_1_bss_148);
@@ -1247,19 +1342,19 @@ s32 fn_1_76B4(char *name, s16 slotno)
                         _SetFlag(0x30000);
                         result = HuCardFormat(slotno);
                         _ClearFlag(0x30000);
-                        if (result == CARD_RESULT_READY) {
+                        if (result == 0) {
                             SLSerialNoGet();
                         }
                         fn_1_BA20();
-                        if (result == CARD_RESULT_FATAL_ERROR) {
+                        if (result == -128) {
                             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x36));
                             HuWinMesWait(lbl_1_bss_148);
-                            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+                            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
                             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
                             HuWinMesWait(lbl_1_bss_148);
                             return result;
                         }
-                        else if (result == CARD_RESULT_NOCARD) {
+                        else if (result == -3) {
                             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x02));
                             HuWinMesWait(lbl_1_bss_148);
                             return result;
@@ -1284,7 +1379,7 @@ s32 fn_1_7B74(s16 boxno)
     s32 i;
     result = HuCardMount(curSlotNo);
     if (result == 0 && !SLSerialNoCheck()) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x45));
         HuWinMesWait(lbl_1_bss_148);
     }
@@ -1299,7 +1394,7 @@ s32 fn_1_7B74(s16 boxno)
         else {
             if (result != 8192) {
                 fn_1_BA20();
-                HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+                HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x39));
                 HuWinMesWait(lbl_1_bss_148);
             }
@@ -1309,19 +1404,19 @@ s32 fn_1_7B74(s16 boxno)
                 result = HuCardFreeSpaceGet(curSlotNo, &byteNotUsed, &filesNotUsed);
                 if (filesNotUsed == 0 && byteNotUsed < SAVE_BUF_SIZE) {
                     fn_1_BA20();
-                    HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+                    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
                     HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x4A));
                     HuWinMesWait(lbl_1_bss_148);
                 }
                 else if (filesNotUsed == 0) {
                     fn_1_BA20();
-                    HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+                    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
                     HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x4A));
                     HuWinMesWait(lbl_1_bss_148);
                 }
                 else if (byteNotUsed < SAVE_BUF_SIZE) {
                     fn_1_BA20();
-                    HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+                    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
                     HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x4A));
                     HuWinMesWait(lbl_1_bss_148);
                 }
@@ -1336,24 +1431,24 @@ s32 fn_1_7B74(s16 boxno)
                     }
                     _SetFlag(0x30000);
                     result = HuCardCreate(curSlotNo, SaveFileNameTbl[boxno], SAVE_BUF_SIZE, &curFileInfo);
-                    if (result == CARD_RESULT_NOCARD) {
+                    if (result == -3) {
                         _ClearFlag(0x30000);
                         fn_1_BA20();
                         OSReport("File Create Error:No Card\n");
                         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x02));
                         HuWinMesWait(lbl_1_bss_148);
                     }
-                    else if (result == CARD_RESULT_WRONGDEVICE) {
+                    else if (result == -2) {
                         _ClearFlag(0x30000);
                         fn_1_BA20();
-                        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+                        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
                         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x37));
                         HuWinMesWait(lbl_1_bss_148);
                     }
                     else if (result < 0) {
                         _ClearFlag(0x30000);
                         fn_1_BA20();
-                        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+                        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
                         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
                         HuWinMesWait(lbl_1_bss_148);
                     }
@@ -1378,37 +1473,37 @@ s32 fn_1_812C(void)
     _SetFlag(0x30000);
     result = HuCardWrite(&curFileInfo, &saveBuf.buf[0], SAVE_BUF_SIZE, 0);
     _ClearFlag(0x30000);
-    if (result == CARD_RESULT_NOCARD) {
+    if (result == -3) {
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x02));
         HuWinMesWait(lbl_1_bss_148);
         return 0;
     }
-    if (result == CARD_RESULT_WRONGDEVICE) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+    if (result == -2) {
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x37));
         HuWinMesWait(lbl_1_bss_148);
         return 0;
     }
     if (result < 0) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
         HuWinMesWait(lbl_1_bss_148);
         return 0;
     }
     result = SLStatSet(0);
-    if (result == CARD_RESULT_NOCARD) {
+    if (result == -3) {
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x02));
         HuWinMesWait(lbl_1_bss_148);
         return 0;
     }
-    if (result == CARD_RESULT_WRONGDEVICE) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+    if (result == -2) {
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x37));
         HuWinMesWait(lbl_1_bss_148);
         return 0;
     }
     if (result < 0) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
         HuWinMesWait(lbl_1_bss_148);
         return 0;
@@ -1427,13 +1522,13 @@ s32 fn_1_83B4(void)
     }
     else if (result == -4 || !SLSerialNoCheck()) {
         OSReport("Card Read Error:No File\n", result);
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x45));
         HuWinMesWait(lbl_1_bss_148);
     }
     else if (result < 0) {
         OSReport("Card Read Error:Fatal Error %d\n", result);
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
         HuWinMesWait(lbl_1_bss_148);
     }
@@ -1455,14 +1550,14 @@ s32 fn_1_8540(s16 boxno)
     }
     if (result == -4 || !SLSerialNoCheck()) {
         OSReport("Card Delete Error:No File\n", result);
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x45));
         HuWinMesWait(lbl_1_bss_148);
         return 0;
     }
     if (result < 0) {
         OSReport("Card Delete Error:Fatal Error %d\n", result);
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
         HuWinMesWait(lbl_1_bss_148);
         return 0;
@@ -1491,14 +1586,14 @@ s32 fn_1_8540(s16 boxno)
         }
         if (result == -4 || !SLSerialNoCheck()) {
             OSReport("Card Delete Error:No File\n", result);
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x45));
             HuWinMesWait(lbl_1_bss_148);
             return 0;
         }
         if (result < 0) {
             OSReport("Card Delete Error:Fatal Error %d\n", result);
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x53));
             HuWinMesWait(lbl_1_bss_148);
             return 0;
@@ -1510,9 +1605,9 @@ s32 fn_1_8540(s16 boxno)
         }
         Hu3DAnimKill(lbl_1_bss_13A[boxno]);
         Hu3DAnimKill(lbl_1_bss_134[boxno]);
-        sprite = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[8], HU_MEMNUM_OVL));
+        sprite = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[8], MEMORY_DEFAULT_NUM));
         lbl_1_bss_13A[boxno] = Hu3DAnimCreate(sprite, lbl_1_bss_19A[boxno + 8], "star");
-        sprite = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[17], HU_MEMNUM_OVL));
+        sprite = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[17], MEMORY_DEFAULT_NUM));
         lbl_1_bss_134[boxno] = Hu3DAnimCreate(sprite, lbl_1_bss_19A[boxno + 11], "star");
         lbl_1_bss_EE[boxno] = -1;
         Hu3DModelTPLvlSet(lbl_1_bss_19A[boxno + 8], 0.6f);
@@ -1543,7 +1638,7 @@ s32 fn_1_8C30(s16 boxno)
     Vec sp3C;
     s32 sp38;
     s32 sp34;
-    HUPROCESS *sp30;
+    Process *sp30;
     HU3DMODEL *sp2C;
     sp30 = HuPrcCurrentGet();
     OSReport("Card Copy Seq.:Open\n");
@@ -1558,7 +1653,7 @@ s32 fn_1_8C30(s16 boxno)
     }
     OSReport("Card Copy Seq.:CheckSum Check\n");
     if (!SLCheckSumCheck()) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_288[boxno]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_288[boxno]), 0);
         HuWinAttrSet(lbl_1_bss_148, 0x10);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x3A));
         HuWinMesWait(lbl_1_bss_148);
@@ -1572,26 +1667,26 @@ s32 fn_1_8C30(s16 boxno)
         }
     }
     if (!SLSerialNoCheck()) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x45));
         HuWinMesWait(lbl_1_bss_148);
         return 0;
     }
     temp_r29 = HuCardFreeSpaceGet(curSlotNo, (u32 *)&sp34, (u32 *)&sp38);
     if (sp38 == 0 && sp34 < SAVE_BUF_SIZE) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x4A));
         HuWinMesWait(lbl_1_bss_148);
         return 1;
     }
     else if (sp38 == 0) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x4A));
         HuWinMesWait(lbl_1_bss_148);
         return 1;
     }
     else if (sp34 < SAVE_BUF_SIZE) {
-        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
         HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x4A));
         HuWinMesWait(lbl_1_bss_148);
         return 1;
@@ -1677,7 +1772,7 @@ s32 fn_1_8C30(s16 boxno)
                 OSReport("CheckSum Check\n");
                 if (!SLCheckSumCheck()) {
                     HuPrcSleep(60);
-                    HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_288[boxno]), 0);
+                    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(lbl_1_data_288[boxno]), 0);
                     HuWinAttrSet(lbl_1_bss_148, 0x10);
                     HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x3A));
                     HuWinMesWait(lbl_1_bss_148);
@@ -1715,9 +1810,9 @@ s32 fn_1_8C30(s16 boxno)
                                 temp_r25 = 8;
                             }
                             (void)temp_r25;
-                            temp_r19 = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[temp_r25], HU_MEMNUM_OVL));
+                            temp_r19 = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[temp_r25], MEMORY_DEFAULT_NUM));
                             lbl_1_bss_13A[temp_r31] = Hu3DAnimCreate(temp_r19, lbl_1_bss_19A[temp_r31 + 8], "star");
-                            temp_r19 = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[temp_r25], HU_MEMNUM_OVL));
+                            temp_r19 = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[temp_r25], MEMORY_DEFAULT_NUM));
                             lbl_1_bss_134[temp_r31] = Hu3DAnimCreate(temp_r19, lbl_1_bss_19A[temp_r31 + 11], "star");
                             Hu3DModelAttrReset(lbl_1_bss_19A[temp_r31 + 11], HU3D_ATTR_DISPOFF);
                             Hu3DModelAttrSet(lbl_1_bss_19A[temp_r31 + 8], HU3D_ATTR_DISPOFF);
@@ -1804,10 +1899,10 @@ s32 fn_1_9E4C(void)
             HuSprGrpKill(lbl_1_bss_110[temp_r31]);
         }
     }
-    lbl_1_bss_FC = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATA_MAKE_NUM(DATADIR_MODESEL, 0x00), 0x22), HU_MEMNUM_OVL));
-    lbl_1_bss_F8 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATA_MAKE_NUM(DATADIR_MODESEL, 0x00), 0x23), HU_MEMNUM_OVL));
-    lbl_1_bss_F4 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATA_MAKE_NUM(DATADIR_MODESEL, 0x00), 0x25), HU_MEMNUM_OVL));
-    temp_r22 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATA_MAKE_NUM(DATADIR_MODESEL, 0x00), 0x24), HU_MEMNUM_OVL));
+    lbl_1_bss_FC = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATA_MAKE_NUM(DATADIR_MODESEL, 0x00), 0x22), MEMORY_DEFAULT_NUM));
+    lbl_1_bss_F8 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATA_MAKE_NUM(DATADIR_MODESEL, 0x00), 0x23), MEMORY_DEFAULT_NUM));
+    lbl_1_bss_F4 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATA_MAKE_NUM(DATADIR_MODESEL, 0x00), 0x25), MEMORY_DEFAULT_NUM));
+    temp_r22 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATA_MAKE_NUM(DATADIR_MODESEL, 0x00), 0x24), MEMORY_DEFAULT_NUM));
     for (temp_r31 = 0; temp_r31 < 3; temp_r31++) {
         Hu3DModelAttrSet(lbl_1_bss_19A[temp_r31 + 8], HU3D_ATTR_DISPOFF);
         Hu3DModelAttrReset(lbl_1_bss_19A[temp_r31 + 11], HU3D_ATTR_DISPOFF);
@@ -1821,9 +1916,9 @@ s32 fn_1_9E4C(void)
         if (lbl_1_bss_134[temp_r31] != -1) {
             Hu3DAnimKill(lbl_1_bss_134[temp_r31]);
         }
-        temp_r24 = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[temp_r27], HU_MEMNUM_OVL));
+        temp_r24 = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[temp_r27], MEMORY_DEFAULT_NUM));
         lbl_1_bss_13A[temp_r31] = Hu3DAnimCreate(temp_r24, lbl_1_bss_19A[temp_r31 + 8], "star");
-        temp_r24 = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[temp_r27 + 9], HU_MEMNUM_OVL));
+        temp_r24 = HuSprAnimRead(HuDataReadNum(lbl_1_data_21C[temp_r27 + 9], MEMORY_DEFAULT_NUM));
         lbl_1_bss_134[temp_r31] = Hu3DAnimCreate(temp_r24, lbl_1_bss_19A[temp_r31 + 11], "star");
         if (!lbl_1_bss_140[temp_r31]) {
             Hu3DModelTPLvlSet(lbl_1_bss_19A[temp_r31 + 8], 0.6f);
@@ -2030,6 +2125,27 @@ void fn_1_AAB8(void)
                 HuSprGrpPosSet(lbl_1_bss_110[temp_r30], sp14.x, sp14.y);
                 HuSprGrpScaleSet(lbl_1_bss_110[temp_r30], temp_f31, temp_f31);
                 OSTicksToCalendarTime(lbl_1_bss_D0[temp_r30], &sp20);
+#ifdef TARGET_PC
+                if (partyboard_version_is_pal()) {
+                    temp_r29 = sp20.mday;
+                    HuSprBankSet(lbl_1_bss_110[temp_r30], 0, temp_r29 / 10);
+                    temp_r29 -= (temp_r29 / 10) * 10;
+                    HuSprBankSet(lbl_1_bss_110[temp_r30], 1, temp_r29);
+                    temp_r29 = sp20.mon+1;
+                    HuSprBankSet(lbl_1_bss_110[temp_r30], 3, temp_r29 / 10);
+                    temp_r29 -= (temp_r29 / 10) * 10;
+                    HuSprBankSet(lbl_1_bss_110[temp_r30], 4, temp_r29);
+                } else {
+                    temp_r29 = sp20.mon + 1;
+                    HuSprBankSet(lbl_1_bss_110[temp_r30], 0, temp_r29 / 10);
+                    temp_r29 -= (temp_r29 / 10) * 10;
+                    HuSprBankSet(lbl_1_bss_110[temp_r30], 1, temp_r29);
+                    temp_r29 = sp20.mday;
+                    HuSprBankSet(lbl_1_bss_110[temp_r30], 3, temp_r29 / 10);
+                    temp_r29 -= (temp_r29 / 10) * 10;
+                    HuSprBankSet(lbl_1_bss_110[temp_r30], 4, temp_r29);
+                }
+#else
                 #if VERSION_PAL
                 temp_r29 = sp20.mday;
                 HuSprBankSet(lbl_1_bss_110[temp_r30], 0, temp_r29 / 10);
@@ -2049,6 +2165,7 @@ void fn_1_AAB8(void)
                 temp_r29 -= (temp_r29 / 10) * 10;
                 HuSprBankSet(lbl_1_bss_110[temp_r30], 4, temp_r29);
                 #endif
+#endif
                 temp_r29 = sp20.hour;
                 HuSprBankSet(lbl_1_bss_110[temp_r30], 6, temp_r29 / 10);
                 temp_r29 -= (temp_r29 / 10) * 10;
@@ -2071,12 +2188,12 @@ void fn_1_B8CC(u32 arg0)
     if (lbl_1_data_41C != -1) {
         HuWinExCleanup(lbl_1_data_41C);
     }
-    HuWinInsertMesSizeGet(MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+    HU_WIN_INSERT_MES_SIZE_GET_PTR(MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
     HuWinMesMaxSizeGet(1, size, arg0);
     lbl_1_data_41C = HuWinExCreateStyled(-10000, 308, size[0], size[1], -1, 2);
     HuWinMesSpeedSet(lbl_1_data_41C, 0);
     HuWinExAnimIn(lbl_1_data_41C);
-    HuWinInsertMesSet(lbl_1_data_41C, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
+    HU_WIN_INSERT_MES_SET_PTR(lbl_1_data_41C, MAKE_MESSID_PTR(lbl_1_data_278[curSlotNo]), 0);
     HuWinMesSet(lbl_1_data_41C, arg0);
     HuWinMesWait(lbl_1_data_41C);
 }
@@ -2101,18 +2218,18 @@ void fn_1_BA80(s16 boxno)
     else {
         if (!lbl_1_bss_C4[boxno] && !lbl_1_bss_B8[boxno]) {
             HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x11), 0);
-            HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(mesDummy), 1);
+            HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(mesDummy), 1);
             HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x43));
         }
         else {
             if (!lbl_1_bss_C4[boxno]) {
                 HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x11), 0);
-                HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(mesDummy), 1);
+                HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(mesDummy), 1);
                 HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x12) + lbl_1_bss_9E[boxno], 2);
                 sprintf(mesMaxTurn, "%2d", lbl_1_bss_98[boxno]);
-                HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(mesMaxTurn), 3);
+                HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(mesMaxTurn), 3);
                 sprintf(mesTurn, "%2d", lbl_1_bss_92[boxno]);
-                HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(mesTurn), 4);
+                HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(mesTurn), 4);
                 HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x42));
             }
             else {
@@ -2122,7 +2239,7 @@ void fn_1_BA80(s16 boxno)
                         HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x18), 1);
                     }
                     else {
-                        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(mesDummy), 1);
+                        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(mesDummy), 1);
                     }
                     HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x43));
                 }
@@ -2132,13 +2249,13 @@ void fn_1_BA80(s16 boxno)
                         HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x18), 1);
                     }
                     else {
-                        HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(mesDummy), 1);
+                        HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(mesDummy), 1);
                     }
                     HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x12) + lbl_1_bss_9E[boxno], 2);
                     sprintf(mesMaxTurn, "%2d", lbl_1_bss_98[boxno]);
-                    HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(mesMaxTurn), 3);
+                    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(mesMaxTurn), 3);
                     sprintf(mesTurn, "%2d", lbl_1_bss_92[boxno]);
-                    HuWinInsertMesSet(lbl_1_bss_148, MAKE_MESSID_PTR(mesTurn), 4);
+                    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_148, MAKE_MESSID_PTR(mesTurn), 4);
                     HuWinMesSet(lbl_1_bss_148, MAKE_MESSID(16, 0x42));
                 }
             }

@@ -26,17 +26,17 @@ typedef struct FaderWork2 {
     /* 0x0C */ float speed;
 } FaderWork2; /* size = 0x10 */
 
-OMOBJ *presentState;
-OMOBJ *lbl_1_bss_14;
-OMOBJ *present;
-OMOBJ *lbl_1_bss_C;
-OMOBJ *presentCamera;
-HUPROCESS *presentObjMan;
-static OMOBJ *scene;
+omObjData *presentState;
+omObjData *lbl_1_bss_14;
+omObjData *present;
+omObjData *lbl_1_bss_C;
+omObjData *presentCamera;
+Process *presentObjMan;
+static omObjData *scene;
 
 static void FadeSprite(void);
 static void FadeModel(void);
-static void SceneMain(OMOBJ *object);
+static void SceneMain(omObjData *object);
 
 void ObjectSetup(void)
 {
@@ -44,15 +44,15 @@ void ObjectSetup(void)
     omGameSysInit(presentObjMan);
     HuWinInit(1);
     scene = omAddObjEx(presentObjMan, 1000, 0, 0, 0, SceneMain);
-    scene->mode = 0;
+    scene->unk10 = 0;
     presentState = PresentStateCreate();
 }
 
 void PresentFadeSprite(s16 sprite, BOOL inF, s32 duration)
 {
-    HUPROCESS *process;
+    Process *process;
 
-    FaderWork *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(FaderWork), HU_MEMNUM_OVL);
+    FaderWork *work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(FaderWork), MEMORY_DEFAULT_NUM);
     work->id = sprite;
     work->speed = 1.0f / duration;
     if (inF) {
@@ -98,9 +98,13 @@ static void FadeSprite(void)
 
 void FadeSpriteWithMultiplier(s16 model, BOOL inF, float tpMultiplier, s32 duration)
 {
-    HUPROCESS *process;
+    Process *process;
     //  bug: wrong struct in sizeof
-    FaderWork2 *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(FaderWork), HU_MEMNUM_OVL);
+#ifdef NON_MATCHING
+    FaderWork2 *work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(FaderWork2), MEMORY_DEFAULT_NUM);
+#else
+    FaderWork2 *work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(FaderWork), MEMORY_DEFAULT_NUM);
+#endif
     work->id = model;
     work->speed = 1.0f / duration;
     work->tpMultiplier = tpMultiplier;
@@ -164,20 +168,20 @@ BOOL PresentPadDStkCheck(u16 dir)
     return pressed != 0;
 }
 
-static void SceneMain(OMOBJ *object)
+static void SceneMain(omObjData *object)
 {
-    switch (object->mode) {
+    switch (object->unk10) {
         case 0:
-            object->mode = 1;
+            object->unk10 = 1;
         case 1:
             if (!omSysExitReq) {
                 break;
             }
-            object->mode = 2;
+            object->unk10 = 2;
         case 2:
             WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
             HuAudFadeOut(1000);
-            object->mode = 3;
+            object->unk10 = 3;
             break;
         case 3:
             if (!WipeStatGet()) {

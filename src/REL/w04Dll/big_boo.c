@@ -53,7 +53,7 @@ static s16 lbl_1_bss_282;
 static s16 lbl_1_bss_280;
 static s16 lbl_1_bss_27E;
 static s16 lbl_1_bss_27C;
-static HUPROCESS *lbl_1_bss_278;
+static Process *lbl_1_bss_278;
 static s16 lbl_1_bss_274;
 static s16 lbl_1_bss_272;
 static s16 lbl_1_bss_270;
@@ -64,7 +64,7 @@ static s16 lbl_1_bss_13A;
 static s16 lbl_1_bss_134[3];
 static s16 lbl_1_bss_114[4][4];
 static Vec lbl_1_bss_108;
-static HUPROCESS *lbl_1_bss_104;
+static Process *lbl_1_bss_104;
 static ANIMDATA *lbl_1_bss_100;
 
 static char *lbl_1_data_3CC[] = {
@@ -466,8 +466,8 @@ static void fn_1_757C(void) {
     s16 temp_r31;
     s16 temp_r30;
 
-    temp_r31 = ((s32) HuPrcCurrentGet()->user_data) >> 16;
-    temp_r30 = (u16) HuPrcCurrentGet()->user_data;
+    temp_r31 = ((s32) HuPrcCurrentGet()->user_data_u32) >> 16;
+    temp_r30 = (u16) HuPrcCurrentGet()->user_data_u32;
     Hu3DGLightKill(temp_r31);
     Hu3DGLightKill(temp_r30);
 }
@@ -494,7 +494,7 @@ static void fn_1_75D8(void) {
     temp_r3_2 = Hu3DGLightCreateV(&sp1C, &sp10, &spC);
     Hu3DGLightInfinitytSet(temp_r3_2);
     Hu3DGLightStaticSet(temp_r3_2, 1);
-    HuPrcCurrentGet()->user_data = (void*) (((temp_r3 << 16) & 0xFFFF0000) | (temp_r3_2 & 0xFFFF));
+    HuPrcCurrentGet()->user_data_u32 = ((temp_r3 << 16) & 0xFFFF0000) | (temp_r3_2 & 0xFFFF);
     var_f31 = 0.0f;
     sp8 = var_f31;
     while (TRUE) {
@@ -742,7 +742,7 @@ static void fn_1_7888(void) {
     fn_1_7300();
     sprintf(sp30, "%d", var_r27);
     BoardWinCreate(2, MAKE_MESSID(32, 9), 9);
-    BoardWinInsertMesSet(MAKE_MESSID_PTR(sp30), 0);
+    BOARD_WIN_INSERT_MES_SET_PTR(MAKE_MESSID_PTR(sp30), 0);
     BoardWinWait();
     BoardWinKill();
     BoardPlayerMotBlendSet(lbl_1_bss_282, 0, 0xF);
@@ -919,7 +919,7 @@ static void fn_1_8A60(void) {
     #if VERSION_ENG
     sprintf(sp10, "%d", var_r29);
     BoardWinCreate(2, MAKE_MESSID(32, 11), 9);
-    BoardWinInsertMesSet(MAKE_MESSID_PTR(sp10), 0);
+    BOARD_WIN_INSERT_MES_SET_PTR(MAKE_MESSID_PTR(sp10), 0);
     #else
     BoardWinCreate(2, MAKE_MESSID(32, 11), 9);
     #endif
@@ -1157,7 +1157,7 @@ static s16 fn_1_9F50(void) {
     s16 temp_r3_2;
 
     if (lbl_1_bss_100 == NULL) {
-        var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 1), HU_MEMNUM_OVL, HEAP_MODEL);
+        var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_EFFECT, 1), MEMORY_DEFAULT_NUM, HEAP_DATA);
         lbl_1_bss_100 = HuSprAnimRead(var_r29);
         HuSprAnimLock(lbl_1_bss_100);
     }

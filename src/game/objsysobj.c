@@ -12,16 +12,16 @@ void MGSeqPauseKill(void);
 #include "game/wipe.h"
 #endif
 
-Vec CRot;
-Vec Center;
-float CZoom;
+SHARED_SYM Vec CRot;
+SHARED_SYM Vec Center;
+SHARED_SYM float CZoom;
 Vec CRotM[16];
 Vec CenterM[16];
 float CZoomM[16];
 
 s16 omDBGMenuButton;
 
-void omOutView(OMOBJ *object)
+void omOutView(omObjData *object)
 {
 	Vec pos, target, up;
 	float rot_x = CRot.x;
@@ -39,7 +39,7 @@ void omOutView(OMOBJ *object)
 	Hu3DCameraPosSet(1, pos.x, pos.y, pos.z, up.x, up.y, up.z, target.x, target.y, target.z);
 }
 
-void omOutViewMulti(OMOBJ *object)
+void omOutViewMulti(omObjData *object)
 {
 	u8 i;
 	for(i=0; i<object->work[0]; i++) {
@@ -61,9 +61,9 @@ void omOutViewMulti(OMOBJ *object)
 }
 
 
-void omSystemKeyCheckSetup(HUPROCESS *objman)
+void omSystemKeyCheckSetup(Process *objman)
 {
-	OMOBJ *object;
+	omObjData *object;
 	object = omAddObjEx(objman, 32731, 0, 0, -1, omSystemKeyCheck);
 	omDBGSysKeyObj = object;
 	omSetStatBit(object, 0xA0);
@@ -72,7 +72,7 @@ void omSystemKeyCheckSetup(HUPROCESS *objman)
 	object->work[2] = 0;
 }
 
-void omSystemKeyCheck(OMOBJ *object)
+void omSystemKeyCheck(omObjData *object)
 {
 	if(!omSysPauseEnableFlag) {
 		return;

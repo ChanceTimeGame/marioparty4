@@ -21,25 +21,25 @@ typedef struct UnkM460DllScoreWork {
 typedef void (*UnkM460DllScoreFunc)(void);
 
 void fn_1_9020(s32 arg0);
-void fn_1_9050(OMOBJ *object);
+void fn_1_9050(omObjData *object);
 void fn_1_916C(void);
 void fn_1_91E4(void);
 void fn_1_9270(void);
 
 UnkM460DllScoreFunc lbl_1_data_380[3] = { fn_1_916C, fn_1_91E4, fn_1_9270 };
 
-HUPROCESS *lbl_1_bss_54;
-OMOBJ *lbl_1_bss_50;
+Process *lbl_1_bss_54;
+omObjData *lbl_1_bss_50;
 // ? lbl_1_rodata_3D0;
 
-void fn_1_8CAC(HUPROCESS *process, s16 arg1)
+void fn_1_8CAC(Process *process, s16 arg1)
 {
     UnkM460DllScoreWork *var_r31;
     u32 var_r30;
 
     lbl_1_bss_54 = process;
     lbl_1_bss_50 = omAddObjEx(lbl_1_bss_54, 0x800, 0, 0, 7, fn_1_9050);
-    lbl_1_bss_50->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM460DllScoreWork), HU_MEMNUM_OVL);
+    lbl_1_bss_50->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(UnkM460DllScoreWork), MEMORY_DEFAULT_NUM);
     var_r31 = lbl_1_bss_50->data;
     var_r31->unk_08 = arg1;
     var_r31->unk_0A = 0;
@@ -77,9 +77,6 @@ void fn_1_8F38(void)
 
 void fn_1_8FAC(s32 arg0)
 {
-    s32 sp8;
-    s32 var_r3;
-
     switch (arg0) {
         case 0:
             fn_1_9020(1);
@@ -104,7 +101,7 @@ void fn_1_9020(s32 arg0)
     var_r31->unk_04 = 0;
 }
 
-void fn_1_9050(OMOBJ *arg0)
+void fn_1_9050(omObjData *arg0)
 {
     UnkM460DllScoreWork *var_r31;
     s16 var_r30;

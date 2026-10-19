@@ -693,15 +693,15 @@ void fn_1_A6A8(void)
         player = lbl_1_bss_340[i];
         group = HuSprGrpCreate(2);
         lbl_1_bss_34A[i] = group;
-        anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x10) + GWPlayerCfg[player].character, HU_MEMNUM_OVL));
+        anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x10) + GWPlayerCfg[player].character, MEMORY_DEFAULT_NUM));
         sprite = HuSprCreate(anim, 200, 0);
         HuSprGrpMemberSet(group, 0, sprite);
         if (iscom = GWPlayerCfg[player].iscom) {
-            anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x27), HU_MEMNUM_OVL));
+            anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x27), MEMORY_DEFAULT_NUM));
             bank = GWPlayerCfg[player].diff;
         }
         else {
-            anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x26), HU_MEMNUM_OVL));
+            anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x26), MEMORY_DEFAULT_NUM));
             bank = lbl_1_bss_340[i];
         }
         sprite = HuSprCreate(anim, 200, bank);
@@ -715,7 +715,7 @@ void fn_1_A6A8(void)
     }
     group = HuSprGrpCreate(5);
     lbl_1_bss_2E6 = group;
-    anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x2D), HU_MEMNUM_OVL));
+    anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x2D), MEMORY_DEFAULT_NUM));
     for (i = 0; i < 5; i++) {
         sprite = HuSprCreate(anim, 5, 0);
         HuSprGrpMemberSet(group, i, sprite);
@@ -725,7 +725,7 @@ void fn_1_A6A8(void)
     HuSprGrpPosSet(group, 284, 410);
     fn_1_ADA0(0);
     if (lbl_1_bss_2A6 == 2 && lbl_1_bss_2E2 == 0) {
-        anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x2B), HU_MEMNUM_OVL));
+        anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x2B), MEMORY_DEFAULT_NUM));
         lbl_1_bss_2E2 = HuSprGrpCreate(18);
         for (i = 0; i < 14; i++) {
             sprite = HuSprCreate(anim, 8, 0);
@@ -735,7 +735,7 @@ void fn_1_A6A8(void)
             HuSprTPLvlSet(lbl_1_bss_2E2, i, 0.8f);
         }
         for (i = 0; i < 4; i++) {
-            anim = HuSprAnimRead(HuDataReadNum(lbl_1_data_C0[i], HU_MEMNUM_OVL));
+            anim = HuSprAnimRead(HuDataReadNum(lbl_1_data_C0[i], MEMORY_DEFAULT_NUM));
             sprite = HuSprCreate(anim, 8, 0);
             HuSprGrpMemberSet(lbl_1_bss_2E2, i + 14, sprite);
             HuSprAttrSet(lbl_1_bss_2E2, i + 14, HUSPR_ATTR_DISPOFF);
@@ -809,7 +809,7 @@ void fn_1_AED0(void)
     lbl_1_data_A0 = HuSprGrpCreate(4);
     temp_r26 = mgInfoTbl[lbl_1_bss_2F0].mg_pic[0];
     if (GWMGAvailGet(lbl_1_bss_2F0 + 401)) {
-        temp_r29 = HuSprAnimRead(HuDataReadNumHeapShortForce(temp_r26, HU_MEMNUM_OVL, HEAP_MODEL));
+        temp_r29 = HuSprAnimRead(HuDataReadNumHeapShortForce(temp_r26, MEMORY_DEFAULT_NUM, HEAP_DATA));
     }
     else {
         temp_r29 = HuSprAnimReadFile(DATA_MAKE_NUM(DATADIR_MGMODE, 0x2C));
@@ -986,10 +986,10 @@ s32 fn_1_BB24(void)
         return 1;
     }
     else {
-        HuWinInsertMesSizeGet(MAKE_MESSID_PTR(messInsertBase), 0);
-        HuWinInsertMesSizeGet(MAKE_MESSID_PTR(messInsertBase), 1);
-        HuWinInsertMesSizeGet(MAKE_MESSID_PTR(messInsertBase), 2);
-        HuWinInsertMesSizeGet(MAKE_MESSID_PTR(messInsertBase), 3);
+        HU_WIN_INSERT_MES_SIZE_GET_PTR(MAKE_MESSID_PTR(messInsertBase), 0);
+        HU_WIN_INSERT_MES_SIZE_GET_PTR(MAKE_MESSID_PTR(messInsertBase), 1);
+        HU_WIN_INSERT_MES_SIZE_GET_PTR(MAKE_MESSID_PTR(messInsertBase), 2);
+        HU_WIN_INSERT_MES_SIZE_GET_PTR(MAKE_MESSID_PTR(messInsertBase), 3);
         HuWinMesMaxSizeGet(3, winSize, MAKE_MESSID(0x28, 0x2B), MAKE_MESSID(0x28, 0x2C), MAKE_MESSID(0x28, 0x2D));
         window = HuWinExCreateStyled(-10000, -10000, winSize[0], winSize[1], -1, 1);
         windowP = &winData[window];
@@ -1007,7 +1007,7 @@ s32 fn_1_BB24(void)
             else {
                 messInsert[j][2] = (customMinNum[j] + '0' - customNum[j]);
             }
-            HuWinInsertMesSet(window, MAKE_MESSID_PTR(&messInsert[j][0]), (s16)j);
+            HU_WIN_INSERT_MES_SET_PTR(window, MAKE_MESSID_PTR(&messInsert[j][0]), (s16)j);
         }
         HuWinMesSet(window, MAKE_MESSID(0x28, 0x2C));
         HuWinMesWait(window);
@@ -1130,8 +1130,8 @@ s32 fn_1_C0C8(s32 arg0)
         }
     }
     temp_r25 = HuSprGrpCreate(8);
-    temp_r27 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x65), HU_MEMNUM_OVL));
-    temp_r21 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x66), HU_MEMNUM_OVL));
+    temp_r27 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x65), MEMORY_DEFAULT_NUM));
+    temp_r21 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_MGMODE, 0x66), MEMORY_DEFAULT_NUM));
     for (temp_r31 = 0; temp_r31 < 4; temp_r31++) {
         temp_r26 = HuSprCreate(temp_r27, 3, temp_r31);
         HuSprGrpMemberSet(temp_r25, (temp_r31 * 2), temp_r26);

@@ -1,4 +1,5 @@
 #include "REL/option.h"
+#include "game/disp.h"
 #include "game/hu3d.h"
 #include "game/memory.h"
 #include "game/pad.h"
@@ -32,19 +33,19 @@ typedef struct {
     /* 0x98 */ float rotSpeed;
 } CameraWork; // Size 0x9C
 
-static void ExecCameraObj(OMOBJ *object);
-static void ExecCamera(OMOBJ *object);
+static void ExecCameraObj(omObjData *object);
+static void ExecCamera(omObjData *object);
 
-OMOBJ *optionCamera;
+omObjData *optionCamera;
 
 static float pad_04_00000000_data[] = { 0.0f, 500.0f, 0.0f, 0.0f, -1.0f, 0.0f };
 
 static s32 pad_04_00000018_data = -1;
 
-OMOBJ *OptionCameraCreate(void)
+omObjData *OptionCameraCreate(void)
 {
-    OMOBJ *object = omAddObjEx(optionObjMan, 1001, 0, 0, 3, ExecCameraObj);
-    CameraWork *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(CameraWork), HU_MEMNUM_OVL);
+    omObjData *object = omAddObjEx(optionObjMan, 1001, 0, 0, 3, ExecCameraObj);
+    CameraWork *work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(CameraWork), MEMORY_DEFAULT_NUM);
     object->data = work;
     work->pos.x = 0.0f;
     work->pos.y = 0.0f;
@@ -61,19 +62,19 @@ OMOBJ *OptionCameraCreate(void)
     work->timeEye = 1.0f;
     work->timeRot = 1.0f;
     Hu3DCameraCreate(1);
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 42.0f, 10.0f, 8000.0f, 1.2f);
     OptionCameraViewSet(object, 600.0f, 60.0f, 120.0f, 1);
     OptionCameraTargetSet(object, 180.0f, 120.0f, 0.0f, 1);
     return object;
 }
 
-void OptionCameraKill(OMOBJ *object)
+void OptionCameraKill(omObjData *object)
 {
     HuMemDirectFree(object->data);
 }
 
-void OptionCameraTargetSet(OMOBJ *object, float x, float y, float z, s32 duration)
+void OptionCameraTargetSet(omObjData *object, float x, float y, float z, s32 duration)
 {
     CameraWork *work = object->data;
 
@@ -85,7 +86,7 @@ void OptionCameraTargetSet(OMOBJ *object, float x, float y, float z, s32 duratio
     work->eyeSpeed = 1.0f / duration;
 }
 
-void OptionCameraFocusSet(OMOBJ *object, float x, float y, float z, s32 duration)
+void OptionCameraFocusSet(omObjData *object, float x, float y, float z, s32 duration)
 {
     CameraWork *work = object->data;
 
@@ -97,7 +98,7 @@ void OptionCameraFocusSet(OMOBJ *object, float x, float y, float z, s32 duration
     work->targetSpeed = 1.0f / duration;
 }
 
-void OptionCameraViewSet(OMOBJ *object, float zoom, float rot, float y, s32 duration)
+void OptionCameraViewSet(omObjData *object, float zoom, float rot, float y, s32 duration)
 {
     CameraWork *work = object->data;
 
@@ -111,21 +112,21 @@ void OptionCameraViewSet(OMOBJ *object, float zoom, float rot, float y, s32 dura
     work->rotSpeed = 1.0f / duration;
 }
 
-float OptionCameraZoomGet(OMOBJ *object)
+float OptionCameraZoomGet(omObjData *object)
 {
     CameraWork *work = object->data;
     float zoom = work->zoom;
     return zoom;
 }
 
-float OptionCameraRotGet(OMOBJ *object)
+float OptionCameraRotGet(omObjData *object)
 {
     CameraWork *work = object->data;
     float rot = work->rot;
     return rot;
 }
 
-void OptionCameraPosGet(OMOBJ *object, float *x, float *y, float *z)
+void OptionCameraPosGet(omObjData *object, float *x, float *y, float *z)
 {
     CameraWork *temp_r31 = object->data;
 
@@ -134,7 +135,7 @@ void OptionCameraPosGet(OMOBJ *object, float *x, float *y, float *z)
     *z = temp_r31->pos.z;
 }
 
-void OptionCameraTargetGet(OMOBJ *object, float *x, float *y, float *z)
+void OptionCameraTargetGet(omObjData *object, float *x, float *y, float *z)
 {
     CameraWork *work = object->data;
 
@@ -143,7 +144,7 @@ void OptionCameraTargetGet(OMOBJ *object, float *x, float *y, float *z)
     *z = work->target.z;
 }
 
-s32 OptionCameraDoneCheck(OMOBJ *object)
+s32 OptionCameraDoneCheck(omObjData *object)
 {
     CameraWork *work = object->data;
     s32 var_r30 = 1;
@@ -158,12 +159,12 @@ s32 OptionCameraDoneCheck(OMOBJ *object)
     return var_r30;
 }
 
-static void ExecCameraObj(OMOBJ *object)
+static void ExecCameraObj(omObjData *object)
 {
     ExecCamera(object);
 }
 
-static void ExecCamera(OMOBJ *object)
+static void ExecCamera(omObjData *object)
 {
     CameraWork *work = object->data;
     float weight;
@@ -212,7 +213,7 @@ static void ExecCamera(OMOBJ *object)
     Hu3DCameraPosSet(1, work->pos.x, work->pos.y, work->pos.z, work->up.x, work->up.y, work->up.z, work->target.x, work->target.y, work->target.z);
 }
 
-static void CameraExecDebug(OMOBJ *object)
+static void CameraExecDebug(omObjData *object)
 {
     CameraWork *work;
 
@@ -227,7 +228,7 @@ static void CameraExecDebug(OMOBJ *object)
     }
 }
 
-static void CameraPrintDebug(OMOBJ *object)
+static void CameraPrintDebug(omObjData *object)
 {
     CameraWork *work = object->data;
 

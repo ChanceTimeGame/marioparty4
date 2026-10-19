@@ -15,6 +15,10 @@
 
 #include <msm/msmsys.h>
 
+#ifdef TARGET_PC
+#include "port/port_version.h"
+#endif
+
 typedef struct camera_view_params {
     Vec rot;
     Vec pos;
@@ -23,8 +27,8 @@ typedef struct camera_view_params {
 
 CameraViewParams lbl_1_data_0[] = { { { 0, 0, 0 }, { 0, 0, 0 }, 1500 }, { { 0, 0, 0 }, { 0, 0, 0 }, 524 } };
 
-OMOBJ *lbl_1_bss_7C;
-HUPROCESS *lbl_1_bss_78;
+omObjData *lbl_1_bss_7C;
+Process *lbl_1_bss_78;
 s32 lbl_1_bss_70[2];
 Vec lbl_1_bss_64;
 Vec lbl_1_bss_58;
@@ -37,8 +41,8 @@ s32 lbl_1_bss_0;
 void fn_1_414(void);
 void fn_1_9F4(void);
 void fn_1_AF0(void);
-void fn_1_B8C(OMOBJ *object);
-void fn_1_F40(OMOBJ *object);
+void fn_1_B8C(omObjData *object);
+void fn_1_F40(omObjData *object);
 void fn_1_1B6C(void);
 
 void ObjectSetup(void)
@@ -60,7 +64,7 @@ void ObjectSetup(void)
     lbl_1_bss_70[0] = 0;
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 30, 20, 8000, 1.2f);
-    Hu3DCameraViewportSet(1, 0, 0, 640, 480, 0, 1);
+    Hu3DCameraViewportSet(1, 0, 0, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0, 1);
     Hu3DCameraScissorSet(1, 0, 16, 640, 448);
     light = Hu3DGLightCreate(0, 100, 1000, 0, -0.5, -1, 255, 255, 255);
     Hu3DGLightInfinitytSet(light);
@@ -79,6 +83,11 @@ void fn_1_414(void)
 {
     fn_1_9F4();
     if (omovlevtno) {
+#ifdef TARGET_PC
+        if (omovlevtno == MODESEL_EVENT_SKIP_BOOT) {
+            FileSelectAutoLoadDefault();
+        }
+#endif
         HuAudSeqPlay(43);
     }
     else {
@@ -89,6 +98,15 @@ void fn_1_414(void)
             while (WipeStatGet()) {
                 HuPrcVSleep();
             }
+#ifdef TARGET_PC
+            if (partyboard_version_is_pal()) {
+                if(GwLanguageSave != -1) {
+                    GWGameStat.language = GwLanguageSave;
+                } else if(GwLanguage != -1) {
+                    GWGameStat.language = GwLanguage;
+                }
+            }
+#else
             #if VERSION_PAL
             if(GwLanguageSave != -1) {
                 GWGameStat.language = GwLanguageSave;
@@ -96,6 +114,7 @@ void fn_1_414(void)
                 GWGameStat.language = GwLanguage;
             }
             #endif
+#endif
             omOvlReturnEx(1, 1);
             while (1) {
                 HuPrcVSleep();
@@ -104,10 +123,18 @@ void fn_1_414(void)
         else {
             s16 grpId;
             s16 sprId;
+#ifdef TARGET_PC
+            if (partyboard_version_is_pal()) {
+                HuWinAllKill();
+                HuWinInit(1);
+            }
+#else
             #if VERSION_PAL
             HuWinAllKill();
             HuWinInit(1);
             #endif
+#endif
+#ifdef __MWERKS__
             grpId = HuSprGrpCreate(1);
             sprId = HuTHPSprCreateVol("movie/opmov_s00.thp", 0, 3000, 70.0);
             HuSprGrpMemberSet(grpId, 0, sprId);
@@ -121,6 +148,7 @@ void fn_1_414(void)
             }
             HuTHPClose();
             HuSprGrpKill(grpId);
+#endif
         }
     }
     espAttrReset(lbl_1_bss_152[9], HUSPR_ATTR_DISPOFF);
@@ -142,7 +170,7 @@ void fn_1_414(void)
         }
         else {
             s16 i;
-            OMOVLHIS *his;
+            omOvlHisData *his;
             for (i = 0; i < 4; i++) {
                 GWPlayerCfg[i].pad_idx = i;
                 if (!HuPadStatGet(i)) {
@@ -153,7 +181,7 @@ void fn_1_414(void)
                 }
             }
             his = omOvlHisGet(0);
-            omOvlHisChg(0, his->ovl, 1, his->stat);
+            omOvlHisChg(0, his->overlay, 1, his->stat);
             _ClearFlag(FLAG_ID_MAKE(1, 0));
             _ClearFlag(FLAG_ID_MAKE(1, 8));
             _ClearFlag(FLAG_ID_MAKE(1, 12));
@@ -240,7 +268,7 @@ void fn_1_AF0(void)
 
 u16 lbl_1_data_6E[] = { 1, 2 };
 
-void fn_1_B8C(OMOBJ *object)
+void fn_1_B8C(omObjData *object)
 {
     s16 i;
     for (i = 0; i < 1; i++) {
@@ -264,7 +292,7 @@ void fn_1_B8C(OMOBJ *object)
     }
 }
 
-void fn_1_F40(OMOBJ *object)
+void fn_1_F40(omObjData *object)
 {
     Vec pos;
     Vec offset;

@@ -9,6 +9,11 @@
 #include "game/hu3d.h"
 #endif
 
+#ifdef TARGET_PC
+#include "port/byteswap.h"
+#include <string.h>
+#endif
+
 #define SPRITE_DIRTY_ATTR 0x1
 #define SPRITE_DIRTY_XFORM 0x2
 #define SPRITE_DIRTY_COLOR 0x4
@@ -20,8 +25,8 @@ typedef struct sprite_order {
     u16 next;
 } SpriteOrder;
 
-HUSPRITE HuSprData[HUSPR_MAX];
-HUSPRGRP HuSprGrpData[HUSPR_GRP_MAX];
+SHARED_SYM HUSPRITE HuSprData[HUSPR_MAX];
+SHARED_SYM HUSPRGRP HuSprGrpData[HUSPR_GRP_MAX];
 static SpriteOrder HuSprOrder[HUSPR_MAX*2];
 
 static s16 HuSprOrderNum;
@@ -211,33 +216,148 @@ void HuSprPauseSet(BOOL value)
     HuSprPauseF = value;
 }
 
+#ifdef BYTESWAPPING
+// byteswap_animdata swaps the source header IN PLACE and returns a separate
+// converted copy, so the `valid` marker lands on the copy and a second
+// HuSprAnimRead of the same buffer swapped the header back to big-endian and
+// read the bank array at a garbage offset. Retail reads one buffer several
+// times (w01 RoundItemInit: four Hu3DAnimCreate calls on itemAnim), which
+// crashed every Toad's Midway Madness round-item event (2026-10-11). Remember
+// which source produced which ANIMDATA and hand the same one back, as on GC.
+// Ported from MP5's sprman.c without its orphan freeing: a conversion whose
+// source is freed is only forgotten (leaked, as before), never handed back
+// for an unrelated buffer that reuses the address.
+#define ANIM_CONV_MAX 256
+static struct {
+    void *src;
+    ANIMDATA *anim;
+} AnimConvTbl[ANIM_CONV_MAX];
+
+static ANIMDATA *AnimConvFind(void *src)
+{
+    s16 i;
+    for(i=0; i<ANIM_CONV_MAX; i++) {
+        if(AnimConvTbl[i].src == src) {
+            return AnimConvTbl[i].anim;
+        }
+    }
+    return NULL;
+}
+
+static void AnimConvAdd(void *src, ANIMDATA *anim)
+{
+    s16 i;
+    for(i=0; i<ANIM_CONV_MAX; i++) {
+        if(AnimConvTbl[i].src == NULL) {
+            AnimConvTbl[i].src = src;
+            AnimConvTbl[i].anim = anim;
+            return;
+        }
+    }
+    OSReport("sprman.c: anim conversion table full\n");
+}
+
+// HuMemMemoryFree reports every freed block (HuMemDirectFree, HuMemDirectFreeNum
+// sweeps): drop the entry whose source or converted ANIMDATA it was.
+void HuSprAnimSrcFreed(void *ptr)
+{
+    s16 i;
+    if(ptr == NULL) {
+        return;
+    }
+    for(i=0; i<ANIM_CONV_MAX; i++) {
+        if(AnimConvTbl[i].src == ptr || AnimConvTbl[i].anim == ptr) {
+            AnimConvTbl[i].src = NULL;
+            AnimConvTbl[i].anim = NULL;
+            return;
+        }
+    }
+}
+#endif
+
 ANIMDATA *HuSprAnimRead(void *data)
 {
     s16 i;
     ANIMBMP *bmp;
     ANIMBANK *bank;
     ANIMPAT *pat;
-    
-    ANIMDATA *anim = (ANIMDATA *)data;
-    if((u32)anim->bank & 0xFFFF0000) {
+
+    ANIMDATA *anim = data;
+#ifdef BYTESWAPPING
+    s16 j;
+    {
+        ANIMDATA *conv = AnimConvFind(data);
+        if (conv) {
+            conv->useNum++;
+            return conv;
+        }
+    }
+    if (anim->valid == ANIM_DATA_ALLOCATION_VALID) {
         anim->useNum++;
         return anim;
     }
-    bank = (ANIMBANK *)((u32)anim->bank+(u32)data);
+    anim = HuMemDirectMalloc(HEAP_DATA, sizeof(ANIMDATA));
+    byteswap_animdata(data, anim);
+    anim->valid = ANIM_DATA_ALLOCATION_VALID;
+    AnimConvAdd(data, anim);
+#else
+    if((uintptr_t)anim->bank & ~0xFFFF) {
+        anim->useNum++;
+        return anim;
+    }
+#endif
+    bank = (void *)((uintptr_t)anim->bank+(uintptr_t)data);
+#ifdef BYTESWAPPING
+    bank = HuMemDirectMalloc(HEAP_DATA, anim->bankNum * sizeof(ANIMBANK));
+    for(i=0; i<anim->bankNum; i++) {
+        byteswap_animbankdata(&((AnimBankData32b*)((uintptr_t)anim->bank+(uintptr_t)data))[i], &bank[i]);
+    }
+#endif
     anim->bank = bank;
-    pat = (ANIMPAT *)((u32)anim->pat+(u32)data);
+    pat = (void *)((uintptr_t)anim->pat+(uintptr_t)data);
+#ifdef BYTESWAPPING
+    pat = HuMemDirectMalloc(HEAP_DATA, anim->patNum * sizeof(ANIMPAT));
+    for(i=0; i<anim->patNum; i++) {
+        byteswap_animpatdata(&((AnimPatData32b*)((uintptr_t)anim->pat+(uintptr_t)data))[i], &pat[i]);
+    }
+#endif
     anim->pat = pat;
-    bmp = (ANIMBMP *)((u32)anim->bmp+(u32)data);
+    bmp = (void *)((uintptr_t)anim->bmp+(uintptr_t)data);
+#ifdef BYTESWAPPING
+    bmp = HuMemDirectMalloc(HEAP_DATA, anim->bmpNum * sizeof(ANIMBMP));
+    for(i=0; i<anim->bmpNum; i++) {
+        byteswap_animbmpdata(&((AnimBmpData32b*)((uintptr_t)anim->bmp+(uintptr_t)data))[i], &bmp[i]);
+#ifdef OPTIMIZED_TEXTURE_LOADING
+        for (j = 0; j < sizeof(anim->bmp[0].texData) / sizeof(anim->bmp[0].texData[0]); j++) {
+            AnimTexData *tex = &bmp[i].texData[j];
+            tex->tex_initialized = FALSE;
+            tex->tlut_initialized = FALSE;
+            memset(&tex->tex_obj, 0, sizeof(tex->tex_obj));
+            memset(&tex->tlut_obj, 0, sizeof(tex->tlut_obj));
+        }
+#endif
+    }
+#endif
     anim->bmp = bmp;
     for(i=0; i<anim->bankNum; i++, bank++) {
-        bank->frame = (ANIMFRAME *)((u32)bank->frame+(u32)data);
+        bank->frame = (ANIMFRAME *)((uintptr_t)bank->frame+(uintptr_t)data);
+#ifdef BYTESWAPPING
+        for (j = 0; j < bank->timeNum; j++) {
+            byteswap_animframedata(&bank->frame[j]);
+        }
+#endif
     }
     for(i=0; i<anim->patNum; i++, pat++) {
-        pat->layer = (ANIMLAYER *)((u32)pat->layer+(u32)data);
+        pat->layer = (ANIMLAYER *)((uintptr_t)pat->layer+(uintptr_t)data);
+#ifdef BYTESWAPPING
+        for (j = 0; j < pat->layerNum; j++) {
+            byteswap_animlayerdata(&pat->layer[j]);
+        }
+#endif
     }
     for(i=0; i<anim->bmpNum; i++, bmp++) {
-        bmp->palData = (void *)((u32)bmp->palData+(u32)data);
-        bmp->data = (void *)((u32)bmp->data+(u32)data);
+        bmp->palData = (void *)((uintptr_t)bmp->palData+(uintptr_t)data);
+        bmp->data = (void *)((uintptr_t)bmp->data+(uintptr_t)data);
     }
     anim->useNum = 0;
     return anim;
@@ -275,8 +395,8 @@ s16 HuSprCreate(ANIMDATA *anim, s16 prio, s16 bank)
     sprite->uvScaleX = sprite->uvScaleY = 1;
     sprite->bg = NULL;
     sprite->scissorX = sprite->scissorY = 0;
-    sprite->scissorW = 640;
-    sprite->scissorH = 480;
+    sprite->scissorW = HU_FB_WIDTH;
+    sprite->scissorH = HU_FB_HEIGHT;
     if(anim) {
         HuSprAnimLock(anim);
     }
@@ -308,7 +428,7 @@ s16 HuSprGrpCreate(s16 capacity)
     if(i == HUSPR_GRP_MAX) {
         return HUSPR_GRP_NONE;
     }
-    group->members = HuMemDirectMalloc(HEAP_HEAP, sizeof(s16)*capacity);
+    group->members = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(s16)*capacity);
     for(j=0; j<capacity; j++) {
         group->members[j] = HUSPR_NONE;
     }
@@ -406,6 +526,26 @@ void HuSprAnimKill(ANIMDATA *anim)
                 HuMemDirectFree(anim->bmp->palData);
             }
         }
+#ifdef OPTIMIZED_TEXTURE_LOADING
+        int i;
+        int j;
+        for(i=0; i<anim->bmpNum; i++) {
+            for (j = 0; j < sizeof(anim->bmp[0].texData) / sizeof(anim->bmp[0].texData[0]); j++) {
+                AnimTexData *tex = &anim->bmp[i].texData[j];
+                if (tex->tex_initialized) {
+                    GXDestroyTexObj(&tex->tex_obj);
+                }
+                if (tex->tlut_initialized) {
+                    GXDestroyTlutObj(&tex->tlut_obj);
+                }
+            }
+        }
+#endif
+#ifdef BYTESWAPPING
+        HuMemDirectFree(anim->bank);
+        HuMemDirectFree(anim->pat);
+        HuMemDirectFree(anim->bmp);
+#endif
         HuMemDirectFree(anim);
     }
 }
@@ -615,7 +755,17 @@ ANIMDATA *HuSprAnimMake(s16 sizeX, s16 sizeY, s16 dataFmt)
     ANIMBANK *bank;
     ANIMDATA *new_anim;
 
-    anim = new_anim = HuMemDirectMalloc(HEAP_MODEL, sizeof(ANIMDATA)+sizeof(ANIMBANK)+sizeof(ANIMFRAME)
+#ifdef BYTESWAPPING
+    // as these are allocated in HuSprAnimRead, we need to do so here too so we don't get issues when freeing
+    anim = HuMemDirectMalloc(HEAP_DATA, sizeof(ANIMDATA));
+    anim->bank = bank = HuMemDirectMalloc(HEAP_DATA, sizeof(ANIMBANK));
+    bank->frame = frame = HuMemDirectMalloc(HEAP_DATA, sizeof(ANIMFRAME));
+    anim->pat = pat = HuMemDirectMalloc(HEAP_DATA, sizeof(ANIMPAT));
+    pat->layer = layer = HuMemDirectMalloc(HEAP_DATA, sizeof(ANIMLAYER));
+    anim->bmp = bmp = HuMemDirectMalloc(HEAP_DATA, sizeof(ANIMBMP));
+    anim->valid = ANIM_DATA_ALLOCATION_VALID;
+#else
+    anim = new_anim = HuMemDirectMalloc(HEAP_DATA, sizeof(ANIMDATA)+sizeof(ANIMBANK)+sizeof(ANIMFRAME)
                                             +sizeof(ANIMPAT)+sizeof(ANIMLAYER)+sizeof(ANIMBMP));
 
     bank = temp = &new_anim[1];
@@ -628,6 +778,7 @@ ANIMDATA *HuSprAnimMake(s16 sizeX, s16 sizeY, s16 dataFmt)
     pat->layer = layer;
     bmp = temp = ((char *)temp+sizeof(ANIMLAYER));
     anim->bmp = bmp;
+#endif
     anim->useNum = 0;
     anim->bankNum = 1;
     anim->patNum = 1;
@@ -664,6 +815,16 @@ ANIMDATA *HuSprAnimMake(s16 sizeX, s16 sizeY, s16 dataFmt)
     bmp->dataSize = sizeX*sizeY*bitSizeTbl[dataFmt]/8;
     bmp->palData = NULL;
     bmp->data = NULL;
+#ifdef OPTIMIZED_TEXTURE_LOADING
+    int i;
+    for (i = 0; i < sizeof(bmp->texData) / sizeof(bmp->texData[0]); i++) {
+        AnimTexData *tex = &bmp->texData[i];
+        tex->tex_initialized = FALSE;
+        tex->tlut_initialized = FALSE;
+        memset(&tex->tex_obj, 0, sizeof(tex->tex_obj));
+        memset(&tex->tlut_obj, 0, sizeof(tex->tlut_obj));
+    }
+#endif
     return anim;
 }
 
@@ -720,7 +881,11 @@ void AnimDebug(ANIMDATA *anim)
         bank++;
     }
     bmp = anim->bmp;
-    for(i=0; i<anim->bmpNum & ANIM_BMP_NUM_MASK; i++) {
+#ifdef NON_MATCHING
+    for(i = 0; i < (anim->bmpNum & ANIM_BMP_NUM_MASK); i++) {
+#else
+    for(i = 0; (i < anim->bmpNum) & ANIM_BMP_NUM_MASK; i++) {
+#endif
         OSReport("BMP%d:\n", i);
         OSReport("\tpixSize %d,palNum %d,size (%d,%d)\n", bmp->pixSize, bmp->palNum, bmp->sizeX, bmp->sizeY);
         bmp++;

@@ -11,10 +11,10 @@
 
 #include "REL/mpexDll.h"
 
-typedef void (*MpexDllUnkFunc2)(OMOBJ *, ...);
+typedef void (*MpexDllUnkFunc2)(omObjData *, ...);
 
 typedef struct MpexDllUnkStruct4 {
-    /* 0x00 */ OMOBJ *unk_00;
+    /* 0x00 */ omObjData *unk_00;
     /* 0x04 */ MpexDllUnkFunc2 unk_04;
     /* 0x08 */ s32 unk_08;
     /* 0x0C */ s32 unk_0C;
@@ -50,10 +50,10 @@ void fn_1_168F0(s32 arg0, s32 arg1);
 void fn_1_16D3C(s32 arg0);
 void fn_1_17170(s32);
 void fn_1_17374(void);
-void fn_1_17B04(OMOBJ *arg0, MpexDllUnkStruct4 *arg1);
+void fn_1_17B04(omObjData *arg0, MpexDllUnkStruct4 *arg1);
 void fn_1_18610(MpexDllUnkStruct4 *arg0);
 void fn_1_18D30(MpexDllUnkStruct4 *arg0);
-void fn_1_18DCC(OMOBJ *arg0, MpexDllUnkStruct4 *arg1);
+void fn_1_18DCC(omObjData *arg0, MpexDllUnkStruct4 *arg1);
 s32 fn_1_19A98(MpexDllUnkStruct4 *arg0);
 void fn_1_1A3BC(void);
 void fn_1_1A5A4(s32 arg0);
@@ -85,9 +85,9 @@ MpexDllUnkStruct4 lbl_1_bss_5DC;
 MpexDllUnkStruct4 lbl_1_bss_45C[4];
 s32 lbl_1_bss_448[5];
 s32 lbl_1_bss_444;
-HUPROCESS *lbl_1_bss_440;
+Process *lbl_1_bss_440;
 
-void fn_1_1264C(HUPROCESS *arg0)
+void fn_1_1264C(Process *arg0)
 {
     s32 var_r31;
 
@@ -1834,7 +1834,7 @@ void fn_1_17374(void)
     }
 }
 
-void fn_1_17B04(OMOBJ *arg0, MpexDllUnkStruct4 *arg1)
+void fn_1_17B04(omObjData *arg0, MpexDllUnkStruct4 *arg1)
 {
     float var_f31;
     float var_f30;
@@ -2152,7 +2152,7 @@ void fn_1_18D30(struct MpexDllUnkStruct4 *arg0)
     HuSprAttrSet(var_r30, arg0->unk_48 + 0x32, 4);
 }
 
-void fn_1_18DCC(OMOBJ *arg0, MpexDllUnkStruct4 *arg1)
+void fn_1_18DCC(omObjData *arg0, MpexDllUnkStruct4 *arg1)
 {
     s32 sp8;
     float var_f31;
@@ -2715,7 +2715,7 @@ void fn_1_1B0DC(s32 arg0)
 
 void fn_1_1B294(void)
 {
-    OMOBJ *var_r31;
+    omObjData *var_r31;
 
     var_r31 = NULL;
     var_r31 = omAddObjEx(lbl_1_bss_440, 0x1000, 8, 8, -1, NULL);
@@ -2733,7 +2733,7 @@ void fn_1_1B294(void)
 void fn_1_1B338(void)
 {
     s32 var_r31;
-    OMOBJ *var_r30;
+    omObjData *var_r30;
 
     var_r31 = lbl_1_bss_448[0];
     lbl_1_bss_448[0] = var_r31 + 1;
@@ -2884,7 +2884,7 @@ void fn_1_1B834(void)
 void fn_1_1B9F4(void)
 {
     if (lbl_1_data_77C != -1) {
-        HuWinMesSet(lbl_1_data_77C, 0x250004);
+        HuWinMesSet(lbl_1_data_77C, MAKE_MESSID(0x25, 0x04));
         HuWinExAnimOut(lbl_1_data_77C);
         HuWinExCleanup(lbl_1_data_77C);
         lbl_1_data_77C = -1;
@@ -2913,6 +2913,7 @@ void fn_1_1BA78(u32 arg0, s32 arg1, s32 arg2)
     }
 }
 
+// TODO PC this function can get both a ptr and a message id
 void fn_1_1BB4C(u32 arg0, s32 arg1)
 {
     if (lbl_1_data_77C != -1) {
@@ -2942,7 +2943,7 @@ s32 fn_1_1BBA4(s32 arg0)
     HuWinMesSpeedSet(var_r31, 0);
     HuWinMesSet(var_r31, 0x1E0035);
     var_r28 = HuWinChoiceGet(var_r31, arg0);
-    HuWinMesSet(var_r31, 0x250004);
+    HuWinMesSet(var_r31, MAKE_MESSID(0x25, 0x4));
     HuWinExAnimOut(var_r31);
     HuWinExCleanup(var_r31);
     return var_r28;

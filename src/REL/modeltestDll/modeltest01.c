@@ -22,19 +22,19 @@ typedef struct unk_bss_a18 {
     u8 unk1C[0x88];
 } UnkBssA18;
 
-OMOBJ *lbl_1_bss_AC4;
-OMOBJ *lbl_1_bss_AC0;
-OMOBJ *lbl_1_bss_ABC;
+omObjData *lbl_1_bss_AC4;
+omObjData *lbl_1_bss_AC0;
+omObjData *lbl_1_bss_ABC;
 UnkBssA18 lbl_1_bss_A18;
 s32 lbl_1_bss_A14;
 float lbl_1_bss_A10;
 float lbl_1_bss_A0C;
 s16 lbl_1_bss_A08;
-HUPROCESS *lbl_1_bss_A04;
-HUPROCESS *lbl_1_bss_A00;
+Process *lbl_1_bss_A04;
+Process *lbl_1_bss_A00;
 
-void fn_1_4DF8(OMOBJ *object);
-void fn_1_5A60(OMOBJ *object);
+void fn_1_4DF8(omObjData *object);
+void fn_1_5A60(omObjData *object);
 void fn_1_5DA8(void);
 void fn_1_6AE0(HU3DMODEL *model, Mtx mtx);
 void fn_1_83B4(void);
@@ -46,7 +46,7 @@ void fn_1_4AC8(void)
 {
     Vec sp14;
     Vec sp8;
-    HUPROCESS *objman;
+    Process *objman;
     OSReport("******* MODELTESTObjectSetup *********\n");
     objman = omInitObjMan(50, 8192);
     CRot.x = -22;
@@ -59,8 +59,8 @@ void fn_1_4AC8(void)
     Hu3DCameraCreate(1);
     lbl_1_bss_A0C = 45;
     Hu3DCameraPerspectiveSet(1, lbl_1_bss_A0C, 20, 5000, 1.2f);
-    Hu3DCameraViewportSet(1, 0, 0, 640, 480, 0, 1);
-    Hu3DCameraScissorSet(1, 0, 0, 640, 480);
+    Hu3DCameraViewportSet(1, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT, 0, 1);
+    Hu3DCameraScissorSet(1, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
     lbl_1_bss_ABC = omAddObjEx(objman, 0, 32, 32, -1, fn_1_4DF8);
     lbl_1_bss_AC0 = omAddObjEx(objman, 32730, 0, 0, -1, fn_1_5A60);
     lbl_1_bss_A00 = HuPrcCreate(fn_1_5DA8, 100, 8192, 0);
@@ -77,7 +77,7 @@ void fn_1_4AC8(void)
     msmSeSetListener(&sp14, &sp8, 2000, 1000, 0);
 }
 
-void fn_1_4DF8(OMOBJ *object)
+void fn_1_4DF8(omObjData *object)
 {
     float temp_f31;
     Vec pos;
@@ -147,7 +147,7 @@ void fn_1_4DF8(OMOBJ *object)
     Hu3DCameraPerspectiveSet(1, lbl_1_bss_A0C, 20, 5000, 1.2f);
 }
 
-void fn_1_5A60(OMOBJ *object)
+void fn_1_5A60(omObjData *object)
 {
     Mtx rotAxis;
     Vec pos, target, up;
@@ -487,6 +487,7 @@ void fn_1_6AE0(HU3DMODEL *model, Mtx mtx)
         GXPosition3f32((lbl_1_data_754 / 2) * 100, 0, (temp_r31 * 100) - ((lbl_1_data_754 / 2) * 100));
         GXColor3u8(temp_r30, temp_r29, temp_r28);
     }
+    GXEnd();
     GXBegin(GX_LINES, GX_VTXFMT0, (lbl_1_data_754 + 1) * 4);
     for (temp_r31 = 0; temp_r31 <= lbl_1_data_754; temp_r31++) {
         temp_r30 = temp_r29 = temp_r28 = 255;
@@ -499,6 +500,7 @@ void fn_1_6AE0(HU3DMODEL *model, Mtx mtx)
         GXPosition3f32((lbl_1_data_754 / 2) * 100, temp_r31 * 100, -(lbl_1_data_754 / 2) * 100);
         GXColor3u8(temp_r30, temp_r29, temp_r28);
     }
+    GXEnd();
     GXBegin(GX_LINES, GX_VTXFMT0, (lbl_1_data_754 + 1) * 4);
     for (temp_r31 = 0; temp_r31 <= lbl_1_data_754; temp_r31++) {
         temp_r30 = temp_r29 = temp_r28 = 255;
@@ -511,6 +513,7 @@ void fn_1_6AE0(HU3DMODEL *model, Mtx mtx)
         GXPosition3f32((lbl_1_data_754 / 2) * 100, temp_r31 * 100, (lbl_1_data_754 / 2) * 100);
         GXColor3u8(temp_r30, temp_r29, temp_r28);
     }
+    GXEnd();
     GXBegin(GX_LINES, GX_VTXFMT0, (lbl_1_data_754 + 1) * 4);
     for (temp_r31 = 0; temp_r31 <= lbl_1_data_754; temp_r31++) {
         temp_r30 = temp_r29 = temp_r28 = 255;
@@ -523,6 +526,7 @@ void fn_1_6AE0(HU3DMODEL *model, Mtx mtx)
         GXPosition3f32((lbl_1_data_754 / 2) * 100, temp_r31 * 100, (lbl_1_data_754 / 2) * 100);
         GXColor3u8(temp_r30, temp_r29, temp_r28);
     }
+    GXEnd();
     GXBegin(GX_LINES, GX_VTXFMT0, (lbl_1_data_754 + 1) * 4);
     for (temp_r31 = 0; temp_r31 <= lbl_1_data_754; temp_r31++) {
         temp_r30 = temp_r29 = temp_r28 = 255;
@@ -535,6 +539,7 @@ void fn_1_6AE0(HU3DMODEL *model, Mtx mtx)
         GXPosition3f32(-(lbl_1_data_754 / 2) * 100, temp_r31 * 100, (lbl_1_data_754 / 2) * 100);
         GXColor3u8(temp_r30, temp_r29, temp_r28);
     }
+    GXEnd();
 }
 
 s16 lbl_1_data_758[] = { 1, 3, 2, 13, 14, 15, 16, 68, -1 };
@@ -609,7 +614,7 @@ u32 fn_1_82C8(void)
 void fn_1_83B4(void)
 {
     u32 temp_r29;
-    HUPROCESS *temp_r28;
+    Process *temp_r28;
     temp_r28 = HuPrcCurrentGet();
     HuPrcSetStat(temp_r28, 0xC);
     while (1) {

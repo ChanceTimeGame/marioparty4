@@ -17,13 +17,14 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1);
 static void ParManFunc(void);
 static void ParManHook(HU3DMODEL *arg0, HU3DPARTICLE *arg1, Mtx mtx);
 
-extern u32 GlobalCounter;
+SHARED_SYM extern u32 GlobalCounter;
 
-HU3DTEXANIM Hu3DTexAnimData[HU3D_TEXANIM_MAX];
-HU3DTEXSCROLL Hu3DTexScrData[HU3D_TEXSCROLL_MAX];
-static HUPROCESS *parManProc[64];
+SHARED_SYM HU3DTEXANIM Hu3DTexAnimData[HU3D_TEXANIM_MAX];
+SHARED_SYM HU3DTEXSCROLL Hu3DTexScrData[HU3D_TEXSCROLL_MAX];
+static Process *parManProc[64];
 
-void Hu3DAnimInit(void) {
+void Hu3DAnimInit(void)
+{
     HU3DTEXANIM *texAnimP;
     HU3DTEXSCROLL *texScrP;
     s16 i;
@@ -38,7 +39,8 @@ void Hu3DAnimInit(void) {
     }
 }
 
-HU3DANIMID Hu3DAnimCreate(void *dataP, HU3DMODELID modelId, char *bmpName) {
+HU3DANIMID Hu3DAnimCreate(void *dataP, HU3DMODELID modelId, char *bmpName)
+{
     HU3DTEXANIM *texAnimP;
     HSFATTRIBUTE *attrP;
     HSFDATA *hsf;
@@ -62,7 +64,7 @@ HU3DANIMID Hu3DAnimCreate(void *dataP, HU3DMODELID modelId, char *bmpName) {
         if (strcmp(bmpName, attrP->bitmap->name) == 0) {
             HU3DATTRANIM *attrAnimP;
             if (!attrP->animWorkP) {
-                attrAnimP = HuMemDirectMallocNum(HEAP_MODEL, sizeof(*attrAnimP), (u32) Hu3DData[modelId].mallocNo);
+                attrAnimP = HuMemDirectMallocNum(HEAP_DATA, sizeof(*attrAnimP), (uintptr_t) Hu3DData[modelId].mallocNo);
                 attrP->animWorkP = attrAnimP;
                 attrAnimP->attr = 0;
             } else {
@@ -93,7 +95,8 @@ HU3DANIMID Hu3DAnimCreate(void *dataP, HU3DMODELID modelId, char *bmpName) {
     return animId;
 }
 
-s16 Hu3DAnimLink(HU3DANIMID linkAnimId, HU3DMODELID modelId, char *bmpName) {
+s16 Hu3DAnimLink(HU3DANIMID linkAnimId, HU3DMODELID modelId, char *bmpName)
+{
     HU3DTEXANIM *linkTexAnimP = &Hu3DTexAnimData[linkAnimId];
     HU3DTEXANIM *texAnimP;
     HSFATTRIBUTE *attrP;
@@ -118,7 +121,7 @@ s16 Hu3DAnimLink(HU3DANIMID linkAnimId, HU3DMODELID modelId, char *bmpName) {
         if (strcmp(bmpName, attrP->bitmap->name) == 0) {
             HU3DATTRANIM *attrAnimP;
             if (!attrP->animWorkP) {
-                attrAnimP = HuMemDirectMallocNum(HEAP_MODEL, sizeof(*attrAnimP), (u32) Hu3DData[modelId].mallocNo);
+                attrAnimP = HuMemDirectMallocNum(HEAP_DATA, sizeof(*attrAnimP), (u32) Hu3DData[modelId].mallocNo);
                 attrP->animWorkP = attrAnimP;
             } else {
                 attrAnimP = attrP->animWorkP;
@@ -144,7 +147,8 @@ s16 Hu3DAnimLink(HU3DANIMID linkAnimId, HU3DMODELID modelId, char *bmpName) {
     return animId;
 }
 
-void Hu3DAnimKill(HU3DANIMID animId) {
+void Hu3DAnimKill(HU3DANIMID animId)
+{
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
     HSFDATA *hsf = Hu3DData[texAnimP->modelId].hsf;
     HSFATTRIBUTE *attrP;
@@ -172,7 +176,8 @@ void Hu3DAnimKill(HU3DANIMID animId) {
     }
 }
 
-void Hu3DAnimModelKill(HU3DMODELID modelId) {
+void Hu3DAnimModelKill(HU3DMODELID modelId)
+{
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[0];
     HU3DANIMID animId;
 
@@ -183,7 +188,8 @@ void Hu3DAnimModelKill(HU3DMODELID modelId) {
     }
 }
 
-void Hu3DAnimAllKill(void) {
+void Hu3DAnimAllKill(void)
+{
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[0];
     HU3DANIMID animId;
 
@@ -195,32 +201,37 @@ void Hu3DAnimAllKill(void) {
     Hu3DTexScrollAllKill();
 }
 
-void Hu3DAnimAttrSet(HU3DANIMID animId, u16 attr) {
+void Hu3DAnimAttrSet(HU3DANIMID animId, u16 attr)
+{
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
 
     texAnimP->attr |= attr;
 }
 
-void Hu3DAnimAttrReset(HU3DANIMID animId, s32 attr) {
+void Hu3DAnimAttrReset(HU3DANIMID animId, s32 attr)
+{
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
 
     texAnimP->attr &= ~attr;
 }
 
-void Hu3DAnimSpeedSet(HU3DANIMID animId, float speed) {
+void Hu3DAnimSpeedSet(HU3DANIMID animId, float speed)
+{
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
 
     texAnimP->speed = speed;
 }
 
-void Hu3DAnimBankSet(HU3DANIMID animId, s32 bank) {
+void Hu3DAnimBankSet(HU3DANIMID animId, s32 bank)
+{
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
 
     texAnimP->bank = bank;
     texAnimP->anmNo = texAnimP->time = 0.0f;
 }
 
-void Hu3DAnmNoSet(HU3DANIMID animId, u16 anmNo) {
+void Hu3DAnmNoSet(HU3DANIMID animId, u16 anmNo)
+{
     HU3DTEXANIM *texAnimP = &Hu3DTexAnimData[animId];
 
     texAnimP->anmNo = anmNo;
@@ -259,7 +270,8 @@ s32 Hu3DAnimSet(HU3DMODEL *modelP, HSFATTRIBUTE *attrP, s16 texSlotNo) {
     return TRUE;
 }
 
-void Hu3DAnimExec(void) {
+void Hu3DAnimExec(void)
+{
     HU3DTEXANIM *texAnimP;
     HU3DTEXSCROLL *texScrP;
     ANIMDATA *anim;
@@ -341,7 +353,8 @@ void Hu3DAnimExec(void) {
     }
 }
 
-s16 Hu3DTexScrollCreate(HU3DMODELID modelId, char *bmpName) {
+s16 Hu3DTexScrollCreate(HU3DMODELID modelId, char *bmpName)
+{
     HU3DTEXSCROLL *texScrP;
     HSFDATA *hsf;
     HSFATTRIBUTE *attrP;
@@ -365,7 +378,7 @@ s16 Hu3DTexScrollCreate(HU3DMODELID modelId, char *bmpName) {
         if (strcmp(bmpName, attrP->bitmap->name) == 0) {
             HU3DATTRANIM *attrAnimP;
             if (!attrP->animWorkP) {
-                attrAnimP = HuMemDirectMallocNum(HEAP_MODEL, sizeof(*attrAnimP), (u32) Hu3DData[modelId].mallocNo);
+                attrAnimP = HuMemDirectMallocNum(HEAP_DATA, sizeof(*attrAnimP), (uintptr_t) Hu3DData[modelId].mallocNo);
                 attrP->animWorkP = attrAnimP;
                 attrAnimP->attr = 0;
             } else {
@@ -390,7 +403,8 @@ s16 Hu3DTexScrollCreate(HU3DMODELID modelId, char *bmpName) {
     return texScrId;
 }
 
-void Hu3DTexScrollKill(HU3DTEXSCRID texSrcId) {
+void Hu3DTexScrollKill(HU3DTEXSCRID texSrcId)
+{
     HU3DTEXSCROLL *texScrP = &Hu3DTexScrData[texSrcId];
     HSFDATA *hsf = Hu3DData[texScrP->modelId].hsf;
     HSFATTRIBUTE *attrP;
@@ -414,7 +428,8 @@ void Hu3DTexScrollKill(HU3DTEXSCRID texSrcId) {
     texScrP->modelId = HU3D_MODELID_NONE;
 }
 
-void Hu3DTexScrollAllKill(void) {
+void Hu3DTexScrollAllKill(void)
+{
     HU3DTEXSCROLL *texScrP;
     HU3DTEXSCRID texScrId;
 
@@ -426,7 +441,8 @@ void Hu3DTexScrollAllKill(void) {
     }
 }
 
-void Hu3DTexScrollPosSet(HU3DTEXSCRID texScrId, float posX, float posY, float posZ) {
+void Hu3DTexScrollPosSet(HU3DTEXSCRID texScrId, float posX, float posY, float posZ)
+{
     HU3DTEXSCROLL *temp_r31 = &Hu3DTexScrData[texScrId];
 
     temp_r31->attr &= ~1;
@@ -435,7 +451,8 @@ void Hu3DTexScrollPosSet(HU3DTEXSCRID texScrId, float posX, float posY, float po
     temp_r31->pos.z = posZ;
 }
 
-void Hu3DTexScrollPosMoveSet(HU3DTEXSCRID texScrId, float posX, float posY, float posZ) {
+void Hu3DTexScrollPosMoveSet(HU3DTEXSCRID texScrId, float posX, float posY, float posZ)
+{
     HU3DTEXSCROLL *texScrP = &Hu3DTexScrData[texScrId];
 
     texScrP->attr |= HU3D_TEXSCR_ATTR_POSMOVE;
@@ -444,21 +461,24 @@ void Hu3DTexScrollPosMoveSet(HU3DTEXSCRID texScrId, float posX, float posY, floa
     texScrP->posMove.z = posZ * minimumVcount;
 }
 
-void Hu3DTexScrollRotSet(HU3DTEXSCRID texScrId, float rot) {
+void Hu3DTexScrollRotSet(HU3DTEXSCRID texScrId, float rot)
+{
     HU3DTEXSCROLL *texScrP = &Hu3DTexScrData[texScrId];
 
     texScrP->attr &= ~HU3D_TEXSCR_ATTR_ROTMOVE;
     texScrP->rot = rot;
 }
 
-void Hu3DTexScrollRotMoveSet(HU3DTEXSCRID texScrId, float rot) {
+void Hu3DTexScrollRotMoveSet(HU3DTEXSCRID texScrId, float rot)
+{
     HU3DTEXSCROLL *texScrP = &Hu3DTexScrData[texScrId];
 
     texScrP->attr |= HU3D_TEXSCR_ATTR_ROTMOVE;
     texScrP->rotMove = rot * minimumVcount;
 }
 
-void Hu3DTexScrollPauseDisableSet(HU3DTEXSCRID texScrId, BOOL pauseDisableF) {
+void Hu3DTexScrollPauseDisableSet(HU3DTEXSCRID texScrId, BOOL pauseDisableF)
+{
     HU3DTEXSCROLL *texScrP = &Hu3DTexScrData[texScrId];
 
     if (pauseDisableF) {
@@ -468,7 +488,8 @@ void Hu3DTexScrollPauseDisableSet(HU3DTEXSCRID texScrId, BOOL pauseDisableF) {
     }
 }
 
-s16 Hu3DParticleCreate(ANIMDATA *anim, s16 maxCnt) {
+s16 Hu3DParticleCreate(ANIMDATA *anim, s16 maxCnt)
+{
     HU3DMODEL *modelP;
     HU3DPARTICLE *particleP;
     HU3DPARTICLEDATA *particleDataP;
@@ -477,10 +498,10 @@ s16 Hu3DParticleCreate(ANIMDATA *anim, s16 maxCnt) {
     s16 i;
     void *dlBuf;
 
-    modelId = Hu3DHookFuncCreate(particleFunc);
+    modelId = Hu3DHookFuncCreate((void *)&particleFunc);
     modelP = &Hu3DData[modelId];
     Hu3DModelAttrSet(modelId, HU3D_ATTR_PARTICLE_KILL);
-    particleP = HuMemDirectMallocNum(HEAP_MODEL, sizeof(HU3DPARTICLE), modelP->mallocNo);
+    particleP = HuMemDirectMallocNum(HEAP_DATA, sizeof(HU3DPARTICLE), modelP->mallocNo);
     modelP->hookData = particleP;
     particleP->anim = anim;
     anim->useNum++;
@@ -491,7 +512,7 @@ s16 Hu3DParticleCreate(ANIMDATA *anim, s16 maxCnt) {
     particleP->attr = HU3D_PARTICLE_ATTR_NONE;
     particleP->prevCount = 0;
     particleP->dataCnt = particleP->emitCnt = 0;
-    particleDataP = HuMemDirectMallocNum(HEAP_MODEL, maxCnt * sizeof(HU3DPARTICLEDATA), modelP->mallocNo);
+    particleDataP = HuMemDirectMallocNum(HEAP_DATA, maxCnt * sizeof(HU3DPARTICLEDATA), modelP->mallocNo);
     particleP->data = particleDataP;
     particleP->prevCounter = -1;
     for (i = 0; i < maxCnt; i++, particleDataP++) {
@@ -504,12 +525,12 @@ s16 Hu3DParticleCreate(ANIMDATA *anim, s16 maxCnt) {
         particleDataP->pos.z = ((s32) (frand() & 0x7F) - 64) * 20;
         particleDataP->color.r = particleDataP->color.g = particleDataP->color.b = particleDataP->color.a = 0xFF;
     }
-    vtxBuf = HuMemDirectMallocNum(HEAP_MODEL, maxCnt * sizeof(Vec) * 4, modelP->mallocNo);
+    vtxBuf = HuMemDirectMallocNum(HEAP_DATA, maxCnt * sizeof(Vec) * 4, modelP->mallocNo);
     particleP->vtxBuf = vtxBuf;
     for (i = 0; i < maxCnt * 4; i++, vtxBuf++) {
         vtxBuf->x = vtxBuf->y = vtxBuf->z = 0.0f;
     }
-    dlBuf = HuMemDirectMallocNum(HEAP_MODEL, maxCnt * 0x60 + 0x80, modelP->mallocNo);
+    dlBuf = HuMemDirectMallocNum(HEAP_DATA, maxCnt * 0x60 + 0x80, modelP->mallocNo);
     particleP->dlBuf = dlBuf;
     DCInvalidateRange(dlBuf, maxCnt * 0x60 + 0x80);
     GXBeginDisplayList(dlBuf, 0x20000);
@@ -518,21 +539,23 @@ s16 Hu3DParticleCreate(ANIMDATA *anim, s16 maxCnt) {
         GXPosition1x16(i*4);
         GXColor1x16(i);
         GXTexCoord1x16(0);
-        GXPosition1x16((i*4)+1);
+        GXPosition1x16((i * 4) + 1);
         GXColor1x16(i);
         GXTexCoord1x16(1);
-        GXPosition1x16((i*4)+2);
+        GXPosition1x16((i * 4) + 2);
         GXColor1x16(i);
         GXTexCoord1x16(2);
-        GXPosition1x16((i*4)+3);
+        GXPosition1x16((i * 4) + 3);
         GXColor1x16(i);
         GXTexCoord1x16(3);
     }
+    GXEnd();
     particleP->dlSize = GXEndDisplayList();
     return modelId;
 }
 
-void Hu3DParticleScaleSet(HU3DMODELID modelId, float scale) {
+void Hu3DParticleScaleSet(HU3DMODELID modelId, float scale)
+{
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
     HU3DPARTICLEDATA *particleDataP;
@@ -544,7 +567,8 @@ void Hu3DParticleScaleSet(HU3DMODELID modelId, float scale) {
     }
 }
 
-void Hu3DParticleZRotSet(HU3DMODELID modelId, float zRot) {
+void Hu3DParticleZRotSet(HU3DMODELID modelId, float zRot)
+{
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
     HU3DPARTICLEDATA *particleDataP;
@@ -556,7 +580,8 @@ void Hu3DParticleZRotSet(HU3DMODELID modelId, float zRot) {
     }
 }
 
-void Hu3DParticleColSet(HU3DMODELID modelId, u8 r, u8 g, u8 b) {
+void Hu3DParticleColSet(HU3DMODELID modelId, u8 r, u8 g, u8 b)
+{
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
     HU3DPARTICLEDATA *particleDataP;
@@ -570,7 +595,8 @@ void Hu3DParticleColSet(HU3DMODELID modelId, u8 r, u8 g, u8 b) {
     }
 }
 
-void Hu3DParticleTPLvlSet(HU3DMODELID modelId, float tpLvl) {
+void Hu3DParticleTPLvlSet(HU3DMODELID modelId, float tpLvl)
+{
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
     HU3DPARTICLEDATA *particleDataP;
@@ -584,42 +610,48 @@ void Hu3DParticleTPLvlSet(HU3DMODELID modelId, float tpLvl) {
     }
 }
 
-void Hu3DParticleBlendModeSet(HU3DMODELID modelId, u8 blendMode) {
+void Hu3DParticleBlendModeSet(HU3DMODELID modelId, u8 blendMode)
+{
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
 
     particleP->blendMode = blendMode;
 }
 
-void Hu3DParticleHookSet(HU3DMODELID modelId, HU3DPARTICLEHOOK hook) {
+void Hu3DParticleHookSet(HU3DMODELID modelId, HU3DPARTICLEHOOK hook)
+{
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
 
     particleP->hook = hook;
 }
 
-void Hu3DParticleAttrSet(HU3DMODELID modelId, u8 attr) {
+void Hu3DParticleAttrSet(HU3DMODELID modelId, u8 attr)
+{
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
 
     particleP->attr |= attr;
 }
 
-void Hu3DParticleAttrReset(HU3DMODELID modelId, u8 attr) {
+void Hu3DParticleAttrReset(HU3DMODELID modelId, u8 attr)
+{
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
 
     particleP->attr &= ~attr;
 }
 
-void Hu3DParticleCntSet(HU3DMODELID modelId, s16 count) {
+void Hu3DParticleCntSet(HU3DMODELID modelId, s16 count)
+{
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
 
     particleP->count = count;
 }
 
-void Hu3DParticleAnimModeSet(HU3DMODELID modelId, s16 animBank) {
+void Hu3DParticleAnimModeSet(HU3DMODELID modelId, s16 animBank)
+{
     HU3DMODEL *modelP = &Hu3DData[modelId];
     HU3DPARTICLE *particleP = modelP->hookData;
 
@@ -630,19 +662,12 @@ void Hu3DParticleAnimModeSet(HU3DMODELID modelId, s16 animBank) {
     particleP->animSpeed = 1.0f;
 }
 
-static Vec basePos[] = {
-    { -0.5f,  0.5f, 0.0f },
-    {  0.5f,  0.5f, 0.0f },
-    {  0.5f, -0.5f, 0.0f },
-    { -0.5f, -0.5f, 0.0f }
-};
+static Vec basePos[] = { { -0.5f, 0.5f, 0.0f }, { 0.5f, 0.5f, 0.0f }, { 0.5f, -0.5f, 0.0f }, { -0.5f, -0.5f, 0.0f } };
 
-static float baseST[] = {
-    0.0f, 0.0f, 1.0f, 0.0f,
-    1.0f, 1.0f, 0.0f, 1.0f
-};
+static float baseST[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
 
-static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
+static void particleFunc(HU3DMODEL *arg0, Mtx arg1)
+{
     HuVecF *vtxBuf;
     float scale;
     float x;
@@ -671,14 +696,14 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
     if (HmfInverseMtxF3X3(arg1, mtxInv) == 0) {
         MTXIdentity(mtxInv);
     }
-    PSMTXReorder(mtxInv, basePosMtx);
+    MTXReorder(mtxInv, basePosMtx);
     if ((Hu3DPauseF == 0 || (arg0->attr & HU3D_ATTR_NOPAUSE)) && particleP->hook && particleP->prevCounter != GlobalCounter) {
         HU3DPARTICLEHOOK hook = particleP->hook;
         hook(arg0, particleP, arg1);
     }
     particleDataP = particleP->data;
     vtxBuf = particleP->vtxBuf;
-    PSMTXROMultVecArray(basePosMtx, &basePos[0], initVtx, 4);
+    MTXROMultVecArray(basePosMtx, &basePos[0], initVtx, 4);
     for (i = 0, dispF = FALSE; i < particleP->maxCnt; i++, particleDataP++) {
         if (particleDataP->scale && (particleDataP->cameraBit & Hu3DCameraBit)) {
             if (!particleDataP->zRot) {
@@ -713,7 +738,8 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
                 VECAdd(&finalVtx[3], &particleDataP->pos, vtxBuf++);
             }
             dispF = TRUE;
-        } else {
+        }
+        else {
             vtxBuf->x = vtxBuf->y = vtxBuf->z = 0.0f;
             vtxBuf++;
             vtxBuf->x = vtxBuf->y = vtxBuf->z = 0.0f;
@@ -734,16 +760,19 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
         if (shadowModelDrawF != 0) {
             GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ONE, GX_CC_ZERO, GX_CC_ZERO, GX_CC_ZERO);
             GXSetZMode(0, GX_LEQUAL, 0);
-        } else {
+        }
+        else {
             bmpFmt = (particleP->anim->bmp->dataFmt & 0xF);
             if (bmpFmt == 7 || bmpFmt == 8) {
                 GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_ONE, GX_CC_RASC, GX_CC_ZERO);
-            } else {
+            }
+            else {
                 GXSetTevColorIn(GX_TEVSTAGE0, GX_CC_ZERO, GX_CC_TEXC, GX_CC_RASC, GX_CC_ZERO);
             }
             if (arg0->attr & HU3D_ATTR_ZWRITE_OFF) {
                 GXSetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
-            } else {
+            }
+            else {
                 GXSetZMode(GX_TRUE, GX_LEQUAL, GX_FALSE);
             }
         }
@@ -788,7 +817,8 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
             mtxTransCat(mtxInv, x, y, 0.0f);
             GXLoadTexMtxImm(mtxInv, GX_TEXMTX0, GX_MTX2x4);
             GXSetTexCoordGen2(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_TEXMTX0, GX_FALSE, GX_PTIDENTITY);
-        } else {
+        }
+        else {
             HuSprTexLoad(particleP->anim, 0, 0, GX_CLAMP, GX_CLAMP, GX_LINEAR);
         }
         GXSetAlphaCompare(GX_GEQUAL, 1, GX_AOP_AND, GX_GEQUAL, 1);
@@ -806,14 +836,14 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
         }
         GXClearVtxDesc();
         GXSetVtxDesc(GX_VA_POS, GX_INDEX16);
-        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_RGBA6, 0);
-        GXSetArray(GX_VA_POS, particleP->vtxBuf, sizeof(HuVecF));
+        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
+        GXSETARRAY(GX_VA_POS, particleP->vtxBuf, particleP->maxCnt * 4 * sizeof(HuVecF), sizeof(HuVecF), TRUE);
         GXSetVtxDesc(GX_VA_CLR0, GX_INDEX16);
         GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-        GXSetArray(GX_VA_CLR0, &particleP->data->color, sizeof(HU3DPARTICLEDATA));
+        GXSETARRAY(GX_VA_CLR0, &particleP->data->color, particleP->maxCnt * sizeof(*particleP->data), sizeof(*particleP->data), TRUE);
         GXSetVtxDesc(GX_VA_TEX0, GX_INDEX16);
-        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_RGBA6, 0);
-        GXSetArray(GX_VA_TEX0, baseST, sizeof(HuVec2f));
+        GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0);
+        GXSETARRAY(GX_VA_TEX0, baseST, sizeof(baseST), 8, TRUE);
         GXCallDisplayList(particleP->dlBuf, particleP->dlSize);
     }
     if (shadowModelDrawF == FALSE) {
@@ -830,7 +860,8 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1) {
     }
 }
 
-void Hu3DParManInit(void) {
+void Hu3DParManInit(void)
+{
     s16 i;
 
     for (i = 0; i < HU3D_PARMAN_MAX; i++) {
@@ -838,7 +869,8 @@ void Hu3DParManInit(void) {
     }
 }
 
-s16 Hu3DParManCreate(ANIMDATA *anim, s16 maxCnt, HU3DPARMANPARAM *param) {
+s16 Hu3DParManCreate(ANIMDATA *anim, s16 maxCnt, HU3DPARMANPARAM *param)
+{
     HU3DMODEL *modelP;
     HU3DPARTICLE *particleP;
     HU3DPARMAN *parManP;
@@ -865,7 +897,7 @@ s16 Hu3DParManCreate(ANIMDATA *anim, s16 maxCnt, HU3DPARMANPARAM *param) {
         particleDataP->scale = 0.0f;
     }
     parManProc[parManId] = HuPrcCreate(ParManFunc, 100, 0x1000, 0);
-    parManP = HuMemDirectMallocNum(HEAP_HEAP, sizeof(HU3DPARMAN), HU_MEMNUM_OVL);
+    parManP = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(HU3DPARMAN), MEMORY_DEFAULT_NUM);
     parManProc[parManId]->user_data = parManP;
     parManP->modelId = modelId;
     parManP->param = param;
@@ -884,7 +916,8 @@ s16 Hu3DParManCreate(ANIMDATA *anim, s16 maxCnt, HU3DPARMANPARAM *param) {
     return parManId;
 }
 
-HU3DPARMANID Hu3DParManLink(HU3DPARMANID linkParManId, HU3DPARMANPARAM *param) {
+HU3DPARMANID Hu3DParManLink(HU3DPARMANID linkParManId, HU3DPARMANPARAM *param)
+{
     HU3DPARMAN *linkParManP;
     HU3DPARMAN *parManP;
     HU3DPARMANID parManId;
@@ -899,7 +932,7 @@ HU3DPARMANID Hu3DParManLink(HU3DPARMANID linkParManId, HU3DPARMANPARAM *param) {
     }
     linkParManP = parManProc[linkParManId]->user_data;
     parManProc[parManId] = HuPrcCreate(ParManFunc, 100, 0x1000, 0);
-    parManP = HuMemDirectMallocNum(HEAP_HEAP, sizeof(HU3DPARMAN), HU_MEMNUM_OVL);
+    parManP = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(HU3DPARMAN), MEMORY_DEFAULT_NUM);
     parManProc[parManId]->user_data = parManP;
     parManP->modelId = linkParManP->modelId;
     parManP->param = param;
@@ -918,7 +951,8 @@ HU3DPARMANID Hu3DParManLink(HU3DPARMANID linkParManId, HU3DPARMANPARAM *param) {
     return parManId;
 }
 
-void Hu3DParManKill(HU3DPARMANID parManId) {
+void Hu3DParManKill(HU3DPARMANID parManId)
+{
     HU3DPARMAN *temp_r26;
     HU3DPARMAN *parManP;
     HU3DPARTICLEDATA *particleDataP;
@@ -953,7 +987,8 @@ void Hu3DParManKill(HU3DPARMANID parManId) {
     }
 }
 
-void Hu3DParManAllKill(void) {
+void Hu3DParManAllKill(void)
+{
     HU3DPARMANID parManId;
 
     for (parManId = 0; parManId < HU3D_PARMAN_MAX; parManId++) {
@@ -963,11 +998,13 @@ void Hu3DParManAllKill(void) {
     }
 }
 
-HU3DPARMAN *Hu3DParManPtrGet(HU3DPARMANID parManId) {
+HU3DPARMAN *Hu3DParManPtrGet(HU3DPARMANID parManId)
+{
     return parManProc[parManId]->user_data;
 }
 
-void Hu3DParManPosSet(HU3DPARMANID parManId, float posX, float posY, float posZ) {
+void Hu3DParManPosSet(HU3DPARMANID parManId, float posX, float posY, float posZ)
+{
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
     parManP->pos.x = posX;
@@ -975,7 +1012,8 @@ void Hu3DParManPosSet(HU3DPARMANID parManId, float posX, float posY, float posZ)
     parManP->pos.z = posZ;
 }
 
-void Hu3DParManVecSet(HU3DPARMANID parManId, float x, float y, float z) {
+void Hu3DParManVecSet(HU3DPARMANID parManId, float x, float y, float z)
+{
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
     parManP->vec.x = x;
@@ -983,7 +1021,8 @@ void Hu3DParManVecSet(HU3DPARMANID parManId, float x, float y, float z) {
     parManP->vec.z = z;
 }
 
-void Hu3DParManRotSet(HU3DPARMANID parManId, float rotX, float rotY, float rotZ) {
+void Hu3DParManRotSet(HU3DPARMANID parManId, float rotX, float rotY, float rotZ)
+{
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
     Mtx rotMtx;
 
@@ -993,31 +1032,36 @@ void Hu3DParManRotSet(HU3DPARMANID parManId, float rotX, float rotY, float rotZ)
     parManP->vec.z = rotMtx[2][2];
 }
 
-void Hu3DParManAttrSet(HU3DPARMANID parManId, s32 attr) {
+void Hu3DParManAttrSet(HU3DPARMANID parManId, s32 attr)
+{
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
     parManP->attr |= attr;
 }
 
-void Hu3DParManAttrReset(HU3DPARMANID parManId, s32 attr) {
+void Hu3DParManAttrReset(HU3DPARMANID parManId, s32 attr)
+{
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
     parManP->attr &= ~attr;
 }
 
-s16 Hu3DParManModelIDGet(HU3DPARMANID parManId) {
+s16 Hu3DParManModelIDGet(HU3DPARMANID parManId)
+{
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
     return parManP->modelId;
 }
 
-void Hu3DParManTimeLimitSet(HU3DPARMANID parManId, s32 timeLimit) {
+void Hu3DParManTimeLimitSet(HU3DPARMANID parManId, s32 timeLimit)
+{
     HU3DPARMAN *parManP = parManProc[parManId]->user_data;
 
     parManP->timeLimit = timeLimit;
 }
 
-void Hu3DParManVacumeSet(HU3DPARMANID parManId, float x, float y, float z, float speed) {
+void Hu3DParManVacumeSet(HU3DPARMANID parManId, float x, float y, float z, float speed)
+{
     HU3DPARMAN *parManP;
 
     Hu3DParManAttrSet(parManId, HU3D_PARMAN_ATTR_VACUUM);
@@ -1028,7 +1072,8 @@ void Hu3DParManVacumeSet(HU3DPARMANID parManId, float x, float y, float z, float
     parManP->vacuumSpeed = speed;
 }
 
-void Hu3DParManColorSet(HU3DPARMANID parManId, s16 color) {
+void Hu3DParManColorSet(HU3DPARMANID parManId, s16 color)
+{
     HU3DPARMAN *parManP;
 
     Hu3DParManAttrSet(parManId, HU3D_PARMAN_ATTR_SETCOLOR);
@@ -1036,8 +1081,9 @@ void Hu3DParManColorSet(HU3DPARMANID parManId, s16 color) {
     parManP->color = color;
 }
 
-static void ParManFunc(void) {
-    HUPROCESS *processP;
+static void ParManFunc(void)
+{
+    Process *processP;
     HU3DPARMAN *parManP;
     HU3DPARMANPARAM *param;
     HU3DMODEL *modelP;
@@ -1070,36 +1116,40 @@ static void ParManFunc(void) {
         particleDataP = particleP->data;
         if (parManP->attr & HU3D_PARMAN_ATTR_RANDTIME90) {
             // Bug? Likely to be (u32) (temp_r30->unk04 * 0.1 * 1000.0)
-            accelVel = param->accelRange * 0.9 + (s32) frandmod((u32) param->accelRange * 0.1 * 1000.0) / 1000.0f;
-        } else if (parManP->attr & HU3D_PARMAN_ATTR_RANDTIME70) {
-            accelVel = param->accelRange * 0.7 + (s32) frandmod((u32) param->accelRange * 0.3 * 1000.0) / 1000.0f;
-        } else {
+            accelVel = param->accelRange * 0.9 + (s32)frandmod((u32)param->accelRange * 0.1 * 1000.0) / 1000.0f;
+        }
+        else if (parManP->attr & HU3D_PARMAN_ATTR_RANDTIME70) {
+            accelVel = param->accelRange * 0.7 + (s32)frandmod((u32)param->accelRange * 0.3 * 1000.0) / 1000.0f;
+        }
+        else {
             accelVel = param->accelRange;
         }
         parManP->accel += accelVel;
         circleIdx = 0;
         particleDataEnd = &particleP->data[particleP->maxCnt];
         if (parManP->attr & HU3D_PARMAN_ATTR_RANDANGLE) {
-            angleStart = (s32) frandmod((u32) (360.0f / param->accelRange) * 100) / 100;
+            angleStart = (s32)frandmod((u32)(360.0f / param->accelRange) * 100) / 100;
         }
         while (parManP->accel >= 1.0f) {
             if (parManP->attr & HU3D_PARMAN_ATTR_TIMEUP) {
                 parManP->accel -= 1.0f;
-            } else {
+            }
+            else {
                 while (particleDataP < particleDataEnd) {
                     if (!particleDataP->scale) {
                         s = param->scaleBase;
                         if (parManP->attr & HU3D_PARMAN_ATTR_RANDSCALE90) {
-                            s = s * 0.9 + (s32) frandmod((u32) (s * 0.1 * 1000.0)) / 1000.0f;
-                        } else if (parManP->attr & HU3D_PARMAN_ATTR_RANDSCALE70) {
-                            s = s * 0.7 + (s32) frandmod((u32) (s * 0.3 * 1000.0)) / 1000.0f;
+                            s = s * 0.9 + (s32)frandmod((u32)(s * 0.1 * 1000.0)) / 1000.0f;
+                        }
+                        else if (parManP->attr & HU3D_PARMAN_ATTR_RANDSCALE70) {
+                            s = s * 0.7 + (s32)frandmod((u32)(s * 0.3 * 1000.0)) / 1000.0f;
                         }
                         particleDataP->scaleBase = s;
                         particleDataP->scale = s;
                         particleDataP->pos = parManP->pos;
-                        vel.x = (s32) frandmod((u32) (param->scaleRange * 2.0f)) - param->scaleRange;
-                        vel.y = (s32) frandmod((u32) (param->scaleRange * 2.0f)) - param->scaleRange;
-                        vel.z = (s32) frandmod((u32) (param->scaleRange * 2.0f)) - param->scaleRange;
+                        vel.x = (s32)frandmod((u32)(param->scaleRange * 2.0f)) - param->scaleRange;
+                        vel.y = (s32)frandmod((u32)(param->scaleRange * 2.0f)) - param->scaleRange;
+                        vel.z = (s32)frandmod((u32)(param->scaleRange * 2.0f)) - param->scaleRange;
                         VECNormalize(&vel, &vel);
                         VECScale(&vel, &vel, param->scaleRange);
                         VECAdd(&vel, &particleDataP->pos, &particleDataP->pos);
@@ -1107,23 +1157,27 @@ static void ParManFunc(void) {
                         if (parManP->attr & HU3D_PARMAN_ATTR_RANDANGLE) {
                             upRot = angleStart + (360.0f / param->accelRange) * circleIdx;
                             rot = param->angleRange;
-                        } else {
-                            upRot = (s32) frandmod(360);
+                        }
+                        else {
+                            upRot = (s32)frandmod(360);
                             if (param->angleRange) {
-                                rot = (s32) frandmod((u32) param->angleRange);
-                            } else {
+                                rot = (s32)frandmod((u32)param->angleRange);
+                            }
+                            else {
                                 rot = 0.0f;
                             }
                         }
                         if (vecDir.x * vecDir.x < 0.000001 && vecDir.z * vecDir.z < 0.000001) {
                             up.x = 1.0f;
                             up.y = up.z = 0.0f;
-                        } else {
+                        }
+                        else {
                             if (vecDir.y * vecDir.y > 0.000001) {
                                 dir.x = vecDir.x;
                                 dir.y = 0.0f;
                                 dir.z = vecDir.z;
-                            } else {
+                            }
+                            else {
                                 dir.x = vecDir.x;
                                 dir.y = 1.0f;
                                 dir.z = vecDir.z;
@@ -1157,25 +1211,29 @@ static void ParManFunc(void) {
                         VECNormalize(&dir, &dir);
                         s = param->speedBase;
                         if (parManP->attr & HU3D_PARMAN_ATTR_RANDSPEED90) {
-                            s = s * 0.9 + (s32) frandmod((u32) (s * 0.1 * 1000.0)) / 1000.0f;
-                        } else if (parManP->attr & HU3D_PARMAN_ATTR_RANDSPEED70) {
-                            s = s * 0.7 + (s32) frandmod((u32) (s * 0.3 * 1000.0)) / 1000.0f;
-                        } else if (parManP->attr & HU3D_PARMAN_ATTR_RANDSPEED100) {
-                            s = (s32) frandmod((u32) (s * 1000.0f)) / 1000.0f;
+                            s = s * 0.9 + (s32)frandmod((u32)(s * 0.1 * 1000.0)) / 1000.0f;
+                        }
+                        else if (parManP->attr & HU3D_PARMAN_ATTR_RANDSPEED70) {
+                            s = s * 0.7 + (s32)frandmod((u32)(s * 0.3 * 1000.0)) / 1000.0f;
+                        }
+                        else if (parManP->attr & HU3D_PARMAN_ATTR_RANDSPEED100) {
+                            s = (s32)frandmod((u32)(s * 1000.0f)) / 1000.0f;
                         }
                         VECScale(&dir, &particleDataP->vel, s);
                         particleDataP->accel = param->gravity;
                         particleDataP->speedDecay = param->speedDecay;
                         if (parManP->attr & HU3D_PARMAN_ATTR_SETCOLOR) {
                             particleDataP->colorIdx = colorIdx = parManP->color;
-                        } else {
+                        }
+                        else {
                             particleDataP->colorIdx = colorIdx = frandmod(param->colorNum);
                         }
                         particleDataP->color = param->colorStart[colorIdx];
                         particleDataP->time = 0;
                         particleDataP->parManId = parManP->parManId;
                         break;
-                    } else {
+                    }
+                    else {
                         particleDataP++;
                     }
                 }
@@ -1193,12 +1251,10 @@ static void ParManFunc(void) {
     }
 }
 
-static float jitterTbl[] = {
-    1.0f, 0.9f, 0.7f, 0.5f,
-    0.5f, 0.7f, 0.9f, 1.0f
-};
+static float jitterTbl[] = { 1.0f, 0.9f, 0.7f, 0.5f, 0.5f, 0.7f, 0.9f, 1.0f };
 
-static void ParManHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx mtx) {
+static void ParManHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx mtx)
+{
     HU3DPARMANPARAM *param;
     HU3DPARMAN *parManP;
     HU3DPARTICLEDATA *particleDataP;
@@ -1220,7 +1276,8 @@ static void ParManHook(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx mtx) {
                 param = parManP->param;
                 if (parManP->attr & HU3D_PARMAN_ATTR_SCALEJITTER) {
                     particleDataP->scale = particleDataP->scaleBase * jitterTbl[(parManP->jitterNo + i) & 7];
-                } else {
+                }
+                else {
                     particleDataP->scale = particleDataP->scaleBase;
                 }
                 if (!(parManP->attr & HU3D_PARMAN_ATTR_PAUSE)) {

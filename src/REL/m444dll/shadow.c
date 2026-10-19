@@ -1,7 +1,6 @@
+#include "game/disp.h"
 #include "game/hu3d.h"
 #include "game/object.h"
-
-#include "game/window.h"
 
 #include "ext_math.h"
 
@@ -23,10 +22,10 @@ void fn_1_D9F4(s16 arg0)
     HU3DCAMERA *var_r31;
 
     var_r31 = &Hu3DCamera[0];
-    C_MTXPerspective(sp64, var_r31->fov, var_r31->aspect, var_r31->near, var_r31->far);
+    C_MTXPerspective(sp64, var_r31->fov, var_r31->aspect, var_r31->nnear, var_r31->ffar);
     GXSetProjection(sp64, GX_PERSPECTIVE);
-    GXSetViewport(0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
-    GXSetScissor(0, 0, 0x280, 0x1E0);
+    GXSetViewport(0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
+    GXSetScissor(0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
     GXClearVtxDesc();
     GXSetVtxDesc(GX_VA_POS, GX_DIRECT);
     GXSetVtxAttrFmt(GX_VTXFMT0, GX_VA_POS, GX_POS_XYZ, GX_F32, 0);
@@ -56,4 +55,5 @@ void fn_1_D9F4(s16 arg0)
     GXPosition3f32(sp28.x, -sp28.y, -10000.0f);
     GXPosition3f32(sp28.x, sp28.y, -10000.0f);
     GXPosition3f32(-sp28.x, sp28.y, -10000.0f);
+    GXEnd();
 }

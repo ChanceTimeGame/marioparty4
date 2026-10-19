@@ -130,7 +130,6 @@ s32 lbl_1_data_5A8[] = {
 #endif
 
 void fn_1_EC(void);
-void fn_1_12E8(void);
 void fn_1_13A0(void);
 
 s32 lbl_1_bss_14;
@@ -140,7 +139,7 @@ s32 lbl_1_bss_C;
 #endif
 s32 lbl_1_bss_8;
 s32 lbl_1_bss_4;
-HUPROCESS *lbl_1_bss_0;
+Process *lbl_1_bss_0;
 
 void fn_1_0(void)
 {
@@ -461,7 +460,7 @@ void fn_1_EC(void)
 				CharMotionInit(GWPlayerCfg[2].character);
 				CharMotionInit(GWPlayerCfg[3].character);
 				{
-					OMOVLHIS *his = omOvlHisGet(0);
+					omOvlHisData *his = omOvlHisGet(0);
 					omOvlHisChg(0, DLL_mstory3dll, 0, 0);
 					omOvlCallEx(boardOvlTbl[GWSystem.board], 1, 0, 0);
 				}
@@ -506,7 +505,7 @@ void fn_1_EC(void)
 				CharMotionInit(GWPlayerCfg[2].character);
 				CharMotionInit(GWPlayerCfg[3].character);
 				{
-					OMOVLHIS *his = omOvlHisGet(0);
+					omOvlHisData *his = omOvlHisGet(0);
 					omOvlHisChg(0, DLL_mstory3dll, 0, 0);
 					omOvlCallEx(boardOvlTbl[GWSystem.board], 1, 0, 0);
 				}
@@ -537,25 +536,11 @@ void fn_1_EC(void)
 	}
 }
 
-s32 _prolog(void) {
-    const VoidFunc* ctors = _ctors;
-    while (*ctors != 0) {
-        (**ctors)();
-        ctors++;
-    }
-    fn_1_12E8();
-    return 0;
-}
+#ifdef __MWERKS__
+#include "src/REL/executor.c"
+#endif
 
-void _epilog(void) {
-    const VoidFunc* dtors = _dtors;
-    while (*dtors != 0) {
-        (**dtors)();
-        dtors++;
-    }
-}
-
-void fn_1_12E8(void)
+void ObjectSetup(void)
 {
 	lbl_1_bss_0 = omInitObjMan(62, 8192);
 	omGameSysInit(lbl_1_bss_0);

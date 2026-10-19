@@ -1,5 +1,5 @@
 #include "version.h"
-#if VERSION_PAL
+#if VERSION_PAL || defined(TARGET_PC)
 #include "dolphin.h"
 #include "game/card.h"
 #include "game/saveload.h"
@@ -19,6 +19,8 @@
 
 #include "data_num/title.h"
 
+#include <string.h>
+
 s32 flagFileTbl[] = {
     TITLE_FLAG_EN_ANM,
     TITLE_FLAG_ES_ANM,
@@ -27,15 +29,15 @@ s32 flagFileTbl[] = {
     TITLE_FLAG_GE_ANM
 };
 
-extern int SystemInitF;
+SHARED_SYM extern int SystemInitF;
 
-extern HUPROCESS *objman;
+extern Process *objman;
 extern Vec debugCamRot[2];
 extern Vec debugCamPos[2];
 extern float debugCamZoom[2];
 
-void DebugCamOutView(OMOBJ *obj);
-void DebugCamUpdate(OMOBJ *obj);
+void DebugCamOutView(omObjData *obj);
+void DebugCamUpdate(omObjData *obj);
 
 BOOL LanguageMenuExec(void)
 {
@@ -47,8 +49,8 @@ BOOL LanguageMenuExec(void)
     ANIMDATA *anim;
     s16 sprid;
     s16 choice;
-    OMOBJ *outView;
-    OMOBJ *updateCamera;
+    omObjData *outView;
+    omObjData *updateCamera;
     s16 modelId[5];
     s16 winId[5];
     
@@ -86,7 +88,7 @@ BOOL LanguageMenuExec(void)
     if(!SystemInitF) {
         void *group_samp;
         HuWindowInit();
-        group_samp = HuMemDirectMalloc(HEAP_MODEL, msmSysGetSampSize(0));
+        group_samp = HuMemDirectMalloc(HEAP_DATA, msmSysGetSampSize(0));
         msmSysLoadGroup(0, group_samp, 0);
         HuMemDirectFree(group_samp);
     }
@@ -248,23 +250,23 @@ s32 LanguageBootGet(void)
     if(result == -1) {
         OSReport("OS Language %d\n", OSGetLanguage());
         switch(OSGetLanguage()) {
-            case OS_LANG_ENGLISH:
+            case OS_LANGUAGE_ENGLISH:
                 result = 1;
                 break;
                
-            case OS_LANG_GERMAN:
+            case OS_LANGUAGE_GERMAN:
                 result = 2;
                 break;
             
-            case OS_LANG_FRENCH:
+            case OS_LANGUAGE_FRENCH:
                 result = 3;
                 break;
             
-            case OS_LANG_SPANISH:
+            case OS_LANGUAGE_SPANISH:
                 result = 5;
                 break;
             
-            case OS_LANG_ITALIAN:
+            case OS_LANGUAGE_ITALIAN:
                 result = 4;
                 break;
             

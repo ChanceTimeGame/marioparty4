@@ -3,8 +3,8 @@
 
 #include "REL/m442Dll.h"
 
-s32 fn_1_9520(s32 arg0);
-void fn_1_9550(OMOBJ *object);
+void fn_1_9520(s32 arg0);
+void fn_1_9550(omObjData *object);
 void fn_1_970C(void);
 void fn_1_9784(void);
 void fn_1_980C(void);
@@ -13,8 +13,8 @@ typedef void (*M442ScoreFunc)(void);
 
 M442ScoreFunc lbl_1_data_268[3] = { fn_1_970C, fn_1_9784, fn_1_980C };
 
-HUPROCESS *lbl_1_bss_11F4C;
-OMOBJ *lbl_1_bss_11F48;
+Process *lbl_1_bss_11F4C;
+omObjData *lbl_1_bss_11F48;
 
 typedef struct M442ScoreWork {
     /* 0x00 */ s32 unk_00;
@@ -28,14 +28,14 @@ typedef struct M442ScoreWork {
     /* 0x20 */ float unk_20;
 } M442ScoreWork; /* size = 0x24 */
 
-s32 fn_1_91AC(HUPROCESS *arg0, s16 arg1)
+void fn_1_91AC(Process *arg0, s16 arg1)
 {
     M442ScoreWork *var_r31;
     u32 var_r30;
 
     lbl_1_bss_11F4C = arg0;
     lbl_1_bss_11F48 = omAddObjEx(lbl_1_bss_11F4C, 0x800, 0, 0, 7, fn_1_9550);
-    lbl_1_bss_11F48->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M442ScoreWork), HU_MEMNUM_OVL);
+    lbl_1_bss_11F48->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M442ScoreWork), MEMORY_DEFAULT_NUM);
     var_r31 = lbl_1_bss_11F48->data;
     var_r31->unk_08 = arg1;
     var_r31->unk_0A = 0;
@@ -58,7 +58,7 @@ s32 fn_1_91AC(HUPROCESS *arg0, s16 arg1)
         espDispOff(var_r31->unk_0C[var_r30]);
     }
     HuDataDirClose(DATADIR_MGCONST);
-    return fn_1_9520(0);
+    fn_1_9520(0);
 }
 
 void fn_1_9438(void)
@@ -92,7 +92,7 @@ void fn_1_94FC(void)
     fn_1_9520(0);
 }
 
-s32 fn_1_9520(s32 arg0)
+void fn_1_9520(s32 arg0)
 {
     M442ScoreWork *var_r31;
 
@@ -101,7 +101,7 @@ s32 fn_1_9520(s32 arg0)
     var_r31->unk_04 = 0;
 }
 
-void fn_1_9550(OMOBJ *arg0)
+void fn_1_9550(omObjData *arg0)
 {
     s16 temp_r31;
     M442ScoreWork* temp_r30;

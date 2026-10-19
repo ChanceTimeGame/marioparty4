@@ -98,7 +98,7 @@ UnkM447Struct_04 *fn_1_3FC4(s32 arg0)
     s16 var_r27;
     s32 i;
 
-    temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*temp_r3), HU_MEMNUM_OVL);
+    temp_r3 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(*temp_r3), MEMORY_DEFAULT_NUM);
     if (!temp_r3) {
         OSReport("M447PlayerCreate ERROR...\n");
         return NULL;
@@ -146,8 +146,8 @@ UnkM447Struct_04 *fn_1_3FC4(s32 arg0)
         CharMotionDataClose(temp_r3->unk18);
     }
     if (temp_r3->unk1C != 0) {
-        temp_r3->unkB0 = (HUPROCESS *)CharNpcDustSet(temp_r3->unk68, temp_r3->unk6A[2], 1, 10);
-        temp_r3->unkB4 = (HUPROCESS *)CharNpcDustSet(temp_r3->unk68, temp_r3->unk6A[1], 0, 10);
+        temp_r3->unkB0 = (Process *)CharNpcDustSet(temp_r3->unk68, temp_r3->unk6A[2], 1, 10);
+        temp_r3->unkB4 = (Process *)CharNpcDustSet(temp_r3->unk68, temp_r3->unk6A[1], 0, 10);
     }
     CharEffectLayerSet(2);
     temp_r3->unkAC = HuPrcChildCreate(fn_1_43F8, 102, 0x3000, 0, lbl_1_bss_4);

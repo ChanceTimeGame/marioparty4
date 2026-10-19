@@ -59,6 +59,15 @@ typedef struct AnimPat_s {
     ANIMLAYER *layer;
 } ANIMPAT;
 
+#ifdef OPTIMIZED_TEXTURE_LOADING
+typedef struct anim_tex_data {
+    bool tex_initialized;
+    bool tlut_initialized;
+    GXTexObj tex_obj;
+    GXTlutObj tlut_obj;
+} AnimTexData;
+#endif
+
 typedef struct AnimBmp_s {
     u8 pixSize;
     u8 dataFmt;
@@ -68,6 +77,10 @@ typedef struct AnimBmp_s {
     u32 dataSize;
     void *palData;
     void *data;
+#ifdef OPTIMIZED_TEXTURE_LOADING
+    // 1 per slot
+    AnimTexData texData[8];
+#endif
 } ANIMBMP;
 
 typedef struct AnimData_s {
@@ -78,6 +91,13 @@ typedef struct AnimData_s {
 /* 0x08 */ ANIMBANK *bank;
 /* 0x0C */ ANIMPAT *pat;
 /* 0x10 */ ANIMBMP *bmp;
+#ifdef BYTESWAPPING
+    u32 valid;
+#endif
 } ANIMDATA; //sizeof 0x14
+
+#ifdef BYTESWAPPING
+#define ANIM_DATA_ALLOCATION_VALID 0xD3D3D3D3
+#endif
 
 #endif

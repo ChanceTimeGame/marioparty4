@@ -1,6 +1,7 @@
 #include "ext_math.h"
 #include "game/audio.h"
 #include "game/chrman.h"
+#include "game/disp.h"
 #include "game/flag.h"
 #include "game/frand.h"
 #include "game/gamework.h"
@@ -89,24 +90,24 @@ typedef struct M453DllWork2 {
     s32 unk_A0;
 } M453DllWork2; /* size 0xA4 */ // same as Unkm403Struct_01
 
-void fn_1_440(OMOBJ *object);
-void fn_1_460(OMOBJ *object);
-void fn_1_848(OMOBJ *object);
-void fn_1_FFC(OMOBJ *object);
-void fn_1_105C(OMOBJ *object);
-void fn_1_1248(OMOBJ *object);
-void fn_1_14F8(OMOBJ *object);
-void fn_1_15FC(OMOBJ *object);
+void fn_1_440(omObjData *object);
+void fn_1_460(omObjData *object);
+void fn_1_848(omObjData *object);
+void fn_1_FFC(omObjData *object);
+void fn_1_105C(omObjData *object);
+void fn_1_1248(omObjData *object);
+void fn_1_14F8(omObjData *object);
+void fn_1_15FC(omObjData *object);
 void fn_1_1870(float arg8, Vec *arg0, Vec *arg1, float arg9);
 void fn_1_1910(float arg8, Vec *arg0, Vec *arg1, float arg9, Vec *arg2, Vec *arg3, float argA);
-void fn_1_1BF0(OMOBJ *object);
-void fn_1_1FA0(OMOBJ *object);
-void fn_1_20EC(OMOBJ *object);
-void fn_1_23E0(OMOBJ *object);
-void fn_1_2E24(OMOBJ *object);
+void fn_1_1BF0(omObjData *object);
+void fn_1_1FA0(omObjData *object);
+void fn_1_20EC(omObjData *object);
+void fn_1_23E0(omObjData *object);
+void fn_1_2E24(omObjData *object);
 s32 fn_1_36DC(void);
-void fn_1_39C8(OMOBJ *object);
-void fn_1_3C94(OMOBJ *object);
+void fn_1_39C8(omObjData *object);
+void fn_1_3C94(omObjData *object);
 s16 fn_1_3E9C(s32 arg0, s16 arg1, HU3DPARTICLEHOOK);
 void fn_1_3F38(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix);
 s32 fn_1_43B8(void);
@@ -138,11 +139,11 @@ GXColor lbl_1_data_1C[0xA] = {
     { 0, 0, 0, 0 },
 };
 
-OMOBJ *lbl_1_bss_58;
-OMOBJ *lbl_1_bss_54;
-OMOBJ *lbl_1_bss_50;
-OMOBJ *lbl_1_bss_4C;
-OMOBJ *lbl_1_bss_3C[4];
+omObjData *lbl_1_bss_58;
+omObjData *lbl_1_bss_54;
+omObjData *lbl_1_bss_50;
+omObjData *lbl_1_bss_4C;
+omObjData *lbl_1_bss_3C[4];
 u16 lbl_1_bss_3A;
 s16 lbl_1_bss_38;
 s16 lbl_1_bss_36;
@@ -158,9 +159,9 @@ s16 lbl_1_bss_0;
 
 void ObjectSetup(void)
 {
-    HUPROCESS *var_r31;
+    Process *var_r31;
     s32 var_r30;
-    OMOBJ *var_r29;
+    omObjData *var_r29;
     HU3DLIGHT *var_r28;
     s32 var_r27;
     s32 var_r26;
@@ -185,7 +186,7 @@ void ObjectSetup(void)
     CZoom = 1720.0f;
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 45.0f, 400.0f, 10000.0f, 1.2f);
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
     lbl_1_bss_54 = omAddObjEx(var_r31, 0x7FDA, 0, 0, -1, omOutView);
     lbl_1_bss_58 = omAddObjEx(var_r31, 0x10, 8, 0, -1, fn_1_440);
     lbl_1_bss_4C = omAddObjEx(var_r31, 0x20, 0x10, 0, -1, fn_1_105C);
@@ -212,13 +213,13 @@ void ObjectSetup(void)
     fn_1_924C(0);
 }
 
-void fn_1_440(OMOBJ *object)
+void fn_1_440(omObjData *object)
 {
     lbl_1_bss_3A = 0;
-    object->objFunc = fn_1_460;
+    object->func = fn_1_460;
 }
 
-void fn_1_460(OMOBJ *object)
+void fn_1_460(omObjData *object)
 {
     Vec sp2C;
     Vec sp20;
@@ -281,13 +282,13 @@ void fn_1_460(OMOBJ *object)
         case 4:
             lbl_1_bss_3A = 5;
             lbl_1_bss_38 = lbl_1_bss_36 = -1;
-            object->objFunc = fn_1_848;
+            object->func = fn_1_848;
             HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_M403, 19), 0x10000000));
             break;
     }
     if ((omSysExitReq != 0) && (WipeStatGet() == 0)) {
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        object->objFunc = fn_1_FFC;
+        object->func = fn_1_FFC;
     }
 }
 
@@ -303,7 +304,7 @@ s32 lbl_1_data_68[9] = {
     0x610007,
 };
 
-void fn_1_848(OMOBJ *object)
+void fn_1_848(omObjData *object)
 {
     Vec sp1C;
     Vec sp10;
@@ -440,17 +441,17 @@ void fn_1_848(OMOBJ *object)
         case 11:
             if (--lbl_1_bss_32 == 0) {
                 WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-                object->objFunc = fn_1_FFC;
+                object->func = fn_1_FFC;
             }
             break;
     }
     if ((omSysExitReq != 0) && (WipeStatGet() == 0)) {
         WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 60);
-        object->objFunc = fn_1_FFC;
+        object->func = fn_1_FFC;
     }
 }
 
-void fn_1_FFC(OMOBJ *object)
+void fn_1_FFC(omObjData *object)
 {
     if (WipeStatGet() == 0) {
         fn_1_6748();
@@ -462,7 +463,7 @@ void fn_1_FFC(OMOBJ *object)
     }
 }
 
-void fn_1_105C(OMOBJ *object)
+void fn_1_105C(omObjData *object)
 {
     Hu3DLightAllKill();
     lbl_1_bss_18[0] = Hu3DGLightCreateV(&lbl_1_data_4, &lbl_1_data_10, lbl_1_data_1C);
@@ -475,10 +476,10 @@ void fn_1_105C(OMOBJ *object)
     Hu3DGLightPosSet(lbl_1_bss_18[1], -1470.0f, 800.0f, -2000.0f, 0.0f, -1.0f, 0.0f);
     Hu3DGLightColorSet(lbl_1_bss_18[1], 0, 0, 0, 0xFF);
     Hu3DGLightPointSet(lbl_1_bss_18[1], 1200.0f, 0.6f, 3);
-    object->objFunc = fn_1_1248;
+    object->func = fn_1_1248;
 }
 
-void fn_1_1248(OMOBJ *object)
+void fn_1_1248(omObjData *object)
 {
     s32 var_r30;
 
@@ -533,9 +534,9 @@ void fn_1_1248(OMOBJ *object)
     }
 }
 
-void fn_1_14F8(OMOBJ *object)
+void fn_1_14F8(omObjData *object)
 {
-    M453DllWork *var_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M453DllWork), HU_MEMNUM_OVL);
+    M453DllWork *var_r31 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M453DllWork), MEMORY_DEFAULT_NUM);
     object->data = var_r31;
     var_r31->unk_148 = var_r31->unk_144 = 0.0f;
     var_r31->unk_140 = 1.0f;
@@ -546,10 +547,10 @@ void fn_1_14F8(OMOBJ *object)
     var_r31->unk_04.y = var_r31->unk_1C.y = 320.0f;
     var_r31->unk_04.z = var_r31->unk_1C.z = 147.0f;
     var_r31->unk_130 = var_r31->unk_134 = 1720.0f;
-    object->objFunc = fn_1_15FC;
+    object->func = fn_1_15FC;
 }
 
-void fn_1_15FC(OMOBJ *object)
+void fn_1_15FC(omObjData *object)
 {
     float var_f31;
     M453DllWork *var_r31 = object->data;
@@ -671,14 +672,14 @@ Vec lbl_1_data_E4[4] = {
     { 300.0f, 2200.0f, 0.0f },
 };
 
-void fn_1_1BF0(OMOBJ *object)
+void fn_1_1BF0(omObjData *object)
 {
     M453DllWork2 *var_r31;
     s32 var_r29;
     s32 var_r28;
     u32 var_r27;
 
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M453DllWork2), HU_MEMNUM_OVL);
+    var_r31 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M453DllWork2), MEMORY_DEFAULT_NUM);
     object->data = var_r31;
     var_r31->unk_00 = object->work[0];
     var_r31->unk_01 = GWPlayerCfg[var_r31->unk_00].character;
@@ -710,25 +711,25 @@ void fn_1_1BF0(OMOBJ *object)
         lbl_1_bss_1E[lbl_1_bss_1C++] = var_r31->unk_00;
     }
     var_r28 = CharModelCreate(var_r31->unk_01, 4);
-    object->mdlId[0] = var_r28;
+    object->model[0] = var_r28;
     Hu3DModelAttrSet(var_r28, HU3D_MOTATTR_LOOP);
     Hu3DModelShadowSet(var_r28);
     for (var_r29 = 0; var_r29 < 8; var_r29++) {
-        object->mtnId[var_r29] = CharMotionCreate(var_r31->unk_01, lbl_1_data_C4[var_r29]);
+        object->motion[var_r29] = CharMotionCreate(var_r31->unk_01, lbl_1_data_C4[var_r29]);
     }
     CharMotionDataClose(var_r31->unk_01);
-    CharMotionSet(var_r31->unk_01, object->mtnId[var_r31->unk_18]);
+    CharMotionSet(var_r31->unk_01, object->motion[var_r31->unk_18]);
     omSetTra(object, var_r31->unk_2C.x, var_r31->unk_2C.y, var_r31->unk_2C.z);
     Hu3DModelPosSet(var_r28, var_r31->unk_2C.x, var_r31->unk_2C.y, var_r31->unk_2C.z);
     Hu3DModelRotSet(var_r28, 0.0f, 30.0f, 0.0f);
     CharModelStepFxSet(var_r31->unk_01, 1);
-    CharMotionVoiceOnSet(var_r31->unk_01, object->mtnId[3], 0);
-    object->objFunc = fn_1_1FA0;
+    CharMotionVoiceOnSet(var_r31->unk_01, object->motion[3], 0);
+    object->func = fn_1_1FA0;
 }
 
-void fn_1_1FA0(OMOBJ *object)
+void fn_1_1FA0(omObjData *object)
 {
-    s32 sp8 = *object->mdlId;
+    s32 sp8 = *object->model;
     M453DllWork2 *var_r31 = object->data;
     var_r31->unk_10 = var_r31->unk_12 = 0;
     var_r31->unk_14 = var_r31->unk_16 = 0;
@@ -744,7 +745,7 @@ void fn_1_1FA0(OMOBJ *object)
             }
             break;
         case 5:
-            object->objFunc = fn_1_20EC;
+            object->func = fn_1_20EC;
             break;
     }
     if (var_r31->unk_2C.y < 10.0f) {
@@ -755,13 +756,13 @@ void fn_1_1FA0(OMOBJ *object)
     fn_1_2E24(object);
 }
 
-void fn_1_20EC(OMOBJ *object)
+void fn_1_20EC(omObjData *object)
 {
     M453DllWork2 *var_r31;
     s32 var_r29;
     s32 var_r28;
 
-    var_r29 = object->mdlId[0];
+    var_r29 = object->model[0];
     var_r31 = object->data;
     if (var_r31->unk_07 != 0) {
         if ((lbl_1_bss_3A == 6) && ((var_r31->unk_07 & 2) == 0)) {
@@ -821,7 +822,7 @@ void fn_1_20EC(OMOBJ *object)
     }
 }
 
-void fn_1_23E0(OMOBJ *object)
+void fn_1_23E0(omObjData *object)
 {
     Vec sp38[6];
     float sp20[6];
@@ -983,7 +984,7 @@ void fn_1_23E0(OMOBJ *object)
     var_r31->unk_16 = var_r20;
 }
 
-void fn_1_2E24(OMOBJ *object)
+void fn_1_2E24(omObjData *object)
 {
     s16 spA;
     s16 sp8;
@@ -997,7 +998,7 @@ void fn_1_2E24(OMOBJ *object)
     s32 var_r25;
 
     var_r31 = object->data;
-    var_r25 = object->mdlId[0];
+    var_r25 = object->model[0];
     var_r28 = var_r31->unk_18;
     var_r31->unk_50 = var_r31->unk_2C;
     var_r30 = var_r31->unk_10;
@@ -1098,7 +1099,7 @@ void fn_1_2E24(OMOBJ *object)
     if (var_r28 != var_r31->unk_1A) {
         var_r31->unk_1A = var_r28;
         var_r31->unk_18 = var_r28;
-        CharMotionShiftSet(var_r31->unk_01, object->mtnId[var_r31->unk_18], 0.0f, 8.0f, var_r27);
+        CharMotionShiftSet(var_r31->unk_01, object->motion[var_r31->unk_18], 0.0f, 8.0f, var_r27);
         var_r31->unk_28 = CharMotionMaxTimeGet(var_r31->unk_01);
     }
     omSetTra(object, var_r31->unk_2C.x, var_r31->unk_2C.y, var_r31->unk_2C.z);
@@ -1136,7 +1137,7 @@ s32 fn_1_36DC(void)
     M453DllWork2 *var_r28;
     M453DllWork2 *var_r27;
     s32 var_r26;
-    OMOBJ *var_r25;
+    omObjData *var_r25;
 
     var_r26 = 0;
     for (var_r30 = 0; var_r30 < 4; var_r30++) {
@@ -1187,7 +1188,7 @@ s32 fn_1_36DC(void)
     return var_r26;
 }
 
-void fn_1_39C8(OMOBJ *object)
+void fn_1_39C8(omObjData *object)
 {
     s32 sp8[4];
 
@@ -1254,7 +1255,7 @@ float lbl_1_data_114[8] = { 40.0f, 40.0f, 40.0f, 40.0f, 40.0f, 100.0f, 40.0f, 80
 
 float lbl_1_data_134[8] = { 160.0f, 160.0f, 180.0f, 160.0f, 160.0f, 180.0f, 180.0f, 200.0f };
 
-void fn_1_3C94(OMOBJ *object)
+void fn_1_3C94(omObjData *object)
 {
     Vec sp8;
     float var_f31;
@@ -1319,7 +1320,6 @@ void fn_1_3F38(HU3DMODEL *model, HU3DPARTICLE *particle, Mtx matrix)
     float var_f31;
     float var_f30;
     float var_f29;
-    float var_f28;
 
     HU3DPARTICLEDATA *var_r31;
     s32 var_r29;
@@ -1468,18 +1468,8 @@ float fn_1_4B34(float arg8, float arg9, float argA, float argB)
 void fn_1_4BAC(float *arg0, float *arg1, float *arg2, float *arg3, float arg8)
 {
     float spC[3];
-    float sp8;
-    float var_f31;
     float var_f30;
-    float var_f28;
     float var_f29;
-    float var_f27;
-    float var_f26;
-    float var_f25;
-    float var_f24;
-    float var_f23;
-    float var_f22;
-    float var_f21;
 
     s32 var_r31;
 
@@ -1619,13 +1609,6 @@ void fn_1_5670(float arg8, float *arg0, float *arg1, float (*arg2)[3], float (*a
     float sp48[16];
     float sp8[16];
 
-    float var_f31;
-    float var_f30;
-    float var_f29;
-    float var_f28;
-    float var_f27;
-
-    s32 var_r31;
     s32 var_r30;
     s32 var_r29;
 
@@ -1729,7 +1712,7 @@ s32 fn_1_639C(void)
 s32 fn_1_63AC(void)
 {
     s32 var_r31;
-    OMOBJ **var_r30;
+    omObjData **var_r30;
     M453DllWork2 *var_r29;
 
     var_r30 = omGetGroupMemberListEx(HuPrcCurrentGet(), 0);
@@ -1746,7 +1729,7 @@ void fn_1_6448(void)
 {
     s32 var_r31;
     M453DllWork2 *var_r30;
-    OMOBJ **var_r29;
+    omObjData **var_r29;
     s32 var_r28;
     s16 var_r27;
 

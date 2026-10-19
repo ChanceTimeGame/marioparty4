@@ -1,6 +1,7 @@
 #include "ext_math.h"
 #include "game/audio.h"
 #include "game/chrman.h"
+#include "game/disp.h"
 #include "game/esprite.h"
 #include "game/gamework.h"
 #include "game/hsfex.h"
@@ -11,10 +12,8 @@
 #include "game/printfunc.h"
 #include "game/wipe.h"
 
-// #ifndef __MWERKS__
 #include "game/frand.h"
 #include "version.h"
-// #endif
 
 typedef struct M459DllBss18Struct {
     /* 0x00 */ s32 unk_00;
@@ -60,8 +59,8 @@ typedef struct M459DllBssCCStruct {
     /* 0x01C */ float unk_1C;
     /* 0x020 */ float unk_20;
     /* 0x024 */ char pad_24[0x4];
-    /* 0x028 */ s32 unk_28[5];
-    /* 0x03C */ s32 unk_3C[5];
+    /* 0x028 */ Process *unk_28[5];
+    /* 0x03C */ Process *unk_3C[5];
     /* 0x050 */ float unk_50;
     /* 0x054 */ float unk_54;
     /* 0x058 */ float unk_58;
@@ -159,8 +158,8 @@ void fn_1_6458(M459DllBss7CStruct *arg0);
 void fn_1_73C(void);
 void fn_1_E78(void);
 
-HUPROCESS *lbl_1_bss_6E4;
-HUPROCESS *lbl_1_bss_698[0x13];
+Process *lbl_1_bss_6E4;
+Process *lbl_1_bss_698[0x13];
 M459DllBss61CStruct lbl_1_bss_61C;
 M459DllBssCCStruct lbl_1_bss_CC[5];
 M459DllBss7CStruct lbl_1_bss_7C[5];
@@ -408,11 +407,11 @@ void fn_1_73C(void)
     lbl_1_bss_698[2] = HuPrcChildCreate(fn_1_E78, 0xFF, 0x1000, 0, HuPrcCurrentGet());
     for (var_r31 = 0; var_r31 < 5; var_r31++) {
         lbl_1_bss_698[var_r31 + 3] = HuPrcChildCreate(fn_1_14B8, 0x102, 0x3000, 0, HuPrcCurrentGet());
-        *((s32 *)&lbl_1_bss_698[var_r31 + 3]->user_data) = var_r31;
+        lbl_1_bss_698[var_r31 + 3]->user_data_u32 = var_r31;
     }
     for (var_r31 = 0; var_r31 < 5; var_r31++) {
         lbl_1_bss_698[var_r31 + 8] = HuPrcChildCreate(fn_1_5EAC, 0x105, 0x1000, 0, HuPrcCurrentGet());
-        *((s32 *)&lbl_1_bss_698[var_r31 + 8]->user_data) = var_r31;
+        lbl_1_bss_698[var_r31 + 8]->user_data_u32 = var_r31;
     }
     lbl_1_bss_698[0x11] = HuPrcChildCreate(fn_1_5490, 0x103, 0x2000, 0, HuPrcCurrentGet());
     for (var_r31 = 0; var_r31 < 5; var_r31++) {
@@ -526,7 +525,6 @@ void fn_1_73C(void)
 
 void fn_1_E78(void)
 {
-    float sp8;
     float var_f31;
     M459DllBss61CStruct *var_r31;
 
@@ -542,7 +540,7 @@ void fn_1_E78(void)
     var_r31->unk_20 = 0.0f;
     var_r31->unk_74 = 1.0f;
     var_r31->unk_6C = 1.0f;
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 30.0f, 10.0f, 8000.0f, 1.2f);
     while (TRUE) {
         fn_1_122C();
@@ -616,7 +614,7 @@ void fn_1_14B8(void)
     s32 var_r30;
     s32 var_r29;
 
-    var_r29 = (s32)HuPrcCurrentGet()->user_data;
+    var_r29 = HuPrcCurrentGet()->user_data_u32;
     var_r31 = &lbl_1_bss_CC[var_r29];
     var_r31->unk_00 = var_r29;
     var_r31->unk_04 = 0;
@@ -1154,10 +1152,6 @@ loop_1:
 
 void fn_1_338C(M459DllBssCCStruct *arg0, float arg8)
 {
-    float spC;
-    float var_f31;
-    float var_f30;
-    float var_f29;
     s16 var_r30;
 
     var_r30 = 0;
@@ -1680,6 +1674,9 @@ s32 fn_1_5310(void)
         lbl_1_bss_4C.unk_10 = lbl_1_bss_4C.unk_0C;
         lbl_1_bss_4C.unk_14 = 1;
     }
+#ifdef NON_MATCHING
+    return 0;
+#endif
 }
 
 M459DllData70Struct lbl_1_data_70 = { { 0.0f, 300.0f, 0.0f }, { 0.0f, -300.0f, -600.0f }, { 0xFF, 0xFF, 0xFF, 0xFF } };
@@ -1965,9 +1962,9 @@ void fn_1_5E3C(M459DllBss18Struct *arg0)
 void fn_1_5EAC(void)
 {
     M459DllBss7CStruct *var_r31;
-    s32 var_r30;
+    intptr_t var_r30;
 
-    var_r30 = (s32)HuPrcCurrentGet()->user_data;
+    var_r30 = (intptr_t)HuPrcCurrentGet()->user_data;
     var_r31 = &lbl_1_bss_7C[var_r30];
     var_r31->unk_00 = var_r30;
     var_r31->unk_04 = 0;

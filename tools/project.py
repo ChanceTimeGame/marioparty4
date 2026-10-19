@@ -65,6 +65,7 @@ class Object:
             "shift_jis": None,
             "source": name,
             "src_dir": None,
+            "strip_prefix": None,
         }
         self.options.update(options)
 
@@ -112,10 +113,13 @@ class Object:
 
         # Resolve paths
         build_dir = config.out_path()
-        obj.src_path = Path(obj.options["src_dir"]) / obj.options["source"]
+        source = obj.options["source"]
+        if obj.options["strip_prefix"]:
+            source = source.removeprefix(obj.options["strip_prefix"])
+        obj.src_path = Path(obj.options["src_dir"]) / source
         if obj.options["asm_dir"] is not None:
             obj.asm_path = (
-                Path(obj.options["asm_dir"]) / obj.options["source"]
+                    Path(obj.options["asm_dir"]) / source
             ).with_suffix(".s")
         base_name = Path(self.name).with_suffix("")
         obj.src_obj_path = build_dir / "src" / f"{base_name}.o"
@@ -272,8 +276,8 @@ class ProjectConfig:
     def use_wibo(self) -> bool:
         return (
             self.wibo_tag is not None
-            and sys.platform == "linux"
-            and platform.machine() in ("i386", "x86_64")
+            and (sys.platform == "linux" or sys.platform == "darwin")
+            and platform.machine() in ("i386", "x86_64", "aarch64", "arm64")
             and self.wrapper is None
         )
 
@@ -317,6 +321,14 @@ def check_path_case(path: Path):
         start = 0
 
     for part in parts[start:]:
+        # "." and ".." never appear in a listdir result. Since games/<id>/configure.py
+        # reaches the shared tools/ and extern/ via ../../, walk them directly.
+        if part == ".":
+            continue
+        if part == "..":
+            curr = curr / ".."
+            continue
+
         if curr in _listdir_cache:
             entries = _listdir_cache[curr]
         else:
@@ -1377,9 +1389,17 @@ def generate_build_ninja(
     ###
     build_config_path = build_path / "config.json"
     n.comment("Split DOL into relocatable objects")
+    # --no-update, because both games' config/ directories are committed here as
+    # clean mirrors of the upstream decompilations they came from. Without it
+    # dtk writes its own analysis back into config/<VERSION>/symbols.txt on
+    # every build -- 85 files after one ninja run for Mario Party 5 -- which
+    # costs nothing at build time but destroys the property that makes `diff -r`
+    # against upstream meaningful when their symbol work moves on. games/mp5's
+    # gen_asm.sh has always passed it; this rule is the path that did not.
+    n.comment("--no-update: keep config/ a pristine mirror of upstream's")
     n.rule(
         name="split",
-        command=f"{dtk} dol split $in $out_dir",
+        command=f"{dtk} dol split --no-update $in $out_dir",
         description="SPLIT $in",
         depfile="$out_dir/dep",
         deps="gcc",
@@ -1467,6 +1487,11 @@ def generate_objdiff_config(
             "*.yml",
             "*.txt",
             "*.json",
+        ],
+        "ignore_patterns": [
+            "build/debugx86/*",
+            "build/releasex64/*",
+            "build/releasex86/*"
         ],
         "units": [],
         "progress_categories": [],

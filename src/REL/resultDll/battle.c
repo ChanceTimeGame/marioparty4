@@ -124,7 +124,7 @@ void ResultBattleMain(void)
     s16 i;
     s16 winId;
     s16 btnDown;
-    HUPROCESS *proc = HuPrcCurrentGet();
+    Process *proc = HuPrcCurrentGet();
     HuAudSeqPlay(10);
     for (i = playerNo = 0; i < 4; i++) {
         if (GWPlayerCfg[i].iscom) {
@@ -229,7 +229,7 @@ static void ResultBattleCreate(void)
     Vec target;
     Vec up;
     s16 coinNum[5];
-    HUPROCESS *proc = HuPrcCurrentGet();
+    Process *proc = HuPrcCurrentGet();
     CRot.x = 0;
     CRot.y = 0;
     CRot.z = 0;
@@ -266,20 +266,20 @@ static void ResultBattleCreate(void)
         Hu3DModelShadowSet(stageMdlId[i]);
     }
     for (i = 0; i < 4; i++) {
-        anim = HuSprAnimRead(HuDataReadNum(resultBattleRank[i] + DATA_MAKE_NUM(DATADIR_RESULT, 0x44), HU_MEMNUM_OVL));
+        anim = HuSprAnimRead(HuDataReadNum(resultBattleRank[i] + DATA_MAKE_NUM(DATADIR_RESULT, 0x44), MEMORY_DEFAULT_NUM));
         if (resultBattleRank[i] <= 2) {
-            anim2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x48), HU_MEMNUM_OVL));
+            anim2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x48), MEMORY_DEFAULT_NUM));
         }
         else {
-            anim2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x48), HU_MEMNUM_OVL));
+            anim2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x48), MEMORY_DEFAULT_NUM));
         }
         Hu3DAnimCreate(anim, stageMdlId[i + 4], "ys22_a0");
         Hu3DAnimCreate(anim2, stageMdlId[i + 4], "ys22_a1");
         Hu3DModelAttrSet(stageMdlId[i + 4], HU3D_MOTATTR_PAUSE);
     }
-    anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x3D), HU_MEMNUM_OVL));
-    anim2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x3B), HU_MEMNUM_OVL));
-    anim3 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x3C), HU_MEMNUM_OVL));
+    anim = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x3D), MEMORY_DEFAULT_NUM));
+    anim2 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x3B), MEMORY_DEFAULT_NUM));
+    anim3 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_RESULT, 0x3C), MEMORY_DEFAULT_NUM));
     for (i = 0; i < 4; i++) {
         if (coinNum[resultBattleOrder[i]] >= 100) {
             xOfs = coinNumXOfs[2];
@@ -325,7 +325,7 @@ static void ResultBattleCreate(void)
         Hu3DModelAttrSet(coinEffectMdlId[i], HU3D_ATTR_DISPOFF);
     }
     CoinEffectInit();
-    anim = HuSprAnimRead(HuAR_ARAMtoMRAMFileRead(DATA_MAKE_NUM(DATADIR_EFFECT, 4), HU_MEMNUM_OVL, HEAP_MODEL));
+    anim = HuSprAnimRead(HuAR_ARAMtoMRAMFileRead(DATA_MAKE_NUM(DATADIR_EFFECT, 4), MEMORY_DEFAULT_NUM, HEAP_DATA));
     for (i = 0; i < 4; i++) {
         resultBattleEffParManId[i] = Hu3DParManCreate(anim, 300, &resultBattleEffParMan);
         Hu3DParManAttrSet(resultBattleEffParManId[i], 0x65);
@@ -576,7 +576,7 @@ static void CoinEffectMain(void);
 static void CoinEffectInit(void)
 {
     s16 i;
-    HUPROCESS *process = HuPrcCurrentGet();
+    Process *process = HuPrcCurrentGet();
     for (i = 0; i < COIN_EFFECT_MAX; i++) {
         coinEffectData[i].playerNo = -1;
     }
@@ -677,4 +677,7 @@ static void ResultShadowDraw(struct Hu3DModel_s *model, Mtx matrix)
     GXPosition3f32(500.0f, 0, 500.0f);
     GXPosition3f32(-500.0f, 0, 500.0f);
     GXEnd();
+#ifdef TARGET_PC
+    GXDestroyTexObj(&tex);
+#endif
 }

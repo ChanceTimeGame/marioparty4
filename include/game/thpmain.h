@@ -17,7 +17,7 @@ s32 HuTHPFrameGet(void);
 s32 HuTHPTotalFrameGet(void);
 void HuTHPSetVolume(s32 left, s32 right);
 
-extern HUPROCESS *THPProc;
+extern Process *THPProc;
 
 
 #endif

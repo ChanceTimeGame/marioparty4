@@ -63,12 +63,12 @@ void fn_1_7C38(void);
 s32 fn_1_7D18(s32 arg0);
 void fn_1_8140(s32 arg0);
 void fn_1_81E0(s32 arg0);
-void fn_1_8530(OMOBJ *arg0);
+void fn_1_8530(omObjData *arg0);
 void fn_1_84A8(s32 arg0);
-void fn_1_8698(OMOBJ *arg0, someBits3 *arg1);
-void fn_1_8C08(OMOBJ *arg0, someBits3 *arg1);
-void fn_1_8E44(OMOBJ *arg0, someBits3 *arg1);
-void fn_1_9044(OMOBJ *arg0, someBits3 *arg1);
+void fn_1_8698(omObjData *arg0, someBits3 *arg1);
+void fn_1_8C08(omObjData *arg0, someBits3 *arg1);
+void fn_1_8E44(omObjData *arg0, someBits3 *arg1);
+void fn_1_9044(omObjData *arg0, someBits3 *arg1);
 void fn_1_91B8(void);
 void fn_1_9230(s32 arg0);
 void fn_1_9384(void);
@@ -87,9 +87,9 @@ s32 lbl_1_data_45C[] = { DATA_MAKE_NUM(DATADIR_W03, 0x21), DATA_MAKE_NUM(DATADIR
 char lbl_1_bss_150[0x30];
 s16 lbl_1_bss_14E;
 s8 lbl_1_bss_14C;
-OMOBJ *lbl_1_bss_148;
-OMOBJ *lbl_1_bss_144;
-HUPROCESS *lbl_1_bss_140;
+omObjData *lbl_1_bss_148;
+omObjData *lbl_1_bss_144;
+Process *lbl_1_bss_140;
 
 void fn_1_7ABC(void)
 {
@@ -270,7 +270,7 @@ s32 lbl_1_data_490[] = {
 void fn_1_81E0(s32 arg0)
 {
     Vec sp8;
-    OMOBJ *temp_r3;
+    omObjData *temp_r3;
     f32 temp_f31;
     s32 temp_r28;
     s32 temp_r5;
@@ -279,7 +279,7 @@ void fn_1_81E0(s32 arg0)
 
     temp_r3 = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, fn_1_8530);
     lbl_1_bss_144 = temp_r3;
-    temp_r31 = omObjGetWork(temp_r3, someBits3);
+    temp_r31 = OM_GET_WORK_PTR(temp_r3, someBits3);
     temp_r31->unk00_bit0 = 0;
     temp_r31->unk00_bit5 = arg0;
     temp_r31->unk00_bit1 = 4; //?
@@ -325,7 +325,7 @@ void fn_1_84A8(s32 arg0)
     someBits3 *temp_r31;
 
     if (lbl_1_bss_144) {
-        temp_r31 = omObjGetWork(lbl_1_bss_144, someBits3);
+        temp_r31 = OM_GET_WORK_PTR(lbl_1_bss_144, someBits3);
         temp_r31->unk00_bit1 = arg0;
         if (arg0 == 0) {
             temp_r31->unk_04 = MGSeqTimerCreateXY(temp_r31->unk2, 288, 64);
@@ -333,12 +333,12 @@ void fn_1_84A8(s32 arg0)
     }
 }
 
-void fn_1_8530(OMOBJ *arg0)
+void fn_1_8530(omObjData *arg0)
 {
     s32 temp_r0;
     someBits3 *temp_r31;
 
-    temp_r31 = omObjGetWork(arg0, someBits3);
+    temp_r31 = OM_GET_WORK_PTR(arg0, someBits3);
 
     if ((temp_r31->unk00_bit0 != 0) || (BoardIsKill() != 0)) {
         if (temp_r31->unk_04 != -1) {
@@ -382,7 +382,7 @@ void fn_1_8530(OMOBJ *arg0)
     }
 }
 
-void fn_1_8698(OMOBJ *arg0, someBits3 *arg1)
+void fn_1_8698(omObjData *arg0, someBits3 *arg1)
 {
     s32 temp_r27;
     u32 var_r28;
@@ -507,7 +507,7 @@ void fn_1_8698(OMOBJ *arg0, someBits3 *arg1)
 s8 lbl_1_data_4B0 = -1;
 s32 lbl_1_data_4B4[] = { 0x00000440, 0x00000441, 0x00000442, 0x00000443, 0x00000444 };
 
-void fn_1_8C08(OMOBJ *arg0, someBits3 *arg1)
+void fn_1_8C08(omObjData *arg0, someBits3 *arg1)
 {
     Vec spC;
     f32 temp_f31;
@@ -543,7 +543,7 @@ void fn_1_8C08(OMOBJ *arg0, someBits3 *arg1)
     BoardPlayerMotionTimeSet(arg1->unk00_bit5, 2.0f * temp_f30);
 }
 
-void fn_1_8E44(OMOBJ *arg0, someBits3 *arg1)
+void fn_1_8E44(omObjData *arg0, someBits3 *arg1)
 {
     Vec sp8;
     f32 temp_f1;
@@ -582,7 +582,7 @@ void fn_1_8E44(OMOBJ *arg0, someBits3 *arg1)
     BoardModelPosSetV(lbl_1_data_456, &sp8);
 }
 
-void fn_1_9044(OMOBJ *arg0, someBits3 *arg1)
+void fn_1_9044(omObjData *arg0, someBits3 *arg1)
 {
     Vec sp8;
 
@@ -665,7 +665,7 @@ void fn_1_9474(s32 arg0)
 {
     sprintf(lbl_1_bss_150, "%d", lbl_1_bss_14C);
     BoardWinCreate(2, MAKE_MESSID(22, 23), 2);
-    BoardWinInsertMesSet((u32)lbl_1_bss_150, 4);
+    BOARD_WIN_INSERT_MES_SET_PTR((uintptr_t)lbl_1_bss_150, 4);
     BoardWinWait();
     BoardWinKill();
     BoardPlayerMotBlendSet(arg0, 0, 0xF);
@@ -693,7 +693,7 @@ void fn_1_9474(s32 arg0)
     BoardModelMotionStart(lbl_1_bss_C[7], 0, 0x40000002);
 }
 
-void fn_1_95B8(OMOBJ *arg0)
+void fn_1_95B8(omObjData *arg0)
 {
     f32 temp_f31;
     s32 var_r25;
@@ -705,7 +705,7 @@ void fn_1_95B8(OMOBJ *arg0)
     s32 i;
     s32 temp;
 
-    temp_r29 = omObjGetWork(arg0, unkTemp2);
+    temp_r29 = OM_GET_WORK_PTR(arg0, unkTemp2);
 
     if ((temp_r29->unk00_bit0 != 0) || (BoardIsKill() != 0)) {
         fn_1_9A1C(temp_r29);
@@ -761,17 +761,17 @@ void fn_1_97F8(s32 arg0)
     f32 temp_f2;
     f32 var_f31;
     f64 temp_f1;
-    OMOBJ *temp_r3;
+    omObjData *temp_r3;
     s32 i;
     unkTemp2 *temp_r30;
     unkTemp *temp_r31;
 
     temp_r3 = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, fn_1_95B8);
     lbl_1_bss_148 = temp_r3;
-    temp_r30 = omObjGetWork(temp_r3, unkTemp2);
+    temp_r30 = OM_GET_WORK_PTR(temp_r3, unkTemp2);
     temp_r30->unk00_bit0 = 0;
     temp_r30->unk4 = arg0;
-    temp_r30->unk_0C = HuMemDirectMallocNum(0, 0x190, HU_MEMNUM_OVL);
+    temp_r30->unk_0C = HuMemDirectMallocNum(0, 20 * sizeof(unkTemp), MEMORY_DEFAULT_NUM);
     BoardPlayerPosGet(arg0, &sp8);
     temp_r30->unk8 = (80.0f + sp8.y);
     memset(temp_r30->unk_0C, 0, 0x190);

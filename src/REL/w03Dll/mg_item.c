@@ -65,8 +65,6 @@ typedef struct w03UnkMG {
 
 // external symbols
 
-extern u16 HuPadBtnDown[4];
-
 // function signatures
 s32 BoardVecDAngleCalcRange(float *value, float min, float range);
 
@@ -78,20 +76,20 @@ s32 fn_1_BBC4(void);
 void fn_1_BB74(s8 *arg0);
 s32 fn_1_BB48(void);
 void fn_1_B8E8(s32 arg0);
-void fn_1_B748(OMOBJ *arg0, someBits2 *arg1);
-void fn_1_B688(OMOBJ *arg0, someBits2 *arg1);
-void fn_1_B4AC(OMOBJ *arg0, someBits2 *arg1);
-void fn_1_B350(OMOBJ *arg0);
+void fn_1_B748(omObjData *arg0, someBits2 *arg1);
+void fn_1_B688(omObjData *arg0, someBits2 *arg1);
+void fn_1_B4AC(omObjData *arg0, someBits2 *arg1);
+void fn_1_B350(omObjData *arg0);
 void fn_1_B0A4(s32 arg0);
 u32 fn_1_AF24(s32 arg0);
 s32 fn_1_AE4C(s32 arg0, s8 *arg1);
 s32 fn_1_AE20(void);
 void fn_1_ACD8(s32 arg0);
-void fn_1_ABD0(OMOBJ *arg0, someBits *arg1);
-void fn_1_AB18(OMOBJ *arg0, someBits *arg1);
+void fn_1_ABD0(omObjData *arg0, someBits *arg1);
+void fn_1_AB18(omObjData *arg0, someBits *arg1);
 void fn_1_A8AC(s32 arg0);
 void fn_1_A7A0(s32 arg0);
-void fn_1_A994(OMOBJ *arg0);
+void fn_1_A994(omObjData *arg0);
 void fn_1_A5E0(s32 arg0);
 void fn_1_A6B0(void);
 void fn_1_A44C(s32 arg0);
@@ -138,9 +136,9 @@ s32 lbl_1_data_514[] = {
 s8 lbl_1_bss_194[3];
 ANIMDATA *lbl_1_bss_190;
 s8 lbl_1_bss_18C;
-OMOBJ *lbl_1_bss_188;
-OMOBJ *lbl_1_bss_184;
-HUPROCESS *lbl_1_bss_180;
+omObjData *lbl_1_bss_188;
+omObjData *lbl_1_bss_184;
+Process *lbl_1_bss_180;
 
 void fn_1_9A7C(void)
 {
@@ -171,7 +169,7 @@ void fn_1_9B30(void)
     }
 
     if (lbl_1_bss_184) {
-        omObjGetWork(lbl_1_bss_184, someBits2)->unk00_bit0 = 1;
+        OM_GET_WORK_PTR(lbl_1_bss_184, someBits2)->unk00_bit0 = 1;
     }
 
     if (lbl_1_data_4E0 != -1) {
@@ -442,7 +440,7 @@ void fn_1_A6B0(void)
 void fn_1_A7A0(s32 arg0)
 {
     someBits *temp_r31;
-    OMOBJ *temp_r3;
+    omObjData *temp_r3;
 
     temp_r3 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, (void *)fn_1_A994);
     lbl_1_bss_188 = temp_r3;
@@ -481,7 +479,7 @@ void fn_1_A8AC(s32 arg0)
     }
 }
 
-void fn_1_A994(OMOBJ *arg0)
+void fn_1_A994(omObjData *arg0)
 {
     s32 temp_r0;
     someBits *temp_r31;
@@ -530,7 +528,7 @@ void fn_1_A994(OMOBJ *arg0)
     }
 }
 
-void fn_1_AB18(OMOBJ *arg0, someBits *arg1)
+void fn_1_AB18(omObjData *arg0, someBits *arg1)
 {
     u32 var_r31 = 0;
 
@@ -546,7 +544,7 @@ void fn_1_AB18(OMOBJ *arg0, someBits *arg1)
 }
 
 // TODO properly use inlines
-void fn_1_ABD0(OMOBJ *arg0, someBits *arg1)
+void fn_1_ABD0(omObjData *arg0, someBits *arg1)
 {
     s16 boardModelID;
     PlayerState *playerStateCopy;
@@ -705,7 +703,7 @@ void fn_1_B0A4(s32 arg0)
     s32 var_r31_2;
     s32 temp_r29;
     someBits2 *temp_r30;
-    OMOBJ *temp_r3;
+    omObjData *temp_r3;
 
     temp_r3 = omAddObjEx(boardObjMan, 0x101, 0U, 0U, -1, (void *)fn_1_B350);
     lbl_1_bss_184 = (void *)temp_r3;
@@ -758,7 +756,7 @@ void fn_1_B0A4(s32 arg0)
     }
 }
 
-void fn_1_B350(OMOBJ *arg0)
+void fn_1_B350(omObjData *arg0)
 {
     s32 i;
     someBits2 *temp_r31;
@@ -797,7 +795,7 @@ void fn_1_B350(OMOBJ *arg0)
     }
 }
 
-void fn_1_B4AC(OMOBJ *arg0, someBits2 *arg1)
+void fn_1_B4AC(omObjData *arg0, someBits2 *arg1)
 {
     Vec sp20;
     Vec sp14;
@@ -830,7 +828,7 @@ void fn_1_B4AC(OMOBJ *arg0, someBits2 *arg1)
     fn_1_BC7C(arg1->unk_06[arg1->unk2]);
 }
 
-void fn_1_B688(OMOBJ *arg0, someBits2 *arg1)
+void fn_1_B688(omObjData *arg0, someBits2 *arg1)
 {
     Vec sp8;
 
@@ -846,7 +844,7 @@ void fn_1_B688(OMOBJ *arg0, someBits2 *arg1)
     fn_1_B8E8(0);
 }
 
-void fn_1_B748(OMOBJ *arg0, someBits2 *arg1)
+void fn_1_B748(omObjData *arg0, someBits2 *arg1)
 {
     Vec sp14;
     Vec sp8;
@@ -928,7 +926,7 @@ s32 fn_1_BB48(void)
 
 void fn_1_BB74(s8 *arg0)
 {
-    someBits2 *bits = omObjGetWork(lbl_1_bss_184, someBits2);
+    someBits2 *bits = OM_GET_WORK_PTR(lbl_1_bss_184, someBits2);
     s32 i;
 
     for (i = 0; i < ARRAY_COUNT(bits->unk3); i++) {
@@ -938,7 +936,7 @@ void fn_1_BB74(s8 *arg0)
 
 s32 fn_1_BBC4(void)
 {
-    someBits2 *bits = omObjGetWork(lbl_1_bss_184, someBits2);
+    someBits2 *bits = OM_GET_WORK_PTR(lbl_1_bss_184, someBits2);
     return bits->unk3[bits->unk2];
 }
 

@@ -102,20 +102,28 @@ void fn_1_1E13C(s32 arg0, s32 arg1, StructBss1CF8* arg2, Vec* arg3) {
     for (var_r28 = var_r26 = 0; var_r28 < temp_r31->sizeY; var_r28 += 2) {
         for (var_r29 = 0; var_r29 < temp_r31->sizeX; var_r29 += 2) {
             var_r25 = (u16*) temp_r31->data + ((var_r28 % 4) * 4 + (var_r28 / 4) * temp_r31->sizeX * 4 + (var_r29 / 4) * 16 + var_r29 % 4);
+#ifdef TARGET_PC
+            if (*var_r25 != 0x0080) {
+#else
             if (*var_r25 != 0x8000) {
+#endif
                 var_r26++;
             }
         }
     }
     arg2->unk20 = var_r26;
-    var_r22 = arg2->unk00 = HuMemDirectMallocNum(HEAP_HEAP, var_r26 * sizeof(*var_r22), HU_MEMNUM_OVL);
+    var_r22 = arg2->unk00 = HuMemDirectMallocNum(HEAP_SYSTEM, var_r26 * sizeof(*var_r22), MEMORY_DEFAULT_NUM);
     arg2->unk1C = temp_r31->sizeX;
     arg2->unk1E = temp_r31->sizeY;
     Hu3D2Dto3D(arg3, 1, &arg2->unk10);
     for (var_r28 = 0; var_r28 < temp_r31->sizeY; var_r28 += 2) {
         for (var_r29 = 0; var_r29 < temp_r31->sizeX; var_r29 += 2) {
             var_r25 = (u16*) temp_r31->data + ((var_r28 % 4) * 4 + (var_r28 / 4) * temp_r31->sizeX * 4 + (var_r29 / 4) * 16 + var_r29 % 4);
+#ifdef TARGET_PC
+            if (*var_r25 != 0x0080) {
+#else
             if (*var_r25 != 0x8000) {
+#endif
                 sp14 = *arg3;
                 sp14.x = sp14.x + var_r29 - temp_r31->sizeX / 2;
                 sp14.y = sp14.y + var_r28 - temp_r31->sizeY / 2;
@@ -225,8 +233,8 @@ void fn_1_1E820(HU3DMODEL* model, HU3DPARTICLE* particle, Mtx matrix) {
     temp_r21 = temp_r28->unk24 - (temp_r28->unk24 / 5.0f);
     temp_r26 = temp_r21 / 2;
     temp_r20 = temp_r21 - temp_r26;
-    PSVECSubtract(&temp_r28->unk04, &temp_r28->unk10, &sp8);
-    temp_f31 = PSVECMag(&sp8) / temp_r20;
+    VECSubtract(&temp_r28->unk04, &temp_r28->unk10, &sp8);
+    temp_f31 = VECMag(&sp8) / temp_r20;
     for (var_r22 = 0; var_r22 < particle->maxCnt / (temp_r28->unk24 / 5.0f); var_r22++) {
         var_r31 = particle->data;
         for (var_r29 = 0; var_r29 < particle->maxCnt; var_r29++, var_r31++) {
@@ -257,12 +265,12 @@ void fn_1_1E820(HU3DMODEL* model, HU3DPARTICLE* particle, Mtx matrix) {
             continue;
         }
         if (var_r31->time == 0) {
-            PSVECAdd(&var_r31->vel, &var_r31->pos, &var_r31->pos);
+            VECAdd(&var_r31->vel, &var_r31->pos, &var_r31->pos);
             var_r31->vel.x *= 0.999f;
             var_r31->vel.y -= 0.5f;
             var_r31->vel.z *= 0.999f;
             if (var_r31->parManId > temp_r26 - (temp_r26 / 5.0)) {
-                PSVECScale(&var_r31->vel, &var_r31->vel, 1.0 - ((var_r31->parManId - (temp_r26 - temp_r26 / 5.0)) / (temp_r26 / 5.0)));
+                VECScale(&var_r31->vel, &var_r31->vel, 1.0 - ((var_r31->parManId - (temp_r26 - temp_r26 / 5.0)) / (temp_r26 / 5.0)));
             }
             if (var_r31->parManId == temp_r26) {
                 var_r31->time++;
@@ -273,18 +281,18 @@ void fn_1_1E820(HU3DMODEL* model, HU3DPARTICLE* particle, Mtx matrix) {
             }
         } else if (var_r31->time == 1) {
             sp8 = temp_r28->unk00[var_r29];
-            PSVECSubtract(&sp8, &var_r31->pos, &sp8);
-            if (PSVECMag(&sp8) <= 1.0 + temp_f31) {
+            VECSubtract(&sp8, &var_r31->pos, &sp8);
+            if (VECMag(&sp8) <= 1.0 + temp_f31) {
                 var_r23++;
                 var_r31->pos = temp_r28->unk00[var_r29];
                 var_r31->time++;
                 continue;
             }
-            PSVECNormalize(&sp8, &sp8);
+            VECNormalize(&sp8, &sp8);
             var_r31->vel.x = sp8.x * temp_f31 + sind(var_r31->accel.x);
             var_r31->vel.y = sp8.y * temp_f31;
             var_r31->vel.z = sp8.z * temp_f31;
-            PSVECAdd(&var_r31->vel, &var_r31->pos, &var_r31->pos);
+            VECAdd(&var_r31->vel, &var_r31->pos, &var_r31->pos);
             var_r31->accel.x += 20.0f;
         } else {
             var_r23++;

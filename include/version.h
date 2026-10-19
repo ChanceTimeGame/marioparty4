@@ -27,4 +27,15 @@
 #define REFRESH_RATE_OFF_BY_1 (REFRESH_RATE_F - 0.000005f)
 #define REFRESH_FREQ (1.0f / REFRESH_RATE_F)
 
+#if _WIN32
+#ifdef TARGET_DOL
+#define SHARED_SYM __declspec(dllexport)
+#else
+#define SHARED_SYM __declspec(dllimport)
+#endif
+
+#else
+    #define SHARED_SYM
+#endif
+
 #endif

@@ -12,9 +12,9 @@
 #include "version.h"
 #include <string.h>
 
-HUPROCESS *lbl_1_bss_28;
-OMOBJ *lbl_1_bss_24;
-OMOBJ *lbl_1_bss_20;
+Process *lbl_1_bss_28;
+omObjData *lbl_1_bss_24;
+omObjData *lbl_1_bss_20;
 s16 lbl_1_bss_1C;
 s32 lbl_1_bss_18;
 s16 lbl_1_bss_16;
@@ -56,25 +56,25 @@ s32 lbl_1_data_C4[] = {
     0
 };
 
-void fn_1_4E4(OMOBJ *object);
-void fn_1_63C(OMOBJ *object);
-void fn_1_7A8(OMOBJ *object);
-void fn_1_ABC(OMOBJ *object);
-void fn_1_DEC(OMOBJ *object);
-void fn_1_FF0(OMOBJ *object);
-void fn_1_139C(OMOBJ *object);
-void fn_1_1648(OMOBJ *object);
-OMOBJFUNC fn_1_19C8(HUPROCESS *objman, OMOBJ *object);
-void fn_1_1A7C(OMOBJ *object);
-OMOBJFUNC fn_1_216C(HUPROCESS *objman, OMOBJ *object);
-void fn_1_2188(OMOBJ *object);
+void fn_1_4E4(omObjData *object);
+void fn_1_63C(omObjData *object);
+void fn_1_7A8(omObjData *object);
+void fn_1_ABC(omObjData *object);
+void fn_1_DEC(omObjData *object);
+void fn_1_FF0(omObjData *object);
+void fn_1_139C(omObjData *object);
+void fn_1_1648(omObjData *object);
+omObjFunc fn_1_19C8(Process *objman, omObjData *object);
+void fn_1_1A7C(omObjData *object);
+omObjFunc fn_1_216C(Process *objman, omObjData *object);
+void fn_1_2188(omObjData *object);
 
 void ObjectSetup(void)
 {
     Mtx sp20;
     Vec sp14;
     Vec sp8;
-    HUPROCESS *var_r31;
+    Process *var_r31;
     HU3DLIGHT *var_r30;
 
     HuAudSndGrpSet(35);
@@ -113,7 +113,7 @@ void ObjectSetup(void)
     omGameSysInit(var_r31);
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, -1.0f, 5.0f, 5000.0f, 1.2f);
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
     lbl_1_bss_20 = omAddObjEx(var_r31, 32730, 0, 0, -1, omOutView);
     lbl_1_bss_24 = omAddObjEx(var_r31, 10, 0, 0, -1, fn_1_4E4);
     fn_1_31A4(var_r31);
@@ -121,11 +121,11 @@ void ObjectSetup(void)
     fn_1_7E30(var_r31);
 }
 
-void fn_1_4E4(OMOBJ *object)
+void fn_1_4E4(omObjData *object)
 {
     UnkM410Struct *var_r31;
 
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkM410Struct), HU_MEMNUM_OVL);
+    object->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(UnkM410Struct), MEMORY_DEFAULT_NUM);
     var_r31 = object->data;
     memset(var_r31, 0, sizeof(UnkM410Struct));
     var_r31->unk_00 = 0;
@@ -140,10 +140,10 @@ void fn_1_4E4(OMOBJ *object)
     var_r31->unk_2C = 0;
     var_r31->unk_30 = 0;
     var_r31->unk_34 = 0;
-    object->objFunc = fn_1_7A8;
+    object->func = fn_1_7A8;
 }
 
-void fn_1_5A8(OMOBJ *object)
+void fn_1_5A8(omObjData *object)
 {
     UnkM410Struct *var_r31;
 
@@ -158,7 +158,7 @@ void fn_1_5A8(OMOBJ *object)
     }
 }
 
-void fn_1_63C(OMOBJ *object)
+void fn_1_63C(omObjData *object)
 {
     UnkM410Struct *var_r31;
 
@@ -173,40 +173,40 @@ void fn_1_63C(OMOBJ *object)
             Hu3DCameraPerspectiveSet(1, 41.5f, 5.0f, 5000.0f, 1.2f);
             var_r31->unk_00 = 1;
             var_r31->unk_10 = 0;
-            object->objFunc = fn_1_19C8(lbl_1_bss_28, object);
+            object->func = fn_1_19C8(lbl_1_bss_28, object);
             break;
         case 1:
             var_r31->unk_00 = 2;
             var_r31->unk_18 = 0;
-            object->objFunc = fn_1_FF0;
+            object->func = fn_1_FF0;
             break;
         case 2:
             var_r31->unk_00 = 3;
             var_r31->unk_28 = 0;
-            object->objFunc = fn_1_216C(lbl_1_bss_28, object);
+            object->func = fn_1_216C(lbl_1_bss_28, object);
             break;
         case 3:
         case 4:
             var_r31->unk_08 = 1;
             var_r31->unk_00 = 5;
-            object->objFunc = fn_1_ABC;
+            object->func = fn_1_ABC;
             break;
         case 5:
         default:
             var_r31->unk_00 = 5;
-            object->objFunc = fn_1_DEC;
+            object->func = fn_1_DEC;
             break;
     }
     var_r31->unk_04 = 0;
 }
 
-void fn_1_7A8(OMOBJ *object)
+void fn_1_7A8(omObjData *object)
 {
     fn_1_5A8(object);
     fn_1_63C(object);
 }
 
-void fn_1_ABC(OMOBJ *object)
+void fn_1_ABC(omObjData *object)
 {
     UnkM410Struct *var_r27;
 
@@ -219,7 +219,7 @@ void fn_1_ABC(OMOBJ *object)
     }
 }
 
-void fn_1_DEC(OMOBJ *object)
+void fn_1_DEC(omObjData *object)
 {
     fn_1_5A8(object);
     if (!WipeStatGet()) {
@@ -232,13 +232,9 @@ void fn_1_DEC(OMOBJ *object)
     }
 }
 
-void fn_1_FF0(OMOBJ *object)
+void fn_1_FF0(omObjData *object)
 {
-    void *var_r31;
-    UnkM410Struct *var_r29;
-    void *var_r28;
-
-    var_r29 = object->data;
+    UnkM410Struct *var_r29 = object->data;
 
     fn_1_5A8(object);
     switch (var_r29->unk_14) {
@@ -265,7 +261,7 @@ void fn_1_FF0(OMOBJ *object)
                 lbl_1_bss_1C = MGSeqCreate(1, var_r29->unk_1C, -1, -1);
                 var_r29->unk_14 = 2;
                 var_r29->unk_18 = 0;
-                object->objFunc = fn_1_139C;
+                object->func = fn_1_139C;
             }
             break;
 
@@ -274,13 +270,10 @@ void fn_1_FF0(OMOBJ *object)
     }
 }
 
-void fn_1_139C(OMOBJ *object)
+void fn_1_139C(omObjData *object)
 {
-    UnkM410Struct *var_r29;
-    s32 var_r27;
-
-    var_r29 = object->data;
-    var_r27 = 0;
+    UnkM410Struct *var_r29 = object->data;
+    s32 var_r27 = 0;
     fn_1_5A8(object);
 
     if (!--var_r29->unk_20) {
@@ -297,13 +290,13 @@ void fn_1_139C(OMOBJ *object)
         var_r29->unk_14 = 3;
         var_r29->unk_18 = 0;
         if (var_r29->unk_08 == 0) {
-            object->objFunc = fn_1_1648;
+            object->func = fn_1_1648;
         }
     }
     MGSeqParamSet(lbl_1_bss_1C, 1, var_r29->unk_1C);
 }
 
-void fn_1_1648(OMOBJ *object)
+void fn_1_1648(omObjData *object)
 {
     UnkM410Struct *var_r27;
 
@@ -321,7 +314,7 @@ void fn_1_1648(OMOBJ *object)
     }
 }
 
-OMOBJFUNC fn_1_19C8(HUPROCESS *objman, OMOBJ *object)
+omObjFunc fn_1_19C8(Process *objman, omObjData *object)
 {
     CRot.x = -80.5f;
     CRot.y = CRot.z = 0.0f;
@@ -333,7 +326,7 @@ OMOBJFUNC fn_1_19C8(HUPROCESS *objman, OMOBJ *object)
     return fn_1_1A7C;
 }
 
-void fn_1_1A7C(OMOBJ *object)
+void fn_1_1A7C(omObjData *object)
 {
     Vec sp8;
     float var_f31;
@@ -381,13 +374,13 @@ void fn_1_1A7C(OMOBJ *object)
     }
 }
 
-OMOBJFUNC fn_1_216C(HUPROCESS *objman, OMOBJ *object)
+omObjFunc fn_1_216C(Process *objman, omObjData *object)
 {
     u32 sp8 = object->work[4];
     return fn_1_2188;
 }
 
-void fn_1_2188(OMOBJ *object)
+void fn_1_2188(omObjData *object)
 {
     s32 sp10[5];
     UnkM410Struct *var_r27;
@@ -485,9 +478,6 @@ s32 fn_1_28DC(void)
 void fn_1_2914(Vec *arg0, Vec *arg1)
 {
     Vec sp10;
-    float var_f29;
-    float var_f28;
-    float var_f27;
 
     sp10.x = arg1->x - arg0->x;
     sp10.y = arg1->y - arg0->y;

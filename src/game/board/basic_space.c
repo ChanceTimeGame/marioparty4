@@ -37,11 +37,11 @@ typedef struct bit_copy {
 #define COIN_CHG_MODE_DISAPPEAR 4
 
 static void CreateCoinChg(coinChg*, Vec*);
-static void UpdateCoinChg(OMOBJ*);
-static void CoinChgAppear(OMOBJ*, coinChg*);
-static void CoinChgSeparate(OMOBJ*, coinChg*);
-static void CoinChgShow(OMOBJ*, coinChg*);
-static void CoinChgDisappear(OMOBJ*, coinChg*);
+static void UpdateCoinChg(omObjData*);
+static void CoinChgAppear(omObjData*, coinChg*);
+static void CoinChgSeparate(omObjData*, coinChg*);
+static void CoinChgShow(omObjData*, coinChg*);
+static void CoinChgDisappear(omObjData*, coinChg*);
 
 extern void BoardCameraViewSet(s32);
 extern void BoardPlayerPosGet(s32, Vec*);
@@ -51,7 +51,7 @@ extern void BoardPlayerIdleSet(s32);
 extern void BoardCameraMotBlendSet(s32, s16, s16);
 extern s32 BoardPlayerMotBlendCheck(s32);
 
-static OMOBJ *coinChgObj[4] = {
+static omObjData *coinChgObj[4] = {
     NULL,
     NULL,
     NULL,
@@ -234,7 +234,7 @@ void BoardLandRedExec(s32 player, s32 space) {
  * @return The position of the Coin Change object in the array
  */
 s8 BoardCoinChgCreate(Vec *pos, s8 value) {
-    OMOBJ *obj = NULL;
+    omObjData *obj = NULL;
     coinChg *coin_chg;
     s8 i;
     
@@ -253,7 +253,7 @@ s8 BoardCoinChgCreate(Vec *pos, s8 value) {
     coinChgObj[i] = obj;
 
     // Setup and create object
-    coin_chg = omObjGetWork(obj, coinChg);
+    coin_chg = OM_GET_WORK_PTR(obj, coinChg);
     coin_chg->kill = 0;
     coin_chg->update = 0;
     coin_chg->minus = (value < 0) ? 1 : 0;
@@ -305,7 +305,7 @@ s32 BoardCoinChgKillCheck(s32 num) {
     // If Coin Change object at num exists, return 0
     if (coinChgObj[num - 1] != 0) {
         // possibly removed debug info for displaying object information
-        coin_chg = omObjGetWork(coinChgObj[num - 1], coinChg);
+        coin_chg = OM_GET_WORK_PTR(coinChgObj[num - 1], coinChg);
         return 0;
     }
 
@@ -331,7 +331,7 @@ void BoardCoinChgKill(s32 num) {
 
     // If object exists, mark it for deletion
     if (coinChgObj[num - 1] != 0) {
-        omObjGetWork(coinChgObj[num - 1], coinChg)->kill = 1;
+        OM_GET_WORK_PTR(coinChgObj[num - 1], coinChg)->kill = 1;
     }
 }
 
@@ -432,10 +432,10 @@ static void CreateCoinChg(coinChg *coin_chg, Vec *pos) {
  * 
  * @param [in, out] object Coin Change object
  */
-static void UpdateCoinChg(OMOBJ *object) {
+static void UpdateCoinChg(omObjData *object) {
     coinChg *coin_chg;
 
-    coin_chg = omObjGetWork(object, coinChg);
+    coin_chg = OM_GET_WORK_PTR(object, coinChg);
 
     // If the Coin Change object should be killed,
     // kill all models that exist, and clear value in array
@@ -501,7 +501,7 @@ static void UpdateCoinChg(OMOBJ *object) {
  * @param [in, out] object Coin Change object
  * @param [in, out] coin_chg Coin Change object data
  */
-static void CoinChgAppear(OMOBJ *object, coinChg *coin_chg) {
+static void CoinChgAppear(omObjData *object, coinChg *coin_chg) {
     f32 scale;
     f32 angle;
 
@@ -553,7 +553,7 @@ static void CoinChgAppear(OMOBJ *object, coinChg *coin_chg) {
  * @param [in, out] object Coin Change object
  * @param [in, out] coin_chg Coin Change object data
  */
-static void CoinChgSeparate(OMOBJ *object, coinChg *coin_chg) {
+static void CoinChgSeparate(omObjData *object, coinChg *coin_chg) {
     f32 y_offset;
     f32 x_scale;
     f32 spacing;
@@ -629,7 +629,7 @@ static void CoinChgSeparate(OMOBJ *object, coinChg *coin_chg) {
  * @param [in, out] object Coin Change object
  * @param [in, out] coin_chg Coin Change object data
  */
-static void CoinChgShow(OMOBJ* object, coinChg* coin_chg) {
+static void CoinChgShow(omObjData* object, coinChg* coin_chg) {
     Vec pos;
     f32 angle;
     f32 y_pos;
@@ -687,7 +687,7 @@ static void CoinChgShow(OMOBJ* object, coinChg* coin_chg) {
  * @param [in, out] object Coin Change object
  * @param [in, out] coin_chg Coin Change object data
  */
-static void CoinChgDisappear(OMOBJ* object, coinChg* coin_chg) {
+static void CoinChgDisappear(omObjData* object, coinChg* coin_chg) {
     const u16 angle = ((coin_chg->angle * 2) % 180);
     f32 rot;
     

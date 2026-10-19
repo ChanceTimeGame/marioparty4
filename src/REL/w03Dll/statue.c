@@ -61,7 +61,7 @@ char lbl_1_bss_38[12];
 void *lbl_1_bss_34;
 f32 lbl_1_bss_30;
 s8 lbl_1_bss_2C;
-HUPROCESS *lbl_1_bss_28;
+Process *lbl_1_bss_28;
 
 void fn_1_12C8(void)
 {
@@ -104,7 +104,7 @@ void fn_1_1358(void)
         if (lbl_1_bss_2C) {
             sprintf(lbl_1_bss_44, "%d", lbl_1_bss_2C);
             BoardWinCreate(0, MAKE_MESSID(22, 6), -1);
-            BoardWinInsertMesSet((s32)lbl_1_bss_44, 0);
+            BOARD_WIN_INSERT_MES_SET_PTR((uintptr_t)lbl_1_bss_44, 0);
             BoardWinWait();
             BoardWinKill();
             lbl_1_bss_0->unk2 = 1 << cur_player_index;
@@ -600,7 +600,7 @@ s32 fn_1_2930(s32 arg0)
 
     sprintf(lbl_1_bss_38, "%d", lbl_1_bss_0->unk0);
     BoardWinCreate(0, MAKE_MESSID(22, 7), -1);
-    BoardWinInsertMesSet((s32)lbl_1_bss_38, 1);
+    BOARD_WIN_INSERT_MES_SET_PTR((uintptr_t)lbl_1_bss_38, 1);
     BoardWinWait();
     BoardWinKill();
     fn_1_CF4();
@@ -610,7 +610,7 @@ s32 fn_1_2930(s32 arg0)
 void fn_1_2A40(void)
 {
     lbl_1_bss_30 = 0.0f;
-    lbl_1_bss_34 = HuMemDirectMallocNum(HEAP_HEAP, 0x96000, HU_MEMNUM_OVL);
+    lbl_1_bss_34 = HuMemDirectMallocNum(HEAP_SYSTEM, 0x96000, MEMORY_DEFAULT_NUM);
     lbl_1_data_286 = Hu3DHookFuncCreate((void *)&fn_1_2B44);
     Hu3DModelLayerSet(lbl_1_data_286, 3);
 }

@@ -9,7 +9,7 @@ s16 HuSysVWaitGet(s16 old);
 
 typedef s32 (*fadeFunc)(void);
 
-WipeState wipeData;
+SHARED_SYM WipeState wipeData;
 BOOL wipeFadeInF;
 
 static void WipeColorFill(GXColor color);
@@ -243,7 +243,7 @@ static s32 WipeCrossFade(void)
 	}
 	if(wipe->copy_data == NULL) {
 		size = GXGetTexBufferSize(wipe->w, wipe->h, GX_TF_RGB565, GX_FALSE, 0);
-		wipe->copy_data = HuMemDirectMallocNum(HEAP_MODEL, size, 0x20000000);
+		wipe->copy_data = HuMemDirectMallocNum(HEAP_DATA, size, 0x20000000);
 		GXSetTexCopySrc(wipe->x, wipe->y, wipe->w, wipe->h);
 		GXSetTexCopyDst(wipe->w, wipe->h, GX_TF_RGB565, GX_FALSE);
 		GXCopyTex(wipe->copy_data, GX_FALSE);
@@ -330,4 +330,7 @@ static void WipeFrameStill(GXColor color)
 	GXTexCoord2f32(0, 1);
 	GXEnd();
 	GXSetChanMatColor(GX_COLOR0A0, colorN);
+#ifdef TARGET_PC
+  	GXDestroyTexObj(&tex);
+#endif
 }

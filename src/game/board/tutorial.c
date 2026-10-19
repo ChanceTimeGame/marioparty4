@@ -8,7 +8,7 @@
 
 #include <string.h>
 
-s32 boardTutorialData[4]; // maybe a single s32 + padding?
+SHARED_SYM s32 boardTutorialData[4]; // maybe a single s32 + padding?
 static void (*tutorialHook)(s16, s32);
 s8 boardTutorialDirInputX;
 s8 boardTutorialDirInputY;
@@ -18,8 +18,8 @@ s8 boardTutorialBlockItem;
 s8 boardTutorialBlockF;
 s8 boardTutorialUseItem;
 static s16 hostMdl;
-s8 boardTutorialF;
-static HUPROCESS *tutorialProcess;
+SHARED_SYM s8 boardTutorialF;
+static Process *tutorialProcess;
 static void *playerCfgCopy;
 static void *playerCopy;
 static void *systemCopy;
@@ -89,10 +89,10 @@ void BoardTutorialWorkSave(void) {
     if (playerCfgCopy) {
         HuMemDirectFree(playerCfgCopy);
     }
-    gameStatCopy = HuMemDirectMalloc(HEAP_HEAP, sizeof(GWGameStat));
-    systemCopy = HuMemDirectMalloc(HEAP_HEAP, sizeof(GWSystem));
-    playerCopy = HuMemDirectMalloc(HEAP_HEAP, sizeof(GWPlayer));
-    playerCfgCopy = HuMemDirectMalloc(HEAP_HEAP, sizeof(GWPlayerCfg));
+    gameStatCopy = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(GWGameStat));
+    systemCopy = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(GWSystem));
+    playerCopy = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(GWPlayer));
+    playerCfgCopy = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(GWPlayerCfg));
     memcpy(gameStatCopy, &GWGameStat, sizeof(GWGameStat));
     memcpy(systemCopy, &GWSystem, sizeof(GWSystem));
     memcpy(playerCopy, GWPlayer, sizeof(GWPlayer));

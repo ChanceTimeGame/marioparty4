@@ -48,7 +48,7 @@ s32 lbl_1_data_14C = 0xFFFFFFFF;
 s16 lbl_1_bss_14[7];
 s32 *lbl_1_bss_10;
 s16 lbl_1_bss_8[4];
-HUPROCESS *lbl_1_bss_4;
+Process *lbl_1_bss_4;
 bitcopy *lbl_1_bss_0;
 
 void BoardCreate(void)
@@ -164,7 +164,11 @@ s32 fn_1_78C(void)
     temp_r3 = BoardSpaceFlagGet(0, var_r29);
     if ((temp_r3 & 2) != 0) {
         fn_1_1E44();
+#ifdef NON_MATCHING
+        return 0;
+#else
         return;
+#endif
     }
     if ((temp_r3 & 0x40) != 0) {
         var_r28 = (temp_r3 & 0x38) >> 3;

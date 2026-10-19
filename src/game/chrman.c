@@ -33,7 +33,7 @@ typedef struct CharWork_s {
     /* 0xB0 */ s8 stepFx;
     /* 0xB4 */ HuVecF pos;
     /* 0xC0 */ AMEM_PTR motAMemP;
-    /* 0xC4 */ HUPROCESS *process;
+    /* 0xC4 */ Process *process;
 } CHARWORK; // Size 0xC8
 
 typedef struct EffectData_s {
@@ -78,7 +78,7 @@ static s32 PlayStepVoice(s16 charNo, s16 seId, u8 voiceFlag);
 static CHARWORK charWork[CHARNO_MAX];
 static s16 effectMdl[CHAR_EFFECT_AND_PARTICLE_MAX];
 static EFFECTPARAM *particleData[CHAR_EFFECT_AND_PARTICLE_MAX];
-static HUPROCESS *itemHookProcess[CHAR_MOT_MAX];
+static Process *itemHookProcess[CHAR_MOT_MAX];
 //holds normal characters 0-7, then more characters 8-14
 static u16 dustFlags[CHARNO_MAX  + CHAR_NPC_MAX];
 static u8 lbl_801975CE[0x82]; // Unused?
@@ -210,7 +210,7 @@ void CharClose(void)
 {
     CharModelKill(CHARNO_NONE);
     CharDataClose(CHARNO_NONE);
-    HuARFree((u32)effectAMemP);
+    HuARFree((uintptr_t)effectAMemP);
     effectAMemP = NULL;
 }
 
@@ -238,10 +238,10 @@ HU3DMODELID CharModelCreate(s16 charNo, s16 model)
     else {
         dataNum = charDirTbl[charNo][1] | 2;
     }
-    dataP = HuDataSelHeapReadNum(dataNum, HU_MEMNUM_OVL, HEAP_MODEL);
+    dataP = HuDataSelHeapReadNum(dataNum, MEMORY_DEFAULT_NUM, HEAP_DATA);
     workP->modelId = modelId = Hu3DModelCreate(dataP);
     workP->process = HuPrcCreate(UpdateChar, 100, 16384, 0);
-    workP->process->user_data = property = HuMemDirectMalloc(HEAP_HEAP, sizeof(s16));
+    workP->process->user_data = property = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(s16));
     workP->model = model;
     workP->attr = 0;
     *property = charNo;
@@ -670,7 +670,11 @@ static s32 _CharFXPlay(s16 charNo, s16 seNo, u8 voiceFlag)
     CHARWORK *workP = &charWork[charNo];
     HU3DMODEL *modelP = &Hu3DData[workP->modelId];
     if (voiceFlag & 1) {
+#ifdef NON_MATCHING
+        return 0;
+#else
         return;
+#endif
     }
     if (workP->attr & 8) {
         return CharFXPlayPos(charNo, seNo, &modelP->pos);
@@ -693,7 +697,7 @@ static void EffectInit(void)
     effInitF = FALSE;
     for (i = 0; i < CHAR_EFFECT_AND_PARTICLE_MAX; i++) {
         if (effectMdl[i] == -1) {
-            data = HuDataSelHeapReadNum(effectDataTbl[i].dataNum, HU_MEMNUM_OVL, HEAP_MODEL);
+            data = HuDataSelHeapReadNum(effectDataTbl[i].dataNum, MEMORY_DEFAULT_NUM, HEAP_DATA);
             anim = HuSprAnimRead(data);
             effectMdl[i] = Hu3DParticleCreate(anim, effectDataTbl[i].maxCnt);
             if (i == CHAR_EFFECT_AND_PARTICLE_MAX - 1) {
@@ -701,7 +705,7 @@ static void EffectInit(void)
             }
             Hu3DParticleHookSet(effectMdl[i], UpdateEffect);
             if (!particleData[i]) {
-                particleData[i] = HuMemDirectMalloc(HEAP_HEAP, effectDataTbl[i].maxCnt * sizeof(EFFECTPARAM));
+                particleData[i] = HuMemDirectMalloc(HEAP_SYSTEM, effectDataTbl[i].maxCnt * sizeof(EFFECTPARAM));
             }
             Hu3DParticleBlendModeSet(effectMdl[i], effectDataTbl[i].blendMode);
             particleP = Hu3DData[effectMdl[i]].hookData;
@@ -1005,14 +1009,14 @@ HU3DMOTID CharMotionCreate(s16 charNo, s32 data_num)
     }
     if (i != CHARNO_MAX  || dir == 0) {
         data_num &= 0xFFFF;
-        data = HuAR_ARAMtoMRAMFileRead(data_num | charDirTbl[charNo][2], HU_MEMNUM_OVL, HEAP_MODEL);
+        data = HuAR_ARAMtoMRAMFileRead(data_num | charDirTbl[charNo][2], MEMORY_DEFAULT_NUM, HEAP_DATA);
         if (!data) {
-            data = HuDataSelHeapReadNum(data_num | charDirTbl[charNo][2], HU_MEMNUM_OVL, HEAP_MODEL);
+            data = HuDataSelHeapReadNum(data_num | charDirTbl[charNo][2], MEMORY_DEFAULT_NUM, HEAP_DATA);
         }
         workP->motNoTbl[motNo] = data_num;
     }
     else {
-        data = HuDataSelHeapReadNum(data_num, HU_MEMNUM_OVL, HEAP_MODEL);
+        data = HuDataSelHeapReadNum(data_num, MEMORY_DEFAULT_NUM, HEAP_DATA);
         workP->motNoTbl[motNo] = HU3D_MOTID_NONE;
     }
     workP->motId[motNo] = Hu3DJointMotion(workP->modelId, data);
@@ -1280,7 +1284,7 @@ void CharEffectLayerSet(s16 layerNo)
     }
 }
 
-static inline HUPROCESS *CharModelItemHookCreateInlineFunc(void)
+static inline Process *CharModelItemHookCreateInlineFunc(void)
 {
     s16 i;
 
@@ -1309,7 +1313,7 @@ void CharModelHookDustCreate(s16 charNo, char *objName)
     HU3DMODEL *modelP = &Hu3DData[workP->modelId];
     HSFOBJECT *objPtr = Hu3DModelObjPtrGet(workP->modelId, objName);
     HSFCONSTDATA *constData;
-    HUPROCESS *process;
+    Process *process;
     HOOKDUSTWORK *hookDustWork;
     s16 hookMdlId;
     Mtx hookMtx;
@@ -1325,7 +1329,7 @@ void CharModelHookDustCreate(s16 charNo, char *objName)
             Hu3DModelAttrSet(hookMdlId, HU3D_ATTR_DISPOFF);
             return;
         }
-        process->user_data = hookDustWork = HuMemDirectMallocNum(HEAP_HEAP, sizeof(HOOKDUSTWORK), HU_MEMNUM_OVL);
+        process->user_data = hookDustWork = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(HOOKDUSTWORK), MEMORY_DEFAULT_NUM);
         modelP = &Hu3DData[hookMdlId];
         Hu3DMtxTransGet(hookMtx, &temp);
         Hu3DModelPosSetV(hookMdlId, &temp);
@@ -1342,7 +1346,7 @@ static void CreateHookDust(void)
 {
     Mtx rootMtx;
     HuVecF pos;
-    HUPROCESS *process;
+    Process *process;
     s16 j;
     s16 i;
     HOOKDUSTWORK *hookDustWork = HuPrcCurrentGet()->user_data;
@@ -1374,7 +1378,7 @@ static void CreateHookDust(void)
         dustEffParam.vel.z = frandmod(10) - 5;
         EffectDustCreate(hookDustWork->modelId, pos.x, pos.y, pos.z, 20.0f, &dustEffParam);
     }
-    PSMTXIdentity(modelP->mtx);
+    MTXIdentity(modelP->mtx);
     process = HuPrcCurrentGet();
     for (j = 0; j < ARRAY_COUNT(itemHookProcess); j++) {
         if (itemHookProcess[j] == process) {
@@ -1697,13 +1701,13 @@ typedef struct NpcDustWork_s {
     s16 npcNo;
 } NPCDUSTWORK;
 
-s32 CharNpcDustSet(HU3DMODELID modelId, HU3DMOTID motId, s16 type, s16 npcNo)
+Process *CharNpcDustSet(HU3DMODELID modelId, HU3DMOTID motId, s16 type, s16 npcNo)
 {
-    HUPROCESS *parent = HuPrcCurrentGet();
-    HUPROCESS *process = HuPrcChildCreate(UpdateNpcDust, 0x64, 0x2000, 0, parent);
+    Process *parent = HuPrcCurrentGet();
+    Process *process = HuPrcChildCreate(UpdateNpcDust, 0x64, 0x2000, 0, parent);
     
     if (process) {
-        NPCDUSTWORK *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(NPCDUSTWORK), HU_MEMNUM_OVL);
+        NPCDUSTWORK *work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(NPCDUSTWORK), MEMORY_DEFAULT_NUM);
         process->user_data = work;
         work->modelId = modelId;
         work->motId = motId;
@@ -1711,11 +1715,17 @@ s32 CharNpcDustSet(HU3DMODELID modelId, HU3DMOTID motId, s16 type, s16 npcNo)
         work->npcNo = npcNo;
         EffectInit();
     }
+#ifdef NON_MATCHING
+    return process;
+#endif
 }
 
 s32 CharNpcDustVoiceOffSet(HU3DMODELID modelId, HU3DMOTID motId, s16 type)
 {
     s32 ret; // ! - uninitialized
+#ifdef NON_MATCHING
+    ret = 0;
+#endif
 
     CharNpcDustSet(modelId, motId, type, CHAR_NPC_NONE);
     return ret;
@@ -1913,7 +1923,11 @@ static s32 PlayStepVoice(s16 charNo, s16 seId, u8 voiceFlag)
     CHARWORK *workP = &charWork[charNo];
     HU3DMODEL *modelP = &Hu3DData[workP->modelId];
     if (voiceFlag & 1) {
+#ifdef NON_MATCHING
+        return 0;
+#else
         return;
+#endif
     }
     if (workP->stepFx == 4) {
         seId = 0x109;

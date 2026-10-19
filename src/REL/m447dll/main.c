@@ -50,8 +50,8 @@ void fn_1_1D34(UnkM447Struct_00* arg0);
 UnkM447Struct_06* lbl_1_bss_10;
 char lbl_1_bss_C_pad[4];
 UnkM447Struct_00* lbl_1_bss_8;
-HUPROCESS* lbl_1_bss_4;
-HUPROCESS* lbl_1_bss_0;
+Process* lbl_1_bss_4;
+Process* lbl_1_bss_0;
 
 const s32 lbl_1_rodata_10[] = {
     DATA_MAKE_NUM(DATADIR_M447, 53),
@@ -112,7 +112,7 @@ UnkM447Struct_00* fn_1_1B8(void) {
     UnkM447Struct_00* temp_r3;
     s32 i;
 
-    temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*temp_r3), HU_MEMNUM_OVL);
+    temp_r3 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(*temp_r3), MEMORY_DEFAULT_NUM);
     if (!temp_r3) {
         OSReport("M447FlowCreate ERROR...\n");
         return NULL;
@@ -468,7 +468,12 @@ void fn_1_1068(UnkM447Struct_00* arg0) {
             /* fallthrough */
         case 1:
             // Bug: HuAudSeqFadeOut takes two arguments.
+#ifdef TARGET_PC
+            // TODO PC
+            HuAudSeqFadeOut(arg0->unk70, 100);
+#else
             HuAudSeqFadeOut(arg0->unk70);
+#endif
             arg0->unk30 = MGSeqCreate(3, 1);
             arg0->unk1C = 2;
             /* fallthrough */
@@ -663,9 +668,9 @@ void fn_1_1884(UnkM447Struct_00* arg0) {
 
 void fn_1_1AFC(UnkM447Struct_00* arg0, s32 arg1, s32 arg2) {
     UnkM447Struct_03* temp_r3;
-    HUPROCESS* var_r30;
+    Process* var_r30;
 
-    temp_r3 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(*temp_r3), HU_MEMNUM_OVL);
+    temp_r3 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(*temp_r3), MEMORY_DEFAULT_NUM);
     temp_r3->unk00 = arg0->unk34[arg2 + 7 + arg1 * 6];
     espPosSet(temp_r3->unk00, arg1 * 384 + 80 + arg2 * 32, 63.0f);
     temp_r3->unk04 = 0.0f;

@@ -24,6 +24,11 @@
 
 #ifndef __MWERKS__
 #include "game/esprite.h"
+#ifdef TARGET_PC
+#include "port/settings.h"
+#include <stdio.h>
+#include <time.h>
+#endif
 #endif
 
 static StageModel resultModel[] = { { DATA_MAKE_NUM(DATADIR_RESULT, 0x00), 1, 0, -1, -1, { 148, 132, 500 }, { 0, 0, 0 }, { 1, 1, 1 } },
@@ -56,9 +61,9 @@ static StageSprite resultSprite[] = {
 
 static s16 rankNewGrpId = -1;
 
-OMOBJ *lbl_1_bss_188;
-static OMOBJ *outViewObj;
-HUPROCESS *objman;
+omObjData *lbl_1_bss_188;
+static omObjData *outViewObj;
+Process *objman;
 s16 resultMgNo;
 s32 resultReadEndF;
 s32 resultFastF;
@@ -126,7 +131,7 @@ void ObjectSetup(void)
     CZoom = 500.0f;
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 20.0f, 20.0f, 15000.0f, 1.2f);
-    Hu3DCameraViewportSet(1, 0, 0, 640, 480, 0, 1);
+    Hu3DCameraViewportSet(1, 0, 0, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0, 1);
     lightId = Hu3DGLightCreate(0, 100, 1000, 0, -0.5, -1, 255, 255, 255);
     Hu3DGLightInfinitytSet(lightId);
     resultFastF = 0;
@@ -147,7 +152,7 @@ static void ResultMain(void)
     s16 i;
     s16 winId;
     s16 btnDown;
-    HUPROCESS *proc = HuPrcCurrentGet();
+    Process *proc = HuPrcCurrentGet();
     HuAudSeqPlay(57);
     for (i = player = 0; i < 4; i++) {
         if (GWPlayerCfg[i].iscom) {
@@ -999,18 +1004,28 @@ void ResultCoinNumGet(s16 *coinNum)
 static void SaveExec(void)
 {
     s16 sprId;
+#ifdef TARGET_PC
+    clock_t saveStart = clock();
+#endif
     Hu3DAllKill();
     HuSprClose();
     HuSprInit();
     espInit();
     HuPrcVSleep();
-    sprId = espEntry(0x860020, 5000, 0);
-    espPosSet(sprId, 288.0, 240.0);
-    espAttrReset(sprId, HUSPR_ATTR_DISPOFF);
-    Hu3DBGColorSet(0, 0, 0);
-    WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 20);
-    while (WipeStatGet()) {
-        HuPrcVSleep();
+#ifdef TARGET_PC
+    // Quick saves (game.quickSaves): save without the save screen and its fades; the screen
+    // is already faded out, as on retail's no-save path.
+    if (!partyboard_settings_quickSaves())
+#endif
+    {
+        sprId = espEntry(0x860020, 5000, 0);
+        espPosSet(sprId, 288.0, 240.0);
+        espAttrReset(sprId, HUSPR_ATTR_DISPOFF);
+        Hu3DBGColorSet(0, 0, 0);
+        WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 20);
+        while (WipeStatGet()) {
+            HuPrcVSleep();
+        }
     }
     if (GWSaveModeGet() == 2) {
         GWSaveModeSet(1);
@@ -1030,6 +1045,13 @@ static void SaveExec(void)
     else {
         GWSaveModeSet(1);
     }
+#ifdef TARGET_PC
+    fprintf(stderr, "PB_SAVE board quick=%d saved=%d %ld ms\n", partyboard_settings_quickSaves(), saveExecF,
+        (long)((clock() - saveStart) * 1000 / CLOCKS_PER_SEC));
+    if (partyboard_settings_quickSaves()) {
+        return;
+    }
+#endif
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 20);
     while (WipeStatGet()) {
         HuPrcVSleep();
@@ -1243,7 +1265,7 @@ static void ResultTeamExec(void)
     HuWinKill(winId);
 }
 
-void CameraDebug(OMOBJ *object)
+void CameraDebug(omObjData *object)
 {
     Vec pos;
     Vec offset;

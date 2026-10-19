@@ -1,18 +1,12 @@
-#include "ext_math.h"
-#include "game/audio.h"
-#include "game/chrman.h"
 #include "game/esprite.h"
 #include "game/flag.h"
 #include "game/frand.h"
 #include "game/gamework.h"
 #include "game/hu3d.h"
 #include "game/memory.h"
-#include "game/minigame_seq.h"
 #include "game/object.h"
 #include "game/objsub.h"
-#include "game/pad.h"
 #include "game/sprite.h"
-#include "game/wipe.h"
 
 #include "REL/m453Dll.h"
 
@@ -31,24 +25,24 @@ typedef struct M453ScoreUnkStruct {
 typedef void (*M453ScoreUnkFunc)(void);
 
 void fn_1_92C0(s32 arg0);
-void fn_1_92F0(OMOBJ *object);
+void fn_1_92F0(omObjData *object);
 void fn_1_940C(void);
 void fn_1_9484(void);
 void fn_1_9510(void);
 
 M453ScoreUnkFunc lbl_1_data_BC0[3] = { fn_1_940C, fn_1_9484, fn_1_9510 };
 
-HUPROCESS *lbl_1_bss_C4;
-OMOBJ *lbl_1_bss_C0;
+Process *lbl_1_bss_C4;
+omObjData *lbl_1_bss_C0;
 
-void fn_1_8F48(HUPROCESS *arg0, s16 arg1)
+void fn_1_8F48(Process *arg0, s16 arg1)
 {
     M453ScoreUnkStruct *var_r31;
     u32 var_r30;
 
     lbl_1_bss_C4 = arg0;
     lbl_1_bss_C0 = omAddObjEx(lbl_1_bss_C4, 0x800, 0, 0, 7, fn_1_92F0);
-    lbl_1_bss_C0->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M453ScoreUnkStruct), HU_MEMNUM_OVL);
+    lbl_1_bss_C0->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M453ScoreUnkStruct), MEMORY_DEFAULT_NUM);
     var_r31 = lbl_1_bss_C0->data;
     var_r31->unk_08 = arg1;
     var_r31->unk_0A = 0;
@@ -111,7 +105,7 @@ void fn_1_92C0(s32 arg0)
     var_r31->unk_04 = 0;
 }
 
-void fn_1_92F0(OMOBJ *arg0)
+void fn_1_92F0(omObjData *arg0)
 {
     s16 var_r30;
 

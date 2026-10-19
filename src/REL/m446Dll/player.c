@@ -166,7 +166,7 @@ unkStruct8 *m446PlayerCreate(s32 arg0, unkStruct6 *arg1)
     s32 var_r30;
     unkStruct8 *var_r31;
 
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, 0xCC, HU_MEMNUM_OVL);
+    var_r31 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(unkStruct8), MEMORY_DEFAULT_NUM);
     if (!var_r31) {
         return NULL;
     }
@@ -338,7 +338,6 @@ s32 m446PlayerAppendCard(unkStruct8 *arg0, unkStruct4 *arg1, s32 arg2)
 {
     Vec sp18;
     Vec spC;
-    s32 temp_r0_2;
     s32 temp_r28;
     s32 temp_r27;
     s32 var_r29;

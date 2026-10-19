@@ -6,6 +6,8 @@
 #include "game/humath.h"
 #include "game/memory.h"
 
+#include "version.h"
+
 #define HUSPR_MAX 384
 #define HUSPR_GRP_MAX 256
 
@@ -24,7 +26,9 @@
 
 #include "game/animdata.h"
 
-#define HuSprAnimReadFile(data_id) (HuSprAnimRead(HuDataSelHeapReadNum((data_id), HU_MEMNUM_OVL, HEAP_MODEL)))
+struct hu_sprite;
+
+#define HuSprAnimReadFile(data_id) (HuSprAnimRead(HuDataSelHeapReadNum((data_id), MEMORY_DEFAULT_NUM, HEAP_DATA)))
 
 typedef struct HuSprite_s HUSPRITE;
 
@@ -33,7 +37,7 @@ typedef s16 HUSPRGRPID;
 
 typedef void (*HUSPRFUNC)(HUSPRITE *);
 
-typedef struct HuSprite_s {
+struct HuSprite_s {
     u8 r;
     u8 g;
     u8 b;
@@ -79,8 +83,8 @@ typedef struct HuSprGrp_s {
     Mtx mtx;
 } HUSPRGRP;
 
-extern HUSPRITE HuSprData[HUSPR_MAX];
-extern HUSPRGRP HuSprGrpData[HUSPR_GRP_MAX];
+SHARED_SYM extern HUSPRITE HuSprData[HUSPR_MAX];
+SHARED_SYM extern HUSPRGRP HuSprGrpData[HUSPR_GRP_MAX];
 
 void HuSprInit(void);
 void HuSprClose(void);
@@ -100,6 +104,9 @@ void HuSprGrpMemberKill(s16 group, s16 member);
 void HuSprGrpKill(s16 group);
 void HuSprKill(s16 sprite);
 void HuSprAnimKill(ANIMDATA *anim);
+#ifdef BYTESWAPPING
+void HuSprAnimSrcFreed(void *ptr);
+#endif
 void HuSprAttrSet(s16 group, s16 member, s32 attr);
 void HuSprAttrReset(s16 group, s16 member, s32 attr);
 void HuSprPosSet(s16 group, s16 member, float x, float y);
@@ -130,6 +137,9 @@ void HuSprDispInit(void);
 void HuSprDisp(HUSPRITE *sprite);
 #if !defined(HUSPR_USE_OLD_DEFS) || !defined(__MWERKS__)
 void HuSprTexLoad(ANIMDATA *anim, s16 bmp, s16 slot, GXTexWrapMode wrap_s, GXTexWrapMode wrap_t, GXTexFilter filter);
+#endif
+#ifdef OPTIMIZED_TEXTURE_LOADING
+void HuSprTexRefresh(ANIMBMP *bmp);
 #endif
 void HuSprExecLayerSet(s16 draw_no, s16 layer);
 

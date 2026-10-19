@@ -1,29 +1,28 @@
 #include "ext_math.h"
 #include "game/audio.h"
 #include "game/chrman.h"
+#include "game/disp.h"
 #include "game/gamework_data.h"
 #include "game/hu3d.h"
 #include "game/minigame_seq.h"
 #include "game/object.h"
 #include "game/objsub.h"
-#include "game/pad.h"
 #include "game/sprite.h"
-#include "game/window.h"
 #include "game/wipe.h"
 #include "string.h"
 
 #include "REL/m433Dll.h"
 
-void fn_1_4C0(OMOBJ *object);
-void fn_1_618(OMOBJ *object);
-void fn_1_798(OMOBJ *object);
-void fn_1_AD4(OMOBJ *object);
-void fn_1_E2C(OMOBJ *object);
-void fn_1_1040(OMOBJ *object);
-void fn_1_13FC(OMOBJ *object);
-void fn_1_16D0(OMOBJ *object);
-OMOBJFUNC fn_1_1A3C(HUPROCESS *process, OMOBJ *object);
-void fn_1_1A48(OMOBJ *object);
+void fn_1_4C0(omObjData *object);
+void fn_1_618(omObjData *object);
+void fn_1_798(omObjData *object);
+void fn_1_AD4(omObjData *object);
+void fn_1_E2C(omObjData *object);
+void fn_1_1040(omObjData *object);
+void fn_1_13FC(omObjData *object);
+void fn_1_16D0(omObjData *object);
+omObjFunc fn_1_1A3C(Process *process, omObjData *object);
+void fn_1_1A48(omObjData *object);
 float fn_1_26C4(float arg8, float arg9, float argA);
 
 Vec lbl_1_data_0 = { 100.0f, 800.0f, -100.0f };
@@ -39,9 +38,9 @@ Vec lbl_1_data_58 = { 0.0f, -22.0f, 850.0f };
 char lbl_1_bss_34[0x4];
 char lbl_1_bss_30[0x4];
 char lbl_1_bss_2C[0x4];
-HUPROCESS *lbl_1_bss_28;
-OMOBJ *lbl_1_bss_24;
-OMOBJ *lbl_1_bss_20;
+Process *lbl_1_bss_28;
+omObjData *lbl_1_bss_24;
+omObjData *lbl_1_bss_20;
 char lbl_1_bss_18[8];
 s16 lbl_1_bss_16;
 s16 lbl_1_bss_14;
@@ -56,7 +55,7 @@ void ObjectSetup(void)
 {
     Vec sp14;
     Vec sp8;
-    HUPROCESS *var_r31;
+    Process *var_r31;
     HU3DLIGHT *var_r30;
 
     HuAudSndGrpSet(0x3A);
@@ -95,18 +94,18 @@ void ObjectSetup(void)
     omGameSysInit(var_r31);
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, -1.0f, 10.0f, 10000.0f, 1.2f);
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
     lbl_1_bss_20 = omAddObjEx(var_r31, 0x7FDA, 0, 0, -1, omOutView);
     lbl_1_bss_24 = omAddObjEx(var_r31, 0xA, 0, 0, -1, fn_1_4C0);
     fn_1_2894(var_r31);
     fn_1_5904(var_r31);
 }
 
-void fn_1_4C0(OMOBJ *object)
+void fn_1_4C0(omObjData *object)
 {
     M433DllWork *work;
 
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M433DllWork), HU_MEMNUM_OVL);
+    object->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M433DllWork), MEMORY_DEFAULT_NUM);
     work = object->data;
     memset(work, 0, sizeof(M433DllWork));
     work->unk_00 = 0;
@@ -121,10 +120,10 @@ void fn_1_4C0(OMOBJ *object)
     work->unk_34 = 2;
     work->unk_38 = 0;
     work->unk_3C = 0;
-    object->objFunc = fn_1_798;
+    object->func = fn_1_798;
 }
 
-void fn_1_584(OMOBJ *object)
+void fn_1_584(omObjData *object)
 {
     M433DllWork *work = object->data;
     work->unk_04++;
@@ -137,7 +136,7 @@ void fn_1_584(OMOBJ *object)
     }
 }
 
-void fn_1_618(OMOBJ *object)
+void fn_1_618(omObjData *object)
 {
     M433DllWork *work = object->data;
     if (work->unk_08 == 0) {
@@ -148,41 +147,41 @@ void fn_1_618(OMOBJ *object)
                 lbl_1_bss_C = HuAudFXPlay(0x6AC);
                 work->unk_00 = 1;
                 work->unk_10 = 0;
-                object->objFunc = fn_1_29A4(lbl_1_bss_28, object);
+                object->func = fn_1_29A4(lbl_1_bss_28, object);
                 break;
             case 1:
                 work->unk_00 = 2;
                 work->unk_18 = 0;
-                object->objFunc = fn_1_1040;
+                object->func = fn_1_1040;
                 break;
             case 2:
                 work->unk_00 = 3;
                 work->unk_28 = 0;
-                object->objFunc = fn_1_1A3C(lbl_1_bss_28, object);
+                object->func = fn_1_1A3C(lbl_1_bss_28, object);
                 break;
             case 3:
             case 4:
                 work->unk_08 = 1;
                 work->unk_00 = 5;
-                object->objFunc = fn_1_AD4;
+                object->func = fn_1_AD4;
                 break;
             case 5:
             default:
                 work->unk_00 = 5;
-                object->objFunc = fn_1_E2C;
+                object->func = fn_1_E2C;
                 break;
         }
         work->unk_04 = 0;
     }
 }
 
-void fn_1_798(OMOBJ *object)
+void fn_1_798(omObjData *object)
 {
     fn_1_584(object);
     fn_1_618(object);
 }
 
-void fn_1_AD4(OMOBJ *object)
+void fn_1_AD4(omObjData *object)
 {
     M433DllWork *work = object->data;
 
@@ -194,7 +193,7 @@ void fn_1_AD4(OMOBJ *object)
     }
 }
 
-void fn_1_E2C(OMOBJ *object)
+void fn_1_E2C(omObjData *object)
 {
     fn_1_584(object);
     if (WipeStatGet() == 0) {
@@ -206,7 +205,7 @@ void fn_1_E2C(OMOBJ *object)
     }
 }
 
-void fn_1_1040(OMOBJ *object)
+void fn_1_1040(omObjData *object)
 {
     M433DllWork *work = object->data;
     fn_1_584(object);
@@ -234,13 +233,13 @@ void fn_1_1040(OMOBJ *object)
             if ((MGSeqStatGet(lbl_1_bss_14) == 0) && (work->unk_08 == 0)) {
                 work->unk_14 = 2;
                 work->unk_18 = 0;
-                object->objFunc = fn_1_13FC;
+                object->func = fn_1_13FC;
             }
             break;
     }
 }
 
-void fn_1_13FC(OMOBJ *object)
+void fn_1_13FC(omObjData *object)
 {
 
     M433DllWork *work = object->data;
@@ -264,13 +263,13 @@ void fn_1_13FC(OMOBJ *object)
         work->unk_14 = 3;
         work->unk_18 = 0;
         if (work->unk_08 == 0) {
-            object->objFunc = fn_1_16D0;
+            object->func = fn_1_16D0;
         }
         lbl_1_bss_8 = HuAudFXPlay(0x6AC);
     }
 }
 
-void fn_1_16D0(OMOBJ *object)
+void fn_1_16D0(omObjData *object)
 {
     M433DllWork *work = object->data;
     fn_1_584(object);
@@ -281,7 +280,7 @@ void fn_1_16D0(OMOBJ *object)
     }
 }
 
-OMOBJFUNC fn_1_1A3C(HUPROCESS *process, OMOBJ *object)
+omObjFunc fn_1_1A3C(Process *process, omObjData *object)
 {
     return fn_1_1A48;
 }
@@ -291,7 +290,7 @@ static inline s32 fn_1_1A48_inline(void)
     return GWSystem.mg_type;
 }
 
-void fn_1_1A48(OMOBJ *object)
+void fn_1_1A48(omObjData *object)
 {
     M433DllWork *work = object->data;
     float var_f31 = lbl_1_data_58.y;
@@ -342,22 +341,22 @@ void fn_1_1A48(OMOBJ *object)
 
 s32 fn_1_213C(void)
 {
-    return omObjGetDataAs(lbl_1_bss_24, M433DllWork)->unk_00;
+    return OM_GET_DATA_PTR(lbl_1_bss_24, M433DllWork)->unk_00;
 }
 
 s32 fn_1_2154(void)
 {
-    return omObjGetDataAs(lbl_1_bss_24, M433DllWork)->unk_0C;
+    return OM_GET_DATA_PTR(lbl_1_bss_24, M433DllWork)->unk_0C;
 }
 
 u32 fn_1_216C(void)
 {
-    return omObjGetDataAs(lbl_1_bss_24, M433DllWork)->unk_14;
+    return OM_GET_DATA_PTR(lbl_1_bss_24, M433DllWork)->unk_14;
 }
 
 u32 fn_1_2184(void)
 {
-    return omObjGetDataAs(lbl_1_bss_24, M433DllWork)->unk_24;
+    return OM_GET_DATA_PTR(lbl_1_bss_24, M433DllWork)->unk_24;
 }
 
 void fn_1_219C(s32 arg0, s32 arg1, s32 arg2)
@@ -370,17 +369,17 @@ void fn_1_219C(s32 arg0, s32 arg1, s32 arg2)
 
 s32 fn_1_21CC(void)
 {
-    return omObjGetDataAs(lbl_1_bss_24, M433DllWork)->unk_34;
+    return OM_GET_DATA_PTR(lbl_1_bss_24, M433DllWork)->unk_34;
 }
 
 void fn_1_21E4(s32 arg0)
 {
-    omObjGetDataAs(lbl_1_bss_24, M433DllWork)->unk_38 |= (1 << ((arg0 & 7) * 4));
+    OM_GET_DATA_PTR(lbl_1_bss_24, M433DllWork)->unk_38 |= (1 << ((arg0 & 7) * 4));
 }
 
 void fn_1_2214(s32 arg0)
 {
-    omObjGetDataAs(lbl_1_bss_24, M433DllWork)->unk_3C |= (1 << ((arg0 & 3) * 4));
+    OM_GET_DATA_PTR(lbl_1_bss_24, M433DllWork)->unk_3C |= (1 << ((arg0 & 3) * 4));
 }
 
 s32 fn_1_2244(void)

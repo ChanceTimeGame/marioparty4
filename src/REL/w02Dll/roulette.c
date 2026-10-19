@@ -22,7 +22,7 @@
 /* DATA */
 s32 lbl_1_data_4D0[] = { -1, 2, 2, 2, -1, 1, 1, 1, -1, 0, 0, 0, -1, 3, 3, 3 };
 
-HUPROCESS *lbl_1_bss_38C;
+Process *lbl_1_bss_38C;
 s16 lbl_1_bss_388;
 s32 lbl_1_bss_384;
 float lbl_1_bss_380;
@@ -97,6 +97,7 @@ void fn_1_BCFC(void)
 s32 fn_1_BE74(void)
 {
     lbl_1_bss_38C = 0;
+    // TODO PC
 }
 
 s32 fn_1_BE88(void)

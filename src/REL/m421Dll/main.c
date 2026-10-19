@@ -1,5 +1,6 @@
 #include "ext_math.h"
 #include "game/audio.h"
+#include "game/disp.h"
 #include "game/gamework.h"
 #include "game/hu3d.h"
 #include "game/memory.h"
@@ -39,27 +40,27 @@ typedef struct M421DllWork {
     s32 unk_70;
 } M421DllWork; /* size = 0x74 */
 
-void fn_1_10EC(OMOBJ *object);
-void fn_1_142C(OMOBJ *object);
-void fn_1_1850(OMOBJ *object);
-void fn_1_1C90(OMOBJ *object);
-OMOBJFUNC fn_1_213C(HUPROCESS *process, OMOBJ *object);
-void fn_1_21AC(OMOBJ *object);
-OMOBJFUNC fn_1_2A28(HUPROCESS *process, OMOBJ *object);
-void fn_1_2BB8(OMOBJ *object);
-void fn_1_3020(HUPROCESS *process);
-void fn_1_30D0(OMOBJ *object);
-void fn_1_3334(OMOBJ *object);
-void fn_1_335C(OMOBJ *object);
+void fn_1_10EC(omObjData *object);
+void fn_1_142C(omObjData *object);
+void fn_1_1850(omObjData *object);
+void fn_1_1C90(omObjData *object);
+omObjFunc fn_1_213C(Process *process, omObjData *object);
+void fn_1_21AC(omObjData *object);
+omObjFunc fn_1_2A28(Process *process, omObjData *object);
+void fn_1_2BB8(omObjData *object);
+void fn_1_3020(Process *process);
+void fn_1_30D0(omObjData *object);
+void fn_1_3334(omObjData *object);
+void fn_1_335C(omObjData *object);
 void fn_1_38FC(HU3DMODEL *model, Mtx mtx);
 void fn_1_3B50(u32 arg0);
 M421DllCameraStruct *fn_1_3B78(s32 arg0);
 M421DllCameraStruct *fn_1_3CB0(u32 arg0);
 float fn_1_4478(float arg8, float arg9, float argA);
-void fn_1_4A0(OMOBJ *object);
-void fn_1_784(OMOBJ *object);
-void fn_1_8B8(OMOBJ *object);
-void fn_1_CBC(OMOBJ *object);
+void fn_1_4A0(omObjData *object);
+void fn_1_784(omObjData *object);
+void fn_1_8B8(omObjData *object);
+void fn_1_CBC(omObjData *object);
 
 Vec lbl_1_data_0 = { 100.0f, 800.0f, -100.0f };
 Vec lbl_1_data_C = { 0.3f, -0.8f, 0.3f };
@@ -81,11 +82,11 @@ Vec lbl_1_data_70[3] = {
 s32 lbl_1_data_94[3] = { REFRESH_RATE * 4, REFRESH_RATE / 2, 0 };
 GXColor lbl_1_data_A0 = { 0, 0, 0, 0 };
 
-HUPROCESS *lbl_1_bss_28;
-OMOBJ *lbl_1_bss_24;
-OMOBJ *lbl_1_bss_20;
+Process *lbl_1_bss_28;
+omObjData *lbl_1_bss_24;
+omObjData *lbl_1_bss_20;
 // M421DllCameraStruct
-OMOBJ *lbl_1_bss_1C;
+omObjData *lbl_1_bss_1C;
 s16 lbl_1_bss_18;
 s16 lbl_1_bss_12[3];
 s16 lbl_1_bss_10;
@@ -101,7 +102,7 @@ void ObjectSetup(void)
     Vec sp20 = { 0.0f, 0.0f, 0.0f };
     Vec sp14 = { 0.0f, 0.0f, -1.0f };
     Vec sp8;
-    HUPROCESS *process;
+    Process *process;
     HU3DLIGHT *lightData;
 
     lbl_1_bss_8 = 0;
@@ -148,11 +149,11 @@ void ObjectSetup(void)
     fn_1_4648(process);
 }
 
-void fn_1_4A0(OMOBJ *object)
+void fn_1_4A0(omObjData *object)
 {
     M421DllWork *work;
 
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M421DllWork), HU_MEMNUM_OVL);
+    object->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M421DllWork), MEMORY_DEFAULT_NUM);
     work = object->data;
     memset(work, 0, sizeof(M421DllWork));
     work->unk_00 = 0;
@@ -168,10 +169,10 @@ void fn_1_4A0(OMOBJ *object)
     work->unk_50[0] = work->unk_50[1] = work->unk_50[2] = work->unk_50[3] = -1;
     work->unk_68 = 0;
     work->unk_70 = 0;
-    object->objFunc = fn_1_8B8;
+    object->func = fn_1_8B8;
 }
 
-void fn_1_578(OMOBJ *object)
+void fn_1_578(omObjData *object)
 {
     Vec sp14;
     Vec sp8;
@@ -196,7 +197,7 @@ void fn_1_578(OMOBJ *object)
     HuAudFXListnerUpdate(&sp14, &sp8);
 }
 
-void fn_1_784(OMOBJ *object)
+void fn_1_784(omObjData *object)
 {
     M421DllWork *work = object->data;
 
@@ -206,40 +207,40 @@ void fn_1_784(OMOBJ *object)
                 WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 0x3C);
                 work->unk_00 = 1;
                 work->unk_10 = 0;
-                object->objFunc = fn_1_213C(lbl_1_bss_28, object);
+                object->func = fn_1_213C(lbl_1_bss_28, object);
                 break;
             case 1:
                 work->unk_00 = 2;
                 work->unk_18 = 0;
-                object->objFunc = fn_1_142C;
+                object->func = fn_1_142C;
                 break;
             case 2:
                 work->unk_00 = 3;
                 work->unk_2C = 0;
-                object->objFunc = fn_1_2A28(lbl_1_bss_28, object);
+                object->func = fn_1_2A28(lbl_1_bss_28, object);
                 break;
             case 3:
             case 4:
                 work->unk_08 = 1;
                 work->unk_00 = 5;
-                object->objFunc = fn_1_CBC;
+                object->func = fn_1_CBC;
                 break;
             case 5:
             default:
                 work->unk_00 = 5;
-                object->objFunc = fn_1_10EC;
+                object->func = fn_1_10EC;
         }
         work->unk_04 = 0;
     }
 }
 
-void fn_1_8B8(OMOBJ *object)
+void fn_1_8B8(omObjData *object)
 {
     fn_1_578(object);
     fn_1_784(object);
 }
 
-void fn_1_CBC(OMOBJ *object)
+void fn_1_CBC(omObjData *object)
 {
     M421DllWork *work = object->data;
     fn_1_578(object);
@@ -250,7 +251,7 @@ void fn_1_CBC(OMOBJ *object)
     }
 }
 
-void fn_1_10EC(OMOBJ *object)
+void fn_1_10EC(omObjData *object)
 {
     fn_1_578(object);
     if (WipeStatGet() == 0) {
@@ -262,7 +263,7 @@ void fn_1_10EC(OMOBJ *object)
     }
 }
 
-void fn_1_142C(OMOBJ *object)
+void fn_1_142C(omObjData *object)
 {
     M421DllWork *work = object->data;
     fn_1_578(object);
@@ -283,13 +284,13 @@ void fn_1_142C(OMOBJ *object)
             if (MGSeqStatGet(lbl_1_bss_10) == 0 && (work->unk_08 == 0)) {
                 work->unk_14 = 2;
                 work->unk_18 = 0;
-                object->objFunc = fn_1_1850;
+                object->func = fn_1_1850;
             }
             break;
     }
 }
 
-void fn_1_1850(OMOBJ *object)
+void fn_1_1850(omObjData *object)
 {
     M421DllWork *work = object->data;
     s32 var_r26 = 0;
@@ -316,12 +317,12 @@ void fn_1_1850(OMOBJ *object)
         work->unk_14 = 3;
         work->unk_18 = 0;
         if (work->unk_08 == 0) {
-            object->objFunc = fn_1_1C90;
+            object->func = fn_1_1C90;
         }
     }
 }
 
-void fn_1_1C90(OMOBJ *object)
+void fn_1_1C90(omObjData *object)
 {
     M421DllWork *work = object->data;
     s32 var_r25 = 0;
@@ -344,7 +345,7 @@ void fn_1_1C90(OMOBJ *object)
     }
 }
 
-OMOBJFUNC fn_1_213C(HUPROCESS *process, OMOBJ *object)
+omObjFunc fn_1_213C(Process *process, omObjData *object)
 {
     M421DllCameraStruct *var_r31;
 
@@ -356,7 +357,7 @@ OMOBJFUNC fn_1_213C(HUPROCESS *process, OMOBJ *object)
     return fn_1_21AC;
 }
 
-void fn_1_21AC(OMOBJ *object)
+void fn_1_21AC(omObjData *object)
 {
     Vec sp20;
     float var_f31;
@@ -405,7 +406,7 @@ void fn_1_21AC(OMOBJ *object)
     }
 }
 
-OMOBJFUNC fn_1_2A28(HUPROCESS *process, OMOBJ *object)
+omObjFunc fn_1_2A28(Process *process, omObjData *object)
 {
     M421DllCameraStruct *var_r31;
     s32 var_r30;
@@ -439,7 +440,7 @@ OMOBJFUNC fn_1_2A28(HUPROCESS *process, OMOBJ *object)
     return fn_1_2BB8;
 }
 
-void fn_1_2BB8(OMOBJ *var_r29)
+void fn_1_2BB8(omObjData *var_r29)
 {
     M421DllCameraStruct *var_r31;
     M421DllWork *var_r28;
@@ -471,7 +472,7 @@ void fn_1_2BB8(OMOBJ *var_r29)
     }
 }
 
-void fn_1_3020(HUPROCESS *process)
+void fn_1_3020(Process *process)
 {
     Hu3DCameraCreate(0x1F);
     lbl_1_bss_20 = omAddObjEx(process, 0x7FDA, 0, 0, -1, omOutViewMulti);
@@ -480,7 +481,7 @@ void fn_1_3020(HUPROCESS *process)
     lbl_1_bss_1C->work[0] = 0;
 }
 
-void fn_1_30D0(OMOBJ *object)
+void fn_1_30D0(omObjData *object)
 {
     UnkM421DllStruct sp1C[5] = {
         { 320.0f, 240.0f, 640.0f, 480.0f },
@@ -494,12 +495,12 @@ void fn_1_30D0(OMOBJ *object)
     s32 var_r29;
     M421DllCameraStruct *var_r28;
 
-    object->data = HuMemDirectMallocNum(HEAP_HEAP, 10 * sizeof(M421DllCameraStruct), HU_MEMNUM_OVL);
+    object->data = HuMemDirectMallocNum(HEAP_SYSTEM, 10 * sizeof(M421DllCameraStruct), MEMORY_DEFAULT_NUM);
     var_r28 = object->data;
     memset(var_r28, 0, 10 * sizeof(M421DllCameraStruct));
-    object->mdlId[0] = Hu3DHookFuncCreate(fn_1_38FC);
-    Hu3DModelLayerSet(object->mdlId[0], 0);
-    Hu3DModelCameraSet(object->mdlId[0], 0x1E);
+    object->model[0] = Hu3DHookFuncCreate(fn_1_38FC);
+    Hu3DModelLayerSet(object->model[0], 0);
+    Hu3DModelCameraSet(object->model[0], 0x1E);
     for (var_r31 = var_r28, var_r29 = 0; var_r29 < 5; var_r29++, var_r31++) {
         var_r31->unk_00 = 1;
         var_r31->unk_04 = var_r29 * 0x64;
@@ -525,15 +526,15 @@ void fn_1_30D0(OMOBJ *object)
     object->work[1] = 0;
     object->work[0]++;
     fn_1_335C(object);
-    object->objFunc = fn_1_3334;
+    object->func = fn_1_3334;
 }
 
-void fn_1_3334(OMOBJ *object)
+void fn_1_3334(omObjData *object)
 {
     fn_1_335C(object);
 }
 
-void fn_1_335C(OMOBJ *object)
+void fn_1_335C(omObjData *object)
 {
     float var_f31;
     M421DllCameraStruct *var_r31;
@@ -572,10 +573,10 @@ void fn_1_335C(OMOBJ *object)
                 break;
         }
         if (var_r24 != 0) {
-            Hu3DModelAttrReset(object->mdlId[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrReset(object->model[0], HU3D_ATTR_DISPOFF);
         }
         else {
-            Hu3DModelAttrSet(object->mdlId[0], HU3D_ATTR_DISPOFF);
+            Hu3DModelAttrSet(object->model[0], HU3D_ATTR_DISPOFF);
         }
         for (var_r30 = 0; var_r30 < 4; var_r30++) {
             sp30[var_r30] = var_r27[var_r30 + 6].unk_04;
@@ -603,7 +604,7 @@ void fn_1_335C(OMOBJ *object)
                 Hu3DCamera[var_r31->unk_38].fov = -1.0f;
             }
             else {
-                var_f31 = 1.2f * ((var_r31->unk_44.unk_08 / 640.0f) / (var_r31->unk_44.unk_0C / 480.0f));
+                var_f31 = 1.2f * ((var_r31->unk_44.unk_08 / HU_FB_WIDTHF) / (var_r31->unk_44.unk_0C / HU_FB_HEIGHTF));
                 sp10[2] = var_r31->unk_44.unk_08 * var_r31->unk_40;
                 sp10[3] = var_r31->unk_44.unk_0C * var_r31->unk_40;
                 Hu3DCameraPerspectiveSet(var_r31->unk_3C, var_r31->unk_10, var_r31->unk_14, var_r31->unk_18, var_f31);
@@ -619,11 +620,11 @@ void fn_1_335C(OMOBJ *object)
                 if (sp10[1] < 0.0f) {
                     sp10[1] = 0.0f;
                 }
-                if (sp8[0] > 640.0f) {
-                    sp8[0] = 640.0f;
+                if (sp8[0] > HU_FB_WIDTHF) {
+                    sp8[0] = HU_FB_WIDTHF;
                 }
-                if (sp8[1] > 480.0f) {
-                    sp8[1] = 480.0f;
+                if (sp8[1] > HU_FB_HEIGHTF) {
+                    sp8[1] = HU_FB_HEIGHTF;
                 }
                 sp8[0] -= sp10[0];
                 sp8[1] -= sp10[1];
@@ -676,6 +677,7 @@ void fn_1_38FC(HU3DMODEL *model, Mtx mtx)
     GXPosition3f32(var_f31, var_f30, -var_f29);
     GXPosition3f32(var_f31, -var_f30, -var_f29);
     GXPosition3f32(-var_f31, -var_f30, -var_f29);
+    GXEnd();
 }
 
 void fn_1_3B50(u32 arg0)
@@ -838,8 +840,6 @@ s32 fn_1_3FF8(void)
 void fn_1_4030(Vec *sp8, Vec *var_r31)
 {
     Vec sp10;
-    float var_f30;
-    float var_f29;
 
     VECSubtract(var_r31, sp8, &sp10);
     Center = *var_r31;

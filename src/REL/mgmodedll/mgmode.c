@@ -28,8 +28,8 @@ typedef struct camera_view_params {
 
 CameraViewParams lbl_1_data_0[1] = { { { -5, 0, 0 }, { 0, 125, 0 }, 1750 } };
 
-OMOBJ *outViewObj;
-HUPROCESS *objman;
+omObjData *outViewObj;
+Process *objman;
 s32 lbl_1_bss_2D4;
 s32 lbl_1_bss_2D0;
 s16 lbl_1_bss_2CE;
@@ -80,7 +80,7 @@ void ObjectSetup(void)
     mgPracticeEnableF = 0;
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 42, 20, 15000, 1.2f);
-    Hu3DCameraViewportSet(1, 0, 0, 640, 480, 0, 1);
+    Hu3DCameraViewportSet(1, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT, 0, 1);
     glight = Hu3DGLightCreate(0, 100, 1000, 0, -0.5, -1, 255, 255, 255);
     Hu3DGLightInfinitytSet(glight);
     HuPrcChildCreate(fn_1_464, 100, 12288, 0, objman);
@@ -521,6 +521,9 @@ exit:
     while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
         HuPrcVSleep();
     }
+#ifdef NON_MATCHING
+    return 0;
+#endif
 }
 
 s32 fn_1_21C4(void)
@@ -611,6 +614,9 @@ exit:
     while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
         HuPrcVSleep();
     }
+#ifdef NON_MATCHING
+    return 0;
+#endif
 }
 
 s32 fn_1_2940(void)
@@ -709,6 +715,9 @@ exit:
     while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
         HuPrcVSleep();
     }
+#ifdef NON_MATCHING
+    return 0;
+#endif
 }
 
 s32 fn_1_3150(void)
@@ -800,6 +809,9 @@ exit:
     while (!Hu3DMotionEndCheck(lbl_1_bss_2C80[9])) {
         HuPrcVSleep();
     }
+#ifdef NON_MATCHING
+    return 0;
+#endif
 }
 
 void fn_1_38D8(void)
@@ -1002,28 +1014,28 @@ s32 fn_1_487C(void)
     else {
         str[0][2] = '4' - lbl_1_bss_20AC[0];
     }
-    HuWinInsertMesSet(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[0][0]), 0);
+    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[0][0]), 0);
     if (lbl_1_bss_20AC[1] >= 3) {
         str[1][1] = 5;
     }
     else {
         str[1][2] = '3' - lbl_1_bss_20AC[1];
     }
-    HuWinInsertMesSet(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[1][0]), 1);
+    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[1][0]), 1);
     if (lbl_1_bss_20AC[2] >= 3) {
         str[2][1] = 5;
     }
     else {
         str[2][2] = '3' - lbl_1_bss_20AC[2];
     }
-    HuWinInsertMesSet(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[2][0]), 2);
+    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[2][0]), 2);
     if (lbl_1_bss_20AC[4] >= 2) {
         str[3][1] = 5;
     }
     else {
         str[3][2] = '2' - lbl_1_bss_20AC[4];
     }
-    HuWinInsertMesSet(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[3][0]), 3);
+    HU_WIN_INSERT_MES_SET_PTR(lbl_1_bss_2CE, MAKE_MESSID_PTR(&str[3][0]), 3);
     fn_1_25838(lbl_1_bss_2CE, 0x28002A, -1, -1);
     fn_1_25838(lbl_1_bss_2CE, 0x28002B, -1, -1);
     fn_1_25838(lbl_1_bss_2CE, 0x280002 + lbl_1_bss_2A6, -1, -999);
@@ -1182,7 +1194,7 @@ void fn_1_54F4(void)
 
 static u16 lbl_1_data_8C[2] = { 1, 2 };
 
-void fn_1_55C0(OMOBJ *object)
+void fn_1_55C0(omObjData *object)
 {
     s16 i;
     for (i = 0; i < 1; i++) {
@@ -1208,7 +1220,7 @@ void fn_1_55C0(OMOBJ *object)
 
 void fn_1_66B0(void);
 
-void fn_1_5974(OMOBJ *object)
+void fn_1_5974(omObjData *object)
 {
     Vec pos;
     Vec offset;

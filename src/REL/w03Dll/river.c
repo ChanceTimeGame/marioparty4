@@ -19,19 +19,19 @@
 
 // BSS
 char lbl_1_bss_130[8];
-OMOBJ *lbl_1_bss_12C;
+omObjData *lbl_1_bss_12C;
 s16 lbl_1_bss_128;
 s32 lbl_1_bss_124;
-HUPROCESS *lbl_1_bss_120;
+Process *lbl_1_bss_120;
 
 // function signatures
 void fn_1_67F8(void);
 void fn_1_6884(void);
-void fn_1_767C(OMOBJ *arg0);
+void fn_1_767C(omObjData *arg0);
 s32 fn_1_6898(s32 arg0);
 void fn_1_6B98(s32 arg0);
 void fn_1_6F9C(s32 arg0);
-void fn_1_767C(OMOBJ *arg0);
+void fn_1_767C(omObjData *arg0);
 void fn_1_735C(s32 arg0);
 void fn_1_77E4(s32 arg0);
 
@@ -54,7 +54,7 @@ s32 lbl_1_data_390[] = { DATA_MAKE_NUM(DATADIR_W03, 0x26), DATA_MAKE_NUM(DATADIR
 void fn_1_63F4(s32 arg0)
 {
     Vec spC;
-    unkWorkStruct *work = omObjGetWork(lbl_1_bss_12C, unkWorkStruct);
+    unkWorkStruct *work = OM_GET_WORK_PTR(lbl_1_bss_12C, unkWorkStruct);
 
     work->unk_04 = 0.0f;
 
@@ -87,7 +87,7 @@ void fn_1_6494(void)
     sp14.z = sp8.z + (400.0 * cos(-(M_PI / 2)));
     BoardModelPosSetV(lbl_1_data_388, &sp14);
     lbl_1_bss_12C = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, (void *)fn_1_767C);
-    temp_r31 = omObjGetWork(lbl_1_bss_12C, unkWorkStruct);
+    temp_r31 = OM_GET_WORK_PTR(lbl_1_bss_12C, unkWorkStruct);
     temp_r31->temp1 = 0;
     temp_r31->unk_04 = 0.0f;
     lbl_1_bss_124 = 0;
@@ -213,7 +213,7 @@ s32 fn_1_6898(s32 arg0)
     j = 0;
     while (j == 0) {
         BoardWinCreateChoice(2, MAKE_MESSID(22, 11), 2, 0);
-        BoardWinInsertMesSet(MAKE_MESSID_PTR(lbl_1_bss_130), 2);
+        BOARD_WIN_INSERT_MES_SET_PTR(MAKE_MESSID_PTR(lbl_1_bss_130), 2);
         BoardWinAttrSet(0x10);
 
         if (GWPlayer[arg0].com != 0) {
@@ -455,13 +455,13 @@ void fn_1_735C(s32 arg0)
     BoardWinKill();
 }
 
-void fn_1_767C(OMOBJ *arg0)
+void fn_1_767C(omObjData *arg0)
 {
     Vec sp8;
     s32 temp_r30;
     unkWorkStruct *temp_r31;
 
-    temp_r31 = omObjGetWork(arg0, unkWorkStruct);
+    temp_r31 = OM_GET_WORK_PTR(arg0, unkWorkStruct);
 
     if ((temp_r31->temp1 != 0) || (BoardIsKill() != 0)) {
         lbl_1_bss_12C = NULL;

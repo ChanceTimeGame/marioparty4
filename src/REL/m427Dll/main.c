@@ -41,8 +41,8 @@ typedef struct M427DllStruct3 {
     f32 zoom;
 } M427DllStruct3;
 
-HUPROCESS* lbl_1_bss_8C;
-OMOBJ* lbl_1_bss_88;
+Process* lbl_1_bss_8C;
+omObjData* lbl_1_bss_88;
 s32 lbl_1_bss_84;
 s32 lbl_1_bss_80;
 s32 lbl_1_bss_7C;
@@ -57,15 +57,15 @@ s32 lbl_1_bss_58;
 s32 lbl_1_bss_54;
 s32 lbl_1_bss_50;
 s32 lbl_1_bss_4C;
-OMOBJ* lbl_1_bss_48;
+omObjData* lbl_1_bss_48;
 s32 lbl_1_bss_44;
 M427DllStruct2* lbl_1_bss_40;
 M427DllStruct lbl_1_bss_0[8];
 
-void fn_1_29C(OMOBJ*);
-void fn_1_300(OMOBJ*);
-void fn_1_1664(OMOBJ*);
-void fn_1_16C4(OMOBJ*);
+void fn_1_29C(omObjData*);
+void fn_1_300(omObjData*);
+void fn_1_1664(omObjData*);
+void fn_1_16C4(omObjData*);
 void fn_1_1864(s32);
 void fn_1_1954(void);
 void fn_1_1F34(void);
@@ -76,7 +76,7 @@ void fn_1_2518(s32);
 void fn_1_2704(void);
 void fn_1_272C(void);
 void fn_1_2790(void);
-void fn_1_2B20(OMOBJ* object);
+void fn_1_2B20(omObjData* object);
 void fn_1_2B28(void);
 void fn_1_2CE8(f32);
 void fn_1_2EE0(void);
@@ -107,7 +107,7 @@ M427DllStruct3 lbl_1_data_0[4] = {
 };
 
 void ObjectSetup(void) {
-    HUPROCESS* var_r30;
+    Process* var_r30;
     s32 var_r31;
 
     OSReport("******* M426ObjectSetup *********\n");
@@ -143,15 +143,15 @@ void ObjectSetup(void) {
     }
 }
 
-void fn_1_29C(OMOBJ* arg0) {
+void fn_1_29C(omObjData* arg0) {
     fn_1_32F4(lbl_1_bss_8C);
     fn_1_E98C(lbl_1_bss_8C);
     fn_1_1954();
     fn_1_21E8(0, 1);
-    arg0->objFunc = fn_1_300;
+    arg0->func = fn_1_300;
 }
 
-void fn_1_300(OMOBJ* arg0) {
+void fn_1_300(omObjData* arg0) {
     s32 sp10[2];
     s32 sp8[2];
     f32 var_f31;
@@ -455,14 +455,14 @@ void fn_1_300(OMOBJ* arg0) {
             }
             break;
         case 14:
-            arg0->objFunc = fn_1_1664;
+            arg0->func = fn_1_1664;
             break;
     }
     fn_1_1F34();
     fn_1_16C4(arg0);
 }
 
-void fn_1_1664(OMOBJ* arg0) {
+void fn_1_1664(omObjData* arg0) {
     if (WipeStatGet() == 0) {
         fn_1_EC54();
         fn_1_3A88();
@@ -475,11 +475,11 @@ void fn_1_1664(OMOBJ* arg0) {
     }
 }
 
-void fn_1_16C4(OMOBJ* arg0) {
+void fn_1_16C4(omObjData* arg0) {
     s32 var_r30;
 
     var_r30 = 0;
-    if ((WipeStatGet() != 0) || (arg0->objFunc == fn_1_1664)) {
+    if ((WipeStatGet() != 0) || (arg0->func == fn_1_1664)) {
         return;
     }
     if (omSysExitReq != 0) {
@@ -491,7 +491,7 @@ void fn_1_16C4(OMOBJ* arg0) {
         }
         lbl_1_bss_4C = 1;
         HuAudStreamFadeOut(0x1E);
-        arg0->objFunc = fn_1_1664;
+        arg0->func = fn_1_1664;
     }
 }
 
@@ -553,7 +553,7 @@ void fn_1_1954(void) {
     s32 var_r31;
     M427DllStruct2* var_r30;
 
-    var_r30 = HuMemDirectMallocNum(HEAP_HEAP, 0xA4, 0x10000000);
+    var_r30 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M427DllStruct2), MEMORY_DEFAULT_NUM);
     lbl_1_bss_40 = var_r30;
     var_r30->unk9C = 0;
     var_r30->unkA0 = 0;
@@ -748,7 +748,6 @@ void fn_1_21E8(s32 arg0, s32 arg1) {
 
 void fn_1_232C(s32 arg0) {
     M427DllStruct2* temp_r29;
-    f32 temp_f0;
     s32 var_r31;
 
     temp_r29 = lbl_1_bss_40;
@@ -797,7 +796,6 @@ void fn_1_232C(s32 arg0) {
 
 void fn_1_2518(s32 arg0) {
     M427DllStruct2* temp_r29;
-    f32 temp_f0;
     s32 var_r31;
 
     temp_r29 = lbl_1_bss_40;
@@ -862,7 +860,7 @@ void fn_1_272C(void) {
 }
 
 void fn_1_2790(void) {
-    OMOBJ* var_r30;
+    omObjData* var_r30;
     s32 var_r31;
 
     Hu3DCameraCreate(1);
@@ -876,7 +874,7 @@ void fn_1_2790(void) {
     Hu3DCameraCreate(4);
     Hu3DCameraPerspectiveSet(4, -1.0f, 100.0f, 50000.0f, 1.2f);
     Hu3DCameraViewportSet(4, 0.0f, 0.0f, 576.0f, 480.0f, 0.0f, 1.0f);
-    Hu3DCameraScissorSet(4, 0, 0, 0x280, 0x1E0);
+    Hu3DCameraScissorSet(4, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
     var_r30 = lbl_1_bss_48 = omAddObjEx(lbl_1_bss_8C, 0x7FDA, 0, 0, -1, omOutViewMulti);
     var_r30->work[0] = 3;
     
@@ -893,7 +891,7 @@ void fn_1_2790(void) {
     omAddObjEx(lbl_1_bss_8C, 0x3F, 0, 0, -1, fn_1_2B20);
 }
 
-void fn_1_2B20(OMOBJ* object) {}
+void fn_1_2B20(omObjData* object) {}
 
 void fn_1_2B24(void) {}
 
@@ -953,8 +951,8 @@ void fn_1_3164(void) {
     Hu3DCameraKill(2);
     Hu3DCameraKill(4);
     Hu3DCameraPerspectiveSet(1, 45.0f, 100.0f, 50000.0f, 1.2f);
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
-    Hu3DCameraScissorSet(1, 0, 0, 0x280, 0x1E0);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
+    Hu3DCameraScissorSet(1, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
     CRotM->x = lbl_1_data_0[1].rot.x;
     CRotM->y = lbl_1_data_0[1].rot.y;
     CRotM->z = lbl_1_data_0[1].rot.z;

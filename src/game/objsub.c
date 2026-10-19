@@ -8,7 +8,7 @@
 #include "game/window.h"
 
 
-MgInfo mgInfoTbl[] = {
+SHARED_SYM MgInfo mgInfoTbl[] = {
     {
         DLL_m401dll, // ovl
         0, // type
@@ -1163,21 +1163,21 @@ MgInfo mgInfoTbl[] = {
     },
 };
 
-void MGSeqPracticeExitCheck(OMOBJ *);
+void MGSeqPracticeExitCheck(omObjData *);
 
-s16 mgTypeCurr;
-s16 mgBattleStar[4];
-s16 mgBattleStarMax;
-u8 lbl_801D3E94;
-u32 mgRecordExtra;
-s32 mgQuitExtraF;
-s32 mgPracticeEnableF;
-s32 mgInstExitEnableF;
-u8 mgBoardHostEnableF;
+SHARED_SYM s16 mgTypeCurr;
+SHARED_SYM s16 mgBattleStar[4];
+SHARED_SYM s16 mgBattleStarMax;
+SHARED_SYM u8 lbl_801D3E94;
+SHARED_SYM u32 mgRecordExtra;
+SHARED_SYM s32 mgQuitExtraF;
+SHARED_SYM s32 mgPracticeEnableF;
+SHARED_SYM s32 mgInstExitEnableF;
+SHARED_SYM u8 mgBoardHostEnableF;
 
-s16 mgTicTacToeGrid[3][3];
-u8 mgIndexList[256];
-GameStat mgGameStatBackup;
+SHARED_SYM s16 mgTicTacToeGrid[3][3];
+SHARED_SYM u8 mgIndexList[256];
+SHARED_SYM GameStat mgGameStatBackup;
 
 s32 omMgIndexGet(s16 overlay)
 {
@@ -1196,13 +1196,13 @@ s32 omMgIndexGet(s16 overlay)
     return -1;
 }
 
-void omGameSysInit(HUPROCESS *objman)
+void omGameSysInit(Process *objman)
 {
     s32 i;
-    OMOBJ *obj;
+    omObjData *obj;
 
     omSystemKeyCheckSetup(objman);
-    Hu3DCameraScissorSet(1, 0, 0, 0x280, 0x1E0);
+    Hu3DCameraScissorSet(1, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
     omSysPauseEnable(0);
 
     for (i = 0; i < 4; i++) {

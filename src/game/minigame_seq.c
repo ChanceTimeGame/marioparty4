@@ -36,7 +36,7 @@ typedef struct seq_info {
     s32 time_max;
 } SeqInfo;
 
-OMOVL mgSeqOvlPrev = DLL_NONE;
+SHARED_SYM OMOVL mgSeqOvlPrev = DLL_NONE;
 
 static SeqInfo seqInfoTbl[] = {
     { NULL, NULL, HU_DISP_CENTERX + 4, HU_DISP_CENTERY, 1.0f, 1.0f, 60 },
@@ -100,7 +100,7 @@ static int seqRecordVal;
 static s32 pauseWaitF;
 static s32 pauseExitF;
 static s32 pauseActiveF;
-static HUPROCESS *pauseProcess;
+static Process *pauseProcess;
 static s32 seqLanguage;
 
 void fn_80036BC8(void);
@@ -325,7 +325,7 @@ void MGSeqSprKill(SeqWork *work)
 
 static void *SeqReadFile(s32 file)
 {
-    return HuAR_ARAMtoMRAMFileRead(file, HU_MEMNUM_OVL, HEAP_MODEL);
+    return HuAR_ARAMtoMRAMFileRead(file, MEMORY_DEFAULT_NUM, HEAP_DATA);
 }
 
 s32 MGSeqInitTimer(SeqWork *work, va_list params)
@@ -755,7 +755,7 @@ static char seqFontKanaTbl[] = { "ｱｲｳｴｵｶｷｸ"
 
 static char seqFontNumTbl[] = "0123456789";
 
-static s32 *letterBufTbl[5] = {};
+static s32 *letterBufTbl[5] = {NULL, NULL, NULL, NULL, NULL};
 
 static char wordStartE[] = "START!";
 
@@ -782,23 +782,23 @@ static char *wordMgTbl[6] = {
 void fn_80036BC8(void)
 {
     if (!letterBufTbl[0]) {
-        letterBufTbl[0] = HuMemDirectMalloc(HEAP_HEAP, sizeof(s32) * strlen(seqFontAlphaTbl));
+        letterBufTbl[0] = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(s32) * strlen(seqFontAlphaTbl));
         memset(letterBufTbl[0], 0, sizeof(s32) * strlen(seqFontAlphaTbl));
     }
     if (!letterBufTbl[1]) {
-        letterBufTbl[1] = HuMemDirectMalloc(HEAP_HEAP, sizeof(s32) * strlen(seqFontKanaTbl));
+        letterBufTbl[1] = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(s32) * strlen(seqFontKanaTbl));
         memset(letterBufTbl[1], 0, sizeof(s32) * strlen(seqFontKanaTbl));
     }
     if (!letterBufTbl[2]) {
-        letterBufTbl[2] = HuMemDirectMalloc(HEAP_HEAP, sizeof(s32) * strlen(seqFontKanaTbl));
+        letterBufTbl[2] = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(s32) * strlen(seqFontKanaTbl));
         memset(letterBufTbl[2], 0, sizeof(s32) * strlen(seqFontKanaTbl));
     }
     if (!letterBufTbl[3]) {
-        letterBufTbl[3] = HuMemDirectMalloc(HEAP_HEAP, sizeof(s32) * strlen(seqFontNumTbl));
+        letterBufTbl[3] = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(s32) * strlen(seqFontNumTbl));
         memset(letterBufTbl[3], 0, sizeof(s32) * strlen(seqFontNumTbl));
     }
     if (!letterBufTbl[4]) {
-        letterBufTbl[4] = HuMemDirectMalloc(HEAP_HEAP, sizeof(s32) * strlen(seqPunctTbl));
+        letterBufTbl[4] = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(s32) * strlen(seqPunctTbl));
         memset(letterBufTbl[4], 0, sizeof(s32) * strlen(seqPunctTbl));
     }
 }
@@ -829,8 +829,8 @@ static s32 SeqMakeWord(SeqWork *work, char *str, s16 flags)
     if (grp_idx == 16) {
         return -1;
     }
-    char_anim = HuMemDirectMalloc(HEAP_HEAP, sizeof(ANIMDATA *) * 100);
-    char_pos = HuMemDirectMalloc(HEAP_HEAP, sizeof(s16) * 100);
+    char_anim = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(ANIMDATA *) * 100);
+    char_pos = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(s16) * 100);
     str_ptr = str;
     x = 0;
     len = 0;
@@ -3526,7 +3526,7 @@ static s16 practiceTbl[][2] = {
 
 void MGSeqPracticeInit(void)
 {
-    HUPROCESS *process;
+    Process *process;
     s16 i;
     process = HuPrcCurrentGet();
     if (!_CheckFlag(FLAG_ID_MAKE(1, 12))) {
@@ -3618,7 +3618,7 @@ static void SeqPlayStartFX(void)
     HuAudFXPlay(seqStartFXTbl[i][1]);
 }
 
-void MGSeqPracticeExitCheck(OMOBJ *object)
+void MGSeqPracticeExitCheck(omObjData *object)
 {
     s16 input;
     s16 i;

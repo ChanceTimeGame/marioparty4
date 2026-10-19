@@ -27,21 +27,21 @@ typedef struct unkDominationData2 {
 void fn_1_1CAC(f32, f32, f32);
 void fn_1_1D08(f32, f32, f32);
 void fn_1_1D64(f32);
-void fn_1_2024(OMOBJ *);
+void fn_1_2024(omObjData *);
 
 // bss
-HUPROCESS *lbl_1_bss_34;
-OMOBJ *lbl_1_bss_30;
+Process *lbl_1_bss_34;
+omObjData *lbl_1_bss_30;
 
-void fn_1_1B1C(HUPROCESS *arg0)
+void fn_1_1B1C(Process *arg0)
 {
     unkDominationData2 *unkData;
 
     lbl_1_bss_34 = arg0;
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
     Hu3DCameraPerspectiveSet(1, 45.0f, 10.0f, 40000.0f, 1.2f);
     lbl_1_bss_30 = omAddObjEx(lbl_1_bss_34, 0x80, 0, 0, -1, fn_1_2024);
-    lbl_1_bss_30->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(unkDominationData2), HU_MEMNUM_OVL);
+    lbl_1_bss_30->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(unkDominationData2), MEMORY_DEFAULT_NUM);
     unkData = lbl_1_bss_30->data;
     unkData->unk_04 = 0;
     fn_1_1CAC(0.0f, 0.0f, 0.0f);
@@ -122,7 +122,7 @@ f32 fn_1_1F1C(f32 arg8, f32 arg9)
     return abs(arg8) + abs(arg9);
 }
 
-void fn_1_2024(OMOBJ *arg0)
+void fn_1_2024(omObjData *arg0)
 {
     Vec sp14;
     Vec sp8;

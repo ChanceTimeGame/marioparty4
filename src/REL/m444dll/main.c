@@ -66,8 +66,8 @@ s32 lbl_1_data_194[] = {
     DATA_MAKE_NUM(DATADIR_M444, 0x2B),
 };
 
-OMOBJ *lbl_1_bss_30C;
-HUPROCESS *lbl_1_bss_308;
+omObjData *lbl_1_bss_30C;
+Process *lbl_1_bss_308;
 s32 lbl_1_bss_300[2];
 s32 lbl_1_bss_2FC;
 Vec lbl_1_bss_2F0;
@@ -92,8 +92,8 @@ s32 lbl_1_bss_0;
 
 void fn_1_470(void);
 void fn_1_6E3C(void);
-void fn_1_6EDC(OMOBJ *object);
-void fn_1_7290(OMOBJ *object);
+void fn_1_6EDC(omObjData *object);
+void fn_1_7290(omObjData *object);
 
 void ObjectSetup(void)
 {
@@ -117,7 +117,7 @@ void ObjectSetup(void)
     lbl_1_bss_2D2 = -2;
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 30, 20, 15000, 1.2f);
-    Hu3DCameraViewportSet(1, 0, 0, 640, 480, 0, 1);
+    Hu3DCameraViewportSet(1, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT, 0, 1);
     light = Hu3DGLightCreate(-1000, 1000, 0, 1, -1, 0, 255, 255, 255);
     Hu3DGLightInfinitytSet(light);
     Hu3DGLightStaticSet(light, 1);
@@ -965,7 +965,7 @@ void fn_1_5E68(void);
 void fn_1_55B0(s16 arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4)
 {
     Work5774 *work;
-    HUPROCESS *newProcess;
+    Process *newProcess;
     float temp_f31;
 
     if (arg3 == 0) {
@@ -993,7 +993,7 @@ void fn_1_55B0(s16 arg0, s16 arg1, s16 arg2, s16 arg3, s32 arg4)
             temp_f31 = -50;
             break;
     }
-    work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(Work5774), HU_MEMNUM_OVL);
+    work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(Work5774), MEMORY_DEFAULT_NUM);
     newProcess->user_data = work;
     work->unk0 = arg1;
     work->unk2 = arg2;
@@ -1010,7 +1010,7 @@ void fn_1_5774(void)
     Work5774 *temp_r31;
     s16 temp_r30;
     s16 temp_r29;
-    HUPROCESS *temp_r28;
+    Process *temp_r28;
     s16 temp_r27;
     s16 temp_r26;
     s16 temp_r25;
@@ -1129,7 +1129,7 @@ void fn_1_5E68(void)
     Work5774 *temp_r31;
     s16 temp_r30;
     s16 temp_r29;
-    HUPROCESS *temp_r28;
+    Process *temp_r28;
     s16 temp_r27;
     s16 temp_r26;
     s16 temp_r25;
@@ -1259,7 +1259,7 @@ void fn_1_655C(void)
     up.y = 1;
     up.z = 0;
     Hu3DShadowPosSet(&pos, &up, &target);
-    Hu3DReflectMapSet(HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M444, 0x23), HU_MEMNUM_OVL, HEAP_MODEL));
+    Hu3DReflectMapSet(HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_M444, 0x23), MEMORY_DEFAULT_NUM, HEAP_DATA));
     for (i = 0; i < 4; i++) {
         lbl_1_data_470[i + 47].datanum = lbl_1_data_470[i + 51].datanum = lbl_1_data_194[GWPlayerCfg[i].character];
     }
@@ -1376,7 +1376,7 @@ void fn_1_6E3C(void)
 
 u16 lbl_1_data_240[] = { 1, 2 };
 
-void fn_1_6EDC(OMOBJ *object)
+void fn_1_6EDC(omObjData *object)
 {
     s16 i;
     for (i = 0; i < 1; i++) {
@@ -1401,7 +1401,7 @@ void fn_1_6EDC(OMOBJ *object)
 }
 
 void fn_1_7EBC(void);
-void fn_1_7290(OMOBJ *object)
+void fn_1_7290(omObjData *object)
 {
     Vec pos;
     Vec offset;

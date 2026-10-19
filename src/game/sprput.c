@@ -6,6 +6,10 @@
 #include "game/init.h"
 #include "game/sprite.h"
 
+#ifdef TARGET_PC
+#include <assert.h>
+#endif
+
 static void *bmpNoCC[8];
 static short HuSprLayerDrawNo[8];
 
@@ -183,6 +187,94 @@ void HuSprDisp(HUSPRITE *sprite)
 }
 
 void HuSprTexLoad(ANIMDATA *anim, short bmp, short slot, GXTexWrapMode wrap_s, GXTexWrapMode wrap_t, GXTexFilter filter)
+#ifdef OPTIMIZED_TEXTURE_LOADING
+{
+    ANIMBMP *bmp_ptr = &anim->bmp[bmp];
+    AnimTexData *tex_data = &bmp_ptr->texData[slot];
+    GXTexObj *tex_obj = &tex_data->tex_obj;
+    GXTlutObj *tlut_obj = &tex_data->tlut_obj;
+    short sizeX = bmp_ptr->sizeX;
+    short sizeY = bmp_ptr->sizeY;
+    switch(bmp_ptr->dataFmt & ANIM_BMP_FMTMASK) {
+        case ANIM_BMP_RGBA8:
+            if (!tex_data->tex_initialized) {
+                GXInitTexObj(tex_obj, bmp_ptr->data, sizeX, sizeY, GX_TF_RGBA8, wrap_s, wrap_t, GX_FALSE);
+            }
+            break;
+
+        case ANIM_BMP_RGB5A3:
+        case ANIM_BMP_RGB5A3_DUPE:
+            if (!tex_data->tex_initialized) {
+                GXInitTexObj(tex_obj, bmp_ptr->data, sizeX, sizeY, GX_TF_RGB5A3, wrap_s, wrap_t, GX_FALSE);
+            }
+            break;
+
+        case ANIM_BMP_C8:
+            if (!tex_data->tlut_initialized) {
+                GXInitTlutObj(tlut_obj, bmp_ptr->palData, GX_TL_RGB5A3, bmp_ptr->palNum);
+                tex_data->tlut_initialized = TRUE;
+            }
+            GXLoadTlut(tlut_obj, slot);
+            if (!tex_data->tex_initialized) {
+                GXInitTexObjCI(tex_obj,bmp_ptr->data, sizeX, sizeY, GX_TF_C8, wrap_s, wrap_t, GX_FALSE, slot);
+            }
+            break;
+
+        case ANIM_BMP_C4:
+            if (!tex_data->tlut_initialized) {
+                GXInitTlutObj(tlut_obj, bmp_ptr->palData, GX_TL_RGB5A3, bmp_ptr->palNum);
+                tex_data->tlut_initialized = TRUE;
+            }
+            GXLoadTlut(tlut_obj, slot);
+            if (!tex_data->tex_initialized) {
+                GXInitTexObjCI(tex_obj,bmp_ptr->data, sizeX, sizeY, GX_TF_C4, wrap_s, wrap_t, GX_FALSE, slot);
+            }
+            break;
+
+        case ANIM_BMP_IA8:
+            if (!tex_data->tex_initialized) {
+                GXInitTexObj(tex_obj, bmp_ptr->data, sizeX, sizeY, GX_TF_IA8, wrap_s, wrap_t, GX_FALSE);
+            }
+            break;
+
+        case ANIM_BMP_IA4:
+            if (!tex_data->tex_initialized) {
+                GXInitTexObj(tex_obj, bmp_ptr->data, sizeX, sizeY, GX_TF_IA4, wrap_s, wrap_t, GX_FALSE);
+            }
+            break;
+
+        case ANIM_BMP_I8:
+            if (!tex_data->tex_initialized) {
+                GXInitTexObj(tex_obj, bmp_ptr->data, sizeX, sizeY, GX_TF_I8, wrap_s, wrap_t, GX_FALSE);
+            }
+            break;
+
+        case ANIM_BMP_I4:
+            if (!tex_data->tex_initialized) {
+                GXInitTexObj(tex_obj, bmp_ptr->data, sizeX, sizeY, GX_TF_I4, wrap_s, wrap_t, GX_FALSE);
+            }
+            break;
+
+        case ANIM_BMP_A8:
+            if (!tex_data->tex_initialized) {
+                GXInitTexObj(tex_obj, bmp_ptr->data, sizeX, sizeY, GX_CTF_A8, wrap_s, wrap_t, GX_FALSE);
+            }
+            break;
+
+        case ANIM_BMP_CMPR:
+            if (!tex_data->tex_initialized) {
+                GXInitTexObj(tex_obj, bmp_ptr->data, sizeX, sizeY, GX_TF_CMPR, wrap_s, wrap_t, GX_FALSE);
+            }
+            break;
+
+        default:
+            break;
+    }
+    GXInitTexObjLOD(tex_obj, filter, filter, 0, 0, 0, GX_FALSE, GX_FALSE, GX_ANISO_1);
+    GXLoadTexObj(tex_obj, slot);
+    tex_data->tex_initialized = TRUE;
+}
+#else
 {
     GXTexObj tex_obj;
     GXTlutObj tlut_obj;
@@ -202,12 +294,18 @@ void HuSprTexLoad(ANIMDATA *anim, short bmp, short slot, GXTexWrapMode wrap_s, G
         case ANIM_BMP_C8:
             GXInitTlutObj(&tlut_obj, bmp_ptr->palData, GX_TL_RGB5A3, bmp_ptr->palNum);
             GXLoadTlut(&tlut_obj, slot);
+#ifdef TARGET_PC
+            GXDestroyTlutObj(&tlut_obj);
+#endif
             GXInitTexObjCI(&tex_obj,bmp_ptr->data, sizeX, sizeY, GX_TF_C8, wrap_s, wrap_t, GX_FALSE, slot);
             break;
             
         case ANIM_BMP_C4:
             GXInitTlutObj(&tlut_obj, bmp_ptr->palData, GX_TL_RGB5A3, bmp_ptr->palNum);
             GXLoadTlut(&tlut_obj, slot);
+#ifdef TARGET_PC
+            GXDestroyTlutObj(&tlut_obj);
+#endif
             GXInitTexObjCI(&tex_obj,bmp_ptr->data, sizeX, sizeY, GX_TF_C4, wrap_s, wrap_t, GX_FALSE, slot);
             break;
             
@@ -240,7 +338,31 @@ void HuSprTexLoad(ANIMDATA *anim, short bmp, short slot, GXTexWrapMode wrap_s, G
     }
     GXInitTexObjLOD(&tex_obj, filter, filter, 0, 0, 0, GX_FALSE, GX_FALSE, GX_ANISO_1);
     GXLoadTexObj(&tex_obj, slot);
+#ifdef TARGET_PC
+    GXDestroyTexObj(&tex_obj);
+#endif
 }
+#endif
+
+#ifdef OPTIMIZED_TEXTURE_LOADING
+// HuSprTexLoad keeps one GXTexObj per bitmap and slot, and Aurora uploads a
+// texture only when that object's data version changes. Code that edits a
+// bitmap's texels in RAM (on GameCube a DCFlushRange was enough) calls this
+// afterwards so the next draw uploads the edited image.
+void HuSprTexRefresh(ANIMBMP *bmp)
+{
+    s32 i;
+
+    for (i = 0; i < (s32)(sizeof(bmp->texData) / sizeof(bmp->texData[0])); i++) {
+        if (bmp->texData[i].tex_initialized) {
+            GXInitTexObjData(&bmp->texData[i].tex_obj, bmp->data);
+        }
+        if (bmp->texData[i].tlut_initialized) {
+            GXInitTlutObjData(&bmp->texData[i].tlut_obj, bmp->palData);
+        }
+    }
+}
+#endif
 
 void HuSprExecLayerSet(short draw_no, short layer)
 {

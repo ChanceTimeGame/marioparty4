@@ -33,7 +33,7 @@ static s16 thpGroup;
 static s16 thpCoverGroup;
 static s32 staffSide;
 static s32 currImg;
-static OMOBJ *multiViewObj;
+static omObjData *multiViewObj;
 
 static StaffData staffData[] = {
     { 0x00340001, 0, 0.0f, 0, 0, 0 },
@@ -258,15 +258,15 @@ static void ShowPicture(void);
 
 void ObjectSetup(void)
 {
-    HUPROCESS *process;
+    Process *process;
 
     process = omInitObjMan(0x32, 0x2000);
     omGameSysInit(process);
     HuWinInit(1);
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 20.0f, 20.0f, 10000.0f, 1.2f);
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
-    Hu3DCameraScissorSet(1, 0, 0, 640, 480);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
+    Hu3DCameraScissorSet(1, 0, 0, HU_FB_WIDTH, HU_FB_HEIGHT);
     multiViewObj = omAddObjEx(process, 0x7FDA, 0, 0, -1, omOutViewMulti);
     multiViewObj->work[0] = 1;
     CRotM[0].x = -35.0f;
@@ -324,7 +324,7 @@ static void CreateStaff(void)
     currImg = 0;
 
     for (var_r31 = 0; var_r31 < 26; var_r31++) {
-        var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, var_r31), HU_MEMNUM_OVL, HEAP_MODEL);
+        var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, var_r31), MEMORY_DEFAULT_NUM, HEAP_DATA);
         var_r28 = HuSprAnimRead(var_r29);
         var_r30 = HuSprCreate(var_r28, 16386, 0);
         imgGroup[var_r31] = HuSprGrpCreate(1);
@@ -341,7 +341,7 @@ static void CreateStaff(void)
     for (var_r31 = 0; var_r31 < 3; var_r31++) {
         int languageNo;
         #if VERSION_NTSC
-        var_r29 = HuDataSelHeapReadNum(var_r31 + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A), HU_MEMNUM_OVL, HEAP_MODEL);
+        var_r29 = HuDataSelHeapReadNum(var_r31 + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A), MEMORY_DEFAULT_NUM, HEAP_DATA);
         #else
         if(var_r31 == 2) {
             switch(GWGameStat.language) {
@@ -363,9 +363,9 @@ static void CreateStaff(void)
                     
             }
             
-            var_r29 = HuDataSelHeapReadNum(var_r31 + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A) + languageNo, HU_MEMNUM_OVL, HEAP_MODEL);
+            var_r29 = HuDataSelHeapReadNum(var_r31 + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A) + languageNo, MEMORY_DEFAULT_NUM, HEAP_DATA);
         } else {
-            var_r29 = HuDataSelHeapReadNum(var_r31 + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A), HU_MEMNUM_OVL, HEAP_MODEL);
+            var_r29 = HuDataSelHeapReadNum(var_r31 + DATA_MAKE_NUM(DATADIR_STAFF, 0x1A), MEMORY_DEFAULT_NUM, HEAP_DATA);
         }
         #endif
         
@@ -383,9 +383,9 @@ static void CreateStaff(void)
     HuSprAttrSet(thpGroup, 0, HUSPR_ATTR_DISPOFF);
     HuTHPStop();
     #if VERSION_NTSC
-    var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, 0x1D), HU_MEMNUM_OVL, HEAP_MODEL);
+    var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, 0x1D), MEMORY_DEFAULT_NUM, HEAP_DATA);
     #else
-    var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, 0x20), HU_MEMNUM_OVL, HEAP_MODEL);
+    var_r29 = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_STAFF, 0x20), MEMORY_DEFAULT_NUM, HEAP_DATA);
     #endif
     var_r28 = HuSprAnimRead(var_r29);
     var_r30 = HuSprCreate(var_r28, 16385, 0);
@@ -565,7 +565,7 @@ static void MainProc(void)
     s32 var_r31;
     StaffData *var_r30;
     s32 var_r29;
-    HUPROCESS *var_r28;
+    Process *var_r28;
     s32 var_r27;
     float var_f29;
     float var_f30;

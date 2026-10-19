@@ -27,7 +27,7 @@ typedef struct {
     s16 unk08;
 } CharWheelWork;
 
-static void ExecCharWheel(OMOBJ *arg0);
+static void ExecCharWheel(omObjData *arg0);
 static void InitCharWheel(CharWheelWork *arg0);
 static void UpdateCharWheel(CharWheelWork *arg0);
 static void StopCharWheel(CharWheelWork *arg0);
@@ -46,7 +46,7 @@ static float wheelSpeed;
 static s16 targetVal;
 static float angleOfs;
 static s16 targetF;
-static OMOBJ *charWheelObj;
+static omObjData *charWheelObj;
 
 static s8 wheelPos = -1;
 static s16 wheelSprGrp = -1;
@@ -89,7 +89,7 @@ s32 BoardCharWheelInit(s32 arg0, s32 arg1) {
 
     arg1 = 3;
     charWheelObj = omAddObjEx(boardObjMan, 0x104, 0, 0, -1, ExecCharWheel);
-    temp_r31 = omObjGetWork(charWheelObj, CharWheelWork);
+    temp_r31 = OM_GET_WORK_PTR(charWheelObj, CharWheelWork);
     temp_r31->unk00_field0 = 0;
     temp_r31->unk00_field2 = 0;
     temp_r31->unk00_field1 = (arg1 == 3) ? 0 : 1;
@@ -103,6 +103,9 @@ s32 BoardCharWheelInit(s32 arg0, s32 arg1) {
     } else {
         temp_r31->unk04 = 3600;
     }
+#ifdef NON_MATCHING
+    return 0;
+#endif
 }
 
 BOOL BoardCharWheelCheck(void) {
@@ -126,10 +129,10 @@ void BoardCharWheelSpeedSet(float arg0) {
     wheelSpeed = arg0;
 }
 
-static void ExecCharWheel(OMOBJ *arg0) {
+static void ExecCharWheel(omObjData *arg0) {
     CharWheelWork *temp_r31;
 
-    temp_r31 = omObjGetWork(arg0, CharWheelWork);;
+    temp_r31 = OM_GET_WORK_PTR(arg0, CharWheelWork);;
     if (temp_r31->unk00_field0 != 0 || BoardIsKill()) {
         KillCharWheelSpr();
         #if VERSION_PAL
@@ -469,7 +472,7 @@ static s32 GetInput(CharWheelWork *arg0) {
     }
     var_r28 = GetComInput(arg0);
     if (targetF != 0) {
-        var_r27 = omObjGetWork(charWheelObj, CharWheelWork);
+        var_r27 = OM_GET_WORK_PTR(charWheelObj, CharWheelWork);
         OSs16tof32(&var_r27->unk06, &temp_f26);
         OSs16tof32(&var_r27->unk08, &temp_f27);
         temp_f26 = temp_f26 * 0.0625f;

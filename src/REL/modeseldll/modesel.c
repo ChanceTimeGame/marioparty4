@@ -30,8 +30,6 @@ s16 lbl_1_bss_80;
 
 void fn_1_3668(void);
 
-// Scratch is at https://decomp.me/scratch/iirXp
-// Register allocation issues at line 180 with load of 1.0 double constant
 s32 fn_1_2490(void)
 {
     float sp10[2];
@@ -172,10 +170,13 @@ s32 fn_1_2490(void)
     HuWinExAnimOut(lbl_1_bss_82);
     HuAudFXStop(temp_r25);
     temp_r27 = HuSprGrpCreate(1);
+#ifdef __MWERKS__
+    // TODO PC
     temp_r21 = HuTHPSprCreateVol("movie/opmov_c00.thp", 0, 3000, 90.0);
     HuSprGrpMemberSet(temp_r27, 0, temp_r21);
     HuSprPosSet(temp_r27, 0, 288.0f, 240.0f);
     HuSprDrawNoSet(temp_r27, 0, 127);
+#endif
     HuPrcSleep(2);
     espAttrSet(lbl_1_bss_152[9], HUSPR_ATTR_DISPOFF);
     for (temp_r31 = 0; temp_r31 <= 10; temp_r31++) {
@@ -183,8 +184,8 @@ s32 fn_1_2490(void)
         Hu3DModelPosSet(lbl_1_bss_19A[14], 0, -70.0f - (100.0f * temp_f31), 0);
         HuPrcVSleep();
     }
-    temp_r23 = HuSprAnimRead(HuDataReadNum(lbl_1_data_8C[lbl_1_bss_80], HU_MEMNUM_OVL));
-    temp_r22 = HuSprAnimRead(HuDataReadNum(lbl_1_data_A4[lbl_1_bss_80], HU_MEMNUM_OVL));
+    temp_r23 = HuSprAnimRead(HuDataReadNum(lbl_1_data_8C[lbl_1_bss_80], MEMORY_DEFAULT_NUM));
+    temp_r22 = HuSprAnimRead(HuDataReadNum(lbl_1_data_A4[lbl_1_bss_80], MEMORY_DEFAULT_NUM));
     Hu3DAnimCreate(temp_r23, lbl_1_bss_19A[22], "ys002_a1");
     Hu3DAnimCreate(temp_r22, lbl_1_bss_19A[22], "ys002_a2");
     Hu3DModelAttrSet(lbl_1_bss_19A[lbl_1_data_80[lbl_1_bss_80]], HU3D_ATTR_DISPOFF);

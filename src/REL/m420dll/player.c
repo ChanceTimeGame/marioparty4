@@ -175,7 +175,7 @@ M420DllPlayerStruct *fn_1_1B8C(s32 arg0, s32 arg1)
     M420DllPlayerStruct *var_r31;
     s32 var_r30;
 
-    var_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(M420DllPlayerStruct), HU_MEMNUM_OVL);
+    var_r31 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(M420DllPlayerStruct), MEMORY_DEFAULT_NUM);
     if (!var_r31) {
         OSReport("M420PlayerCreate ERROR...\n");
         return NULL;
@@ -384,10 +384,6 @@ void fn_1_22CC(M420DllPlayerStruct *arg0)
     M420DllUnkStruct2 *var_r30;
     s32 var_r29;
     s32 var_r28;
-    s32 var_r26;
-    s32 var_r23;
-    s32 var_r21;
-    s32 var_r18;
 
     var_r30 = &lbl_1_data_50[arg0->unk_08];
     fn_1_3098(arg0);
@@ -467,27 +463,11 @@ void fn_1_22CC(M420DllPlayerStruct *arg0)
 
 void fn_1_276C(M420DllPlayerStruct *arg0)
 {
-    s32 sp8[4];
-
     float var_f31;
     float var_f30;
 
     s32 var_r30;
-    M420DllUnkStruct2 *var_r29;
-    s32 var_r28;
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r25;
-    s32 var_r24;
-    s32 var_r23;
-    s32 var_r22;
-    s32 var_r21;
-    s32 var_r20;
-    s32 var_r19;
-    s32 var_r18;
-    s32 var_r17;
-
-    var_r29 = &lbl_1_data_50[arg0->unk_08];
+    M420DllUnkStruct2 *var_r29 = &lbl_1_data_50[arg0->unk_08];
     if (arg0->unk_4C == 1) {
         HuAudFXPlay(0x5F1);
         fn_1_669C(1);
@@ -626,14 +606,6 @@ void fn_1_2D7C(M420DllPlayerStruct *arg0)
 void fn_1_2EA8(M420DllPlayerStruct *arg0)
 {
     s16 var_r30;
-    s32 var_r29;
-    s32 var_r28;
-    s32 var_r27;
-    s32 var_r26;
-    s32 var_r25;
-    s32 var_r24;
-    s32 var_r23;
-    s32 var_r22;
 
     fn_1_326C(arg0);
     CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[3], 0.0f, 1.0f, 0);
@@ -1010,22 +982,12 @@ void fn_1_4294(M420DllPlayerStruct *arg0)
 
 void fn_1_4574(M420DllPlayerStruct *arg0)
 {
-    float var_f31;
-    M420DllPlayerStruct *var_r31;
-    s32 var_r29;
-    s32 var_r28;
-
     CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[1], 0.0f, 4.0f, 0);
     fn_1_2260(arg0);
 }
 
 void fn_1_476C(M420DllPlayerStruct *arg0)
 {
-    float var_f31;
-    M420DllPlayerStruct *var_r31;
-    s32 var_r29;
-    s32 var_r28;
-
     CharMotionShiftSet(arg0->unk_0A, arg0->unk_AE[2], 0.0f, 4.0f, 0);
     fn_1_2260(arg0);
 }

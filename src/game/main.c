@@ -17,8 +17,34 @@
 #include "game/wipe.h"
 #include "version.h"
 
+#ifdef TARGET_PC
+#include "game/disp.h"
+#include "port/settings.h"
+#include "port/game_settings.h"
+#include "port/imgui.h"
+#include "port/main.h"
+#include "port/dolassets.h"
+#include "port/ui.h"
+#include "aurora/dvd.h"
+#include <aurora/aurora.h>
+#include <aurora/event.h>
+#include <stdlib.h>
+
+const char *__asan_default_options()
+{
+    return "new_delete_type_mismatch=0,sleep_before_dying=5,allocator_may_return_null=1";
+}
+
+bool PartyBoard_IsRunning = TRUE;
+bool PartyBoard_IsShuttingDown = FALSE;
+bool PartyBoard_IsGameLaunched = FALSE;
+bool PartyBoard_RestartRequested = FALSE;
+
+bool disableFrameLimiter = FALSE;
+#endif
+
 extern FileListEntry _ovltbl[];
-u32 GlobalCounter;
+SHARED_SYM u32 GlobalCounter;
 static u32 vcheck;
 static u32 vmiss;
 static u32 vstall;
@@ -39,25 +65,37 @@ static u32 pe_req;
 static u32 rf_req;
 static u32 fi_req;
 s32 HuDvdErrWait;
-s32 SystemInitF;
+SHARED_SYM s32 SystemInitF;
 
+#ifdef TARGET_PC
+void PartyBoard_RequestRestart(void)
+{
+    PartyBoard_RestartRequested = SUPPORTS_PROCESS_RESTART;
+    PartyBoard_IsRunning = FALSE;
+}
+#endif
+
+#ifdef TARGET_PC
+int game_main(void)
+#else
 void main(void)
+#endif
 {
     u32 met0;
     u32 met1;
     s16 i;
     s32 retrace;
-    #if VERSION_PAL
+#if VERSION_PAL
     s16 temp = 0;
-    #endif
-    
+#endif
+
     HuDvdErrWait = 0;
     SystemInitF = 0;
-    #if VERSION_NTSC
+#if VERSION_NTSC
     HuSysInit(&GXNtsc480IntDf);
-    #else
+#else
     HuSysInit(&GXPal528IntDf);
-    #endif
+#endif
     HuPrcInit();
     HuPadInit();
     GWInit();
@@ -70,25 +108,64 @@ void main(void)
     HuPerfCreate("USR0", 0xFF, 0xFF, 0xFF, 0xFF);
     HuPerfCreate("USR1", 0, 0xFF, 0xFF, 0xFF);
     WipeInit(RenderMode);
-    
+
     for (i = 0; i < 4; i++) {
         GWPlayerCfg[i].character = -1;
     }
     
     omMasterInit(0, _ovltbl, DLL_MAX, DLL_bootdll);
     VIWaitForRetrace();
-    
+
     if (VIGetNextField() == 0) {
         OSReport("VI_FIELD_BELOW\n");
         VIWaitForRetrace();
     }
+#ifdef TARGET_PC
+    if (partyboard_settings_dev_turbo()) { // game.devTurbo (port/game_settings.h)
+        disableFrameLimiter = TRUE;
+    }
+    while (PartyBoard_IsRunning) {
+#else
     while (1) {
+#endif
+#ifdef TARGET_PC
+        const AuroraEvent *event = aurora_update();
+        bool exiting = false;
+        while (event != NULL && event->type != AURORA_NONE) {
+            if (event->type == AURORA_EXIT) {
+                exiting = true;
+                break;
+            }
+            if (event->type == AURORA_SDL_EVENT) {
+                ui_handle_sdl_event(&event->sdl);
+                if (partyboard_settings_enableTurboKeybind()) {
+                    if (event->sdl.type == SDL_EVENT_KEY_DOWN) {
+                        if (event->sdl.key.scancode == SDL_SCANCODE_TAB) {
+                            disableFrameLimiter = TRUE;
+                        }
+                    } else if (event->sdl.type == SDL_EVENT_KEY_UP) {
+                        if (event->sdl.key.scancode == SDL_SCANCODE_TAB) {
+                            disableFrameLimiter = FALSE;
+                        }
+                    }
+                }
+            }
+            ++event;
+        }
+        if (exiting) {
+            break;
+        }
+#endif
         retrace = VIGetRetraceCount();
         if (HuSoftResetButtonCheck() != 0 || HuDvdErrWait != 0) {
             continue;
         }
         HuPerfZero();
+
         HuPerfBegin(2);
+#ifdef TARGET_PC
+        aurora_begin_frame();
+#endif
         HuSysBeforeRender();
         GXSetGPMetric(GX_PERF0_CLIP_VTX, GX_PERF1_VERTICES);
         GXClearGPMetric();
@@ -96,10 +173,12 @@ void main(void)
         GXClearVCacheMetric();
         GXClearPixMetric();
         GXClearMemMetric();
+
         HuPerfBegin(0);
         Hu3DPreProc();
         HuPadRead();
         pfClsScr();
+
         HuPrcCall(1);
         MGSeqMain();
         HuPerfBegin(1);
@@ -107,8 +186,10 @@ void main(void)
         HuDvdErrorWatch();
         WipeExecAlways();
         HuPerfEnd(0);
+
         pfDrawFonts();
         HuPerfEnd(1);
+
         msmMusFdoutEnd();
         HuSysDoneRender(retrace);
         GXReadGPMetric(&met0, &met1);
@@ -117,7 +198,19 @@ void main(void)
         GXReadMemMetric(&cp_req, &tc_req, &cpu_rd_req, &cpu_wr_req, &dsp_req, &io_req, &vi_req, &pe_req, &rf_req, &fi_req);
         HuPerfEnd(2);
         GlobalCounter++;
+
+#ifdef TARGET_PC
+        ui_update();
+        aurora_end_frame();
+        if (!disableFrameLimiter) {
+            frame_limiter();
+        }
+#endif
     }
+
+#ifdef TARGET_PC
+    return 0;
+#endif
 }
 
 void HuSysVWaitSet(s16 vcount)
@@ -128,7 +221,7 @@ void HuSysVWaitSet(s16 vcount)
 
 s16 HuSysVWaitGet(s16 param)
 {
-    return (s16) minimumVcount;
+    return (s16)minimumVcount;
 }
 
 s32 rnd_seed = 0x0000D9ED;

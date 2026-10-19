@@ -31,7 +31,7 @@ s32 fn_1_A74(void);
 void fn_1_AF8(void);
 void fn_1_DEC(void);
 void fn_1_10B0(void);
-void fn_1_10E4(OMOBJ* arg0);
+void fn_1_10E4(omObjData* arg0);
 s32 fn_1_12C8(void);
 s32 fn_1_2930(s32 arg0);
 
@@ -124,7 +124,7 @@ s32 lbl_1_data_26C[] = {
 
 //BSS
 s32 lbl_1_bss_8;
-OMOBJ* lbl_1_bss_4;
+omObjData* lbl_1_bss_4;
 w03State* lbl_1_bss_0;
 
 void fn_1_CF4(void);
@@ -316,7 +316,11 @@ s32 fn_1_A74(void) {
 
     if (var + -0x200000 == 0) {
         fn_1_7BA8();
+#ifdef NON_MATCHING
+        return 0;
+#else
         return;
+#endif
     }
     if (var + -0x400000 == 0) {
         fn_1_9AA0();
@@ -393,7 +397,7 @@ void fn_1_DEC(void) {
     Vec sp20;
     Vec sp14;
     Vec sp8;
-    OMOBJ* temp_r3;
+    omObjData* temp_r3;
     s32 var_r31;
     s32 var_r31_2;
     w03UnkStruct2* temp_r29;
@@ -401,7 +405,7 @@ void fn_1_DEC(void) {
 
     temp_r3 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, &fn_1_10E4);
     lbl_1_bss_4 = temp_r3;
-    temp_r29 = omObjGetWork(temp_r3, w03UnkStruct2);
+    temp_r29 = OM_GET_WORK_PTR(temp_r3, w03UnkStruct2);
     temp_r29->unk0 = 0;
     lbl_1_bss_8 = 0;
     BoardCameraPosGet(&sp20);
@@ -440,17 +444,17 @@ void fn_1_DEC(void) {
 
 void fn_1_10B0(void) {
     if (lbl_1_bss_4) {
-        omObjGetWork(lbl_1_bss_4, w03UnkStruct2)->unk0 = 1;
+        OM_GET_WORK_PTR(lbl_1_bss_4, w03UnkStruct2)->unk0 = 1;
     }
 }
 
-void fn_1_10E4(OMOBJ* arg0) {
+void fn_1_10E4(omObjData* arg0) {
     Vec sp14;
     Vec sp8;
     s32 i;
     w03UnkStruct2* temp_r29;
 
-    temp_r29 = omObjGetWork(arg0, w03UnkStruct2);
+    temp_r29 = OM_GET_WORK_PTR(arg0, w03UnkStruct2);
 
     if (temp_r29->unk0 != 0 || (BoardIsKill() != 0)) {
         for (i = 0; i < ARRAY_COUNT(lbl_1_data_21C); i++) {

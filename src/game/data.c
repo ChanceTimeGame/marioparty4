@@ -3,6 +3,10 @@
 #include "game/process.h"
 #include "dolphin/dvd.h"
 
+#ifdef BYTESWAPPING
+#include "port/byteswap.h"
+#endif
+
 #define STAT_ID_ARAM 0x10000
 
 #define PTR_OFFSET(ptr, offset) (void *)(((u8 *)(ptr)+(u32)(offset)))
@@ -24,7 +28,12 @@ static FileListEntry DataDirStat[] = {
 u32 DirDataSize;
 static u32 DataDirMax;
 static s32 shortAccessSleep;
-static HUDATASTAT ATTRIBUTE_ALIGN(32) ReadDataStat[DATA_MAX_READSTAT];
+static HUDATASTAT ATTRIBUTE_ALIGN(32)
+#if TARGET_PC
+ReadDataStat[DATA_MAX_READSTAT + 1]; // to avoid bug
+#else
+ReadDataStat[DATA_MAX_READSTAT];
+#endif
 
 void HuDataInit(void)
 {
@@ -281,13 +290,21 @@ BOOL HuDataGetAsyncStat(s32 statId)
 
 static void GetFileInfo(HUDATASTAT *readStat, s32 fileNum)
 {
-    u32 *ptr;
-    ptr = (u32 *)PTR_OFFSET(readStat->dirP, (fileNum * 4))+1;
-    readStat->fileDataP = PTR_OFFSET(readStat->dirP, *ptr);
-    ptr = readStat->fileDataP;
-    readStat->rawLen = *ptr++;
-    readStat->decodeType = *ptr++;
-    readStat->fileDataP = ptr;
+    u32 *temp_ptr = (u32 *)PTR_OFFSET(readStat->dirP, (fileNum * 4))+1;
+#ifdef BYTESWAPPING
+    u32 ofs = *temp_ptr;
+    byteswap_u32(&ofs);
+    temp_ptr = &ofs;
+#endif
+    readStat->fileDataP = PTR_OFFSET(readStat->dirP, *temp_ptr);
+    temp_ptr = readStat->fileDataP;
+    readStat->rawLen = *temp_ptr++;
+    readStat->decodeType = *temp_ptr++;
+    readStat->fileDataP = temp_ptr;
+#ifdef BYTESWAPPING
+    byteswap_u32(&readStat->rawLen);
+    byteswap_u32(&readStat->decodeType);
+#endif
 }
 
 void *HuDataRead(s32 dataNum)
@@ -324,7 +341,12 @@ void *HuDataReadNum(s32 dataNum, s32 num)
     }
     readStat = &ReadDataStat[statId];
     GetFileInfo(readStat, dataNum & 0xFFFF);
-    buf = HuMemDirectMallocNum(0, DATA_EFF_SIZE(readStat->rawLen), num);
+#ifdef TARGET_PC
+    // TODO PC why is the allocation invalid if we use HEAP_SYSTEM?
+    buf = HuMemDirectMallocNum(HEAP_DATA, DATA_EFF_SIZE(readStat->rawLen), num);
+#else
+    buf = HuMemDirectMallocNum(HEAP_SYSTEM, DATA_EFF_SIZE(readStat->rawLen), num);
+#endif
     if(buf) {
         HuDecodeData(readStat->fileDataP, buf, readStat->rawLen, readStat->decodeType);
     }
@@ -345,12 +367,12 @@ void *HuDataSelHeapRead(s32 dataNum, HeapID heap)
     readStat = &ReadDataStat[statId];
     GetFileInfo(readStat, dataNum & 0xFFFF);
     switch(heap) {
-        case HEAP_SOUND:
-            buf = HuMemDirectMalloc(HEAP_SOUND, DATA_EFF_SIZE(readStat->rawLen));
+        case HEAP_MUSIC:
+            buf = HuMemDirectMalloc(HEAP_MUSIC, DATA_EFF_SIZE(readStat->rawLen));
             break;
 
-        case HEAP_MODEL:
-            buf = HuMemDirectMalloc(HEAP_MODEL, DATA_EFF_SIZE(readStat->rawLen));
+        case HEAP_DATA:
+            buf = HuMemDirectMalloc(HEAP_DATA, DATA_EFF_SIZE(readStat->rawLen));
             break;
 
         case HEAP_DVD:
@@ -358,7 +380,7 @@ void *HuDataSelHeapRead(s32 dataNum, HeapID heap)
             break;
 
         default:
-            buf = HuMemDirectMalloc(HEAP_HEAP, DATA_EFF_SIZE(readStat->rawLen));
+            buf = HuMemDirectMalloc(HEAP_SYSTEM, DATA_EFF_SIZE(readStat->rawLen));
             break;
     }
     if(buf) {
@@ -381,12 +403,12 @@ void *HuDataSelHeapReadNum(s32 dataNum, s32 num, HeapID heap)
     readStat = &ReadDataStat[statId];
     GetFileInfo(readStat, dataNum & 0xFFFF);
     switch(heap) {
-        case HEAP_SOUND:
-            buf = HuMemDirectMalloc(HEAP_SOUND, DATA_EFF_SIZE(readStat->rawLen));
+        case HEAP_MUSIC:
+            buf = HuMemDirectMalloc(HEAP_MUSIC, DATA_EFF_SIZE(readStat->rawLen));
             break;
 
-        case HEAP_MODEL:
-            buf = HuMemDirectMallocNum(HEAP_MODEL, DATA_EFF_SIZE(readStat->rawLen), num);
+        case HEAP_DATA:
+            buf = HuMemDirectMallocNum(HEAP_DATA, DATA_EFF_SIZE(readStat->rawLen), num);
             break;
 
         case HEAP_DVD:
@@ -394,7 +416,7 @@ void *HuDataSelHeapReadNum(s32 dataNum, s32 num, HeapID heap)
             break;
 
         default:
-            buf = HuMemDirectMallocNum(HEAP_HEAP, DATA_EFF_SIZE(readStat->rawLen), num);
+            buf = HuMemDirectMallocNum(HEAP_SYSTEM, DATA_EFF_SIZE(readStat->rawLen), num);
             break;
     }
     if(buf) {
@@ -427,11 +449,11 @@ void **HuDataReadMultiSub(s32 *dataNum, BOOL use_num, s32 num)
         }
     }
     numFiles = i;
-    dirIds = HuMemDirectMalloc(HEAP_HEAP, (count+1)*sizeof(s32));
+    dirIds = HuMemDirectMalloc(HEAP_SYSTEM, (count+1)*sizeof(s32));
     for(i=0; i<count+1; i++) {
         dirIds[i] = HU_DATANUM_NONE;
     }
-    pathTbl = HuMemDirectMalloc(HEAP_HEAP, (count+1)*sizeof(char *));
+    pathTbl = HuMemDirectMalloc(HEAP_SYSTEM, (count+1)*sizeof(char *));
     for(i=0, count=0; dataNum[i] != HU_DATANUM_NONE; i++) {
         dirId = dataNum[i] >> 16;
         if(HuDataReadChk(dataNum[i]) < 0) {
@@ -465,9 +487,9 @@ void **HuDataReadMultiSub(s32 *dataNum, BOOL use_num, s32 num)
     HuMemDirectFree(pathTbl);
     HuMemDirectFree(dirP);
     if(use_num) {
-        outList = HuMemDirectMallocNum(HEAP_HEAP, (numFiles+1)*sizeof(void *), num);
+        outList = HuMemDirectMallocNum(HEAP_SYSTEM, (numFiles+1)*sizeof(void *), num);
     } else {
-        outList = HuMemDirectMalloc(HEAP_HEAP, (numFiles+1)*sizeof(void *));
+        outList = HuMemDirectMalloc(HEAP_SYSTEM, (numFiles+1)*sizeof(void *));
     }
     for(i=0; dataNum[i] != HU_DATANUM_NONE; i++) {
         if(use_num) {
@@ -584,7 +606,7 @@ static void *HuDataDecodeIt(void *bufP, s32 bufOfs, s32 num, HeapID heap)
 
 	void *dest;
 	buf =  (s32 *)((u8 *)bufP+bufOfs);
-	if((u32)buf & 0x3) {
+	if((uintptr_t)buf & 0x3) {
 		u8 *data = (u8 *)buf;
 		rawLen = *data++ << 24;
 		rawLen += *data++ << 16;
@@ -600,14 +622,18 @@ static void *HuDataDecodeIt(void *bufP, s32 bufOfs, s32 num, HeapID heap)
 		rawLen = *data++;
 		decodeType = *data++;
 		dataStart = data;
+#ifdef TARGET_PC
+        byteswap_s32(&rawLen);
+        byteswap_s32(&decodeType);
+#endif
 	}
 	switch(heap) {
-        case HEAP_SOUND:
-            dest = HuMemDirectMalloc(HEAP_SOUND, DATA_EFF_SIZE(rawLen));
+        case HEAP_MUSIC:
+            dest = HuMemDirectMalloc(HEAP_MUSIC, DATA_EFF_SIZE(rawLen));
             break;
 
-        case HEAP_MODEL:
-            dest = HuMemDirectMallocNum(HEAP_MODEL, DATA_EFF_SIZE(rawLen), num);
+        case HEAP_DATA:
+            dest = HuMemDirectMallocNum(HEAP_DATA, DATA_EFF_SIZE(rawLen), num);
             break;
 
         case HEAP_DVD:
@@ -615,7 +641,7 @@ static void *HuDataDecodeIt(void *bufP, s32 bufOfs, s32 num, HeapID heap)
             break;
 
         default:
-            dest = HuMemDirectMallocNum(HEAP_HEAP, DATA_EFF_SIZE(rawLen), num);
+            dest = HuMemDirectMallocNum(HEAP_SYSTEM, DATA_EFF_SIZE(rawLen), num);
             break;
     }
     if(dest) {
@@ -627,69 +653,81 @@ static void *HuDataDecodeIt(void *bufP, s32 bufOfs, s32 num, HeapID heap)
 
 void *HuDataReadNumHeapShortForce(s32 dataNum, s32 num, HeapID heap)
 {
-	DVDFileInfo fileInfo;
-	s32 *dataHdr;
-	s32 *fileData;
-	void *fileBuf;
-	s32 readLen;
-	s32 fileNum;
-	s32 fileOfs;
-	s32 readOfs;
-	s32 dataOfs;
-	void *ret;
-	s32 dir;
-	s32 dvdLen;
-	s32 fileNumMax;
+    DVDFileInfo fileInfo;
+    s32 *dataHdr;
+    s32 *fileData;
+    void *fileBuf;
+    s32 readLen;
+    s32 fileNum;
+    s32 fileOfs;
+    s32 readOfs;
+    s32 dataOfs;
+    void *ret;
+    s32 dir;
+    s32 dvdLen;
+    s32 fileNumMax;
 
-	if(!HuDataDVDdirDirectOpen(dataNum, &fileInfo)) {
-		return NULL;
-	}
-	dir = (dataNum >> 16) & 0xFFFF0000;
-	fileNum = dataNum & 0xFFFF;
-	fileOfs = (fileNum*4)+4;
-	dvdLen = OSRoundUp32B(fileOfs+8);
-	fileData = HuMemDirectMalloc(HEAP_HEAP, dvdLen);
-	if(!HuDataDVDdirDirectRead(&fileInfo, fileData, dvdLen, 0)) {
-		HuMemDirectFree(fileData);
-		DVDClose(&fileInfo);
-		return NULL;
-	}
-	fileNumMax = *fileData;
-	if(fileNumMax <= fileNum) {
-		HuMemDirectFree(fileData);
-		OSReport("data.c%d: Data Number Error(0x%08x)\n", 1005, dataNum);
-		DVDClose(&fileInfo);
-		return NULL;
-	}
-	dataHdr = fileData;
-	dataHdr += fileNum+1;
-	fileOfs = *dataHdr;
-	readOfs = OSRoundDown32B(fileOfs);
-	if(fileNumMax <= fileNum+1) {
-		readLen = fileInfo.length;
-		dataOfs = readLen-readOfs;
-	} else {
-		dataHdr++;
-		dataOfs = (*dataHdr)-readOfs;
-		readLen = fileInfo.length;
-	}
-	readLen = OSRoundUp32B(dataOfs);
-	HuMemDirectFree(fileData);
-	fileBuf = HuMemDirectMalloc(HEAP_HEAP, (readLen+4) & ~0x3);
-	if(fileBuf == NULL) {
-		OSReport("data.c: couldn't allocate read buffer(0x%08x)\n", dataNum);
-		DVDClose(&fileInfo);
-		return NULL;
-	}
-	if(!HuDataDVDdirDirectRead(&fileInfo, fileBuf, readLen, readOfs)) {
-		HuMemDirectFree(fileBuf);
-		DVDClose(&fileInfo);
-		return NULL;
-	}
-	DVDClose(&fileInfo);
-	dataOfs = fileOfs-readOfs;
-	ret = HuDataDecodeIt(fileBuf, dataOfs, num, heap);
-	HuMemDirectFree(fileBuf);
+    if(!HuDataDVDdirDirectOpen(dataNum, &fileInfo)) {
+	    return NULL;
+    }
+    dir = (dataNum >> 16) & 0xFFFF0000;
+    fileNum = dataNum & 0xFFFF;
+    fileOfs = (fileNum*4)+4;
+    dvdLen = OSRoundUp32B(fileOfs+8);
+    fileData = HuMemDirectMalloc(HEAP_SYSTEM, dvdLen);
+    if(!HuDataDVDdirDirectRead(&fileInfo, fileData, dvdLen, 0)) {
+        HuMemDirectFree(fileData);
+        DVDClose(&fileInfo);
+        return NULL;
+    }
+    fileNumMax = *fileData;
+#ifdef TARGET_PC
+    byteswap_s32(&fileNumMax);
+#endif
+    if(fileNumMax <= fileNum) {
+        HuMemDirectFree(fileData);
+        OSReport("data.c%d: Data Number Error(0x%08x)\n", 1005, dataNum);
+        DVDClose(&fileInfo);
+        return NULL;
+    }
+    dataHdr = fileData;
+    dataHdr += fileNum+1;
+    fileOfs = *dataHdr;
+#ifdef TARGET_PC
+    byteswap_s32(&fileOfs);
+#endif
+    readOfs = OSRoundDown32B(fileOfs);
+    if(fileNumMax <= fileNum+1) {
+        readLen = fileInfo.length;
+        dataOfs = readLen-readOfs;
+    } else {
+        dataHdr++;
+#ifdef TARGET_PC
+        dataOfs = *dataHdr;
+        byteswap_s32(&dataOfs);
+        dataOfs -= readOfs;
+#else
+        dataOfs = (*dataHdr)-readOfs;
+#endif
+        readLen = fileInfo.length;
+    }
+    readLen = OSRoundUp32B(dataOfs);
+    HuMemDirectFree(fileData);
+    fileBuf = HuMemDirectMalloc(HEAP_SYSTEM, (readLen+4) & ~0x3);
+    if(fileBuf == NULL) {
+        OSReport("data.c: couldn't allocate read buffer(0x%08x)\n", dataNum);
+        DVDClose(&fileInfo);
+        return NULL;
+    }
+    if(!HuDataDVDdirDirectRead(&fileInfo, fileBuf, readLen, readOfs)) {
+        HuMemDirectFree(fileBuf);
+        DVDClose(&fileInfo);
+        return NULL;
+    }
+    DVDClose(&fileInfo);
+    dataOfs = fileOfs-readOfs;
+    ret = HuDataDecodeIt(fileBuf, dataOfs, num, heap);
+    HuMemDirectFree(fileBuf);
     return ret;
 }
 

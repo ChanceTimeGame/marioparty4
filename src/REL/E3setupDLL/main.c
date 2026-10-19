@@ -37,14 +37,14 @@ s32 e3NextEvent;
 u32 e3ExitMode;
 static s32 needCharDataClose;
 float e3CameraFov;
-OMOBJ *e3MenuMainObj;
-OMOBJ *e3ViewObj;
-OMOBJ *e3OvlWatchObj;
-static OMOBJ *cameraObj;
-static OMOBJ *lbl_2_bss_84[2];
-static OMOBJ *configModeObj[4];
-OMOBJ *e3BGObj;
-OMOBJ *lbl_2_bss_6C;
+omObjData *e3MenuMainObj;
+omObjData *e3ViewObj;
+omObjData *e3OvlWatchObj;
+static omObjData *cameraObj;
+static omObjData *lbl_2_bss_84[2];
+static omObjData *configModeObj[4];
+omObjData *e3BGObj;
+omObjData *lbl_2_bss_6C;
 static s16 lightE3;
 s16 lbl_2_bss_62[4];
 s16 lbl_2_bss_60;
@@ -129,18 +129,18 @@ void ObjectSetup(void)
 	}
 }
 
-static void InitCamera(OMOBJ *object);
-static void InitMenuControl(OMOBJ *object);
-static void InitPlayerCnt(OMOBJ *object);
-static void InitCharSel(OMOBJ *object);
-static void InitRumbleCfg(OMOBJ *object);
-static void InitModeSel(OMOBJ *object);
+static void InitCamera(omObjData *object);
+static void InitMenuControl(omObjData *object);
+static void InitPlayerCnt(omObjData *object);
+static void InitCharSel(omObjData *object);
+static void InitRumbleCfg(omObjData *object);
+static void InitModeSel(omObjData *object);
 
 void E3MainInit(void)
 {
 	s32 idx = E3PadRead();
 	s32 port;
-	HUPROCESS *objman;
+	Process *objman;
 	if(idx == 0) {
 		OSReport("No pad detected\n");
 		idx++;
@@ -316,23 +316,23 @@ float MotionShiftTimeGet(s16 arg0)
     return temp_r31->motShiftWork.time;
 }
 
-static void UpdateMenuControl(OMOBJ *object);
+static void UpdateMenuControl(omObjData *object);
 
-static void InitMenuControl(OMOBJ *object)
+static void InitMenuControl(omObjData *object)
 {
 	HuAudSeqPlay(43);
 	lbl_2_bss_3C = 0;
 	lbl_2_bss_3A = -1;
 	lbl_2_bss_36 = 30;
 	lbl_2_bss_34 = 0;
-	object->objFunc = UpdateMenuControl;
+	object->func = UpdateMenuControl;
 	worstVcount = 0;
 	object->work[0] = 0;
 	object->work[1] = 0;
 	object->work[3] = 0;
 }
 
-static void UpdateMenuControl(OMOBJ *object)
+static void UpdateMenuControl(omObjData *object)
 {
 	s32 pos;
 	
@@ -342,17 +342,17 @@ static void UpdateMenuControl(OMOBJ *object)
 	E3PadRead();
 	pos = object->work[1];
 	if(pos < 4) {
-		OMOBJ *config = configModeObj[pos];
+		omObjData *config = configModeObj[pos];
 		if(config->work[0] == 0) {
 			if(config->work[3]) {
 				pos++;
 			} else {
 				pos--;
 				if(pos < 0) {
-					OMOVLHIS *his;
+					omOvlHisData *his;
 					pos=0;
 					his = omOvlHisGet(1);
-					omOvlHisChg(1, his->ovl, 1, his->stat);
+					omOvlHisChg(1, his->overlay, 1, his->stat);
 					e3ExitMode = 0;
 					e3NextOvl = 0;
 					e3NextEvent = 0;
@@ -400,7 +400,7 @@ static void UpdateMenuControl(OMOBJ *object)
 	}
 }
 
-static void UpdateOvlWatch(OMOBJ *object)
+static void UpdateOvlWatch(omObjData *object)
 {
 	s32 i;
 	if(WipeStatGet()) {
@@ -425,14 +425,14 @@ static void UpdateOvlWatch(OMOBJ *object)
 	}
 }
 
-void E3OvlWatchInit(OMOBJ *object)
+void E3OvlWatchInit(omObjData *object)
 {
 	if(e3ExitEnableF) {
 		HuAudSeqAllFadeOut(2500);
 		WipeColorSet(0, 0, 0);
 		WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, -1);
 		MGSeqKillAll();
-		object->objFunc = UpdateOvlWatch;
+		object->func = UpdateOvlWatch;
 	}
 }
 
@@ -462,7 +462,7 @@ static u32 playerCntMessTbl[] = {
 	MAKE_MESSID(0x22, 0x01)
 };
 
-static void UpdatePlayerCnt(OMOBJ *object)
+static void UpdatePlayerCnt(omObjData *object)
 {
 	E3PlayerCntWork *work = object->data;
 	s32 i;
@@ -545,7 +545,7 @@ static void UpdatePlayerCnt(OMOBJ *object)
 	}
 }
 
-static void InitPlayerCnt(OMOBJ *object)
+static void InitPlayerCnt(omObjData *object)
 {
 	E3PlayerCntWork *work;
 	s16 index2;
@@ -557,31 +557,31 @@ static void InitPlayerCnt(OMOBJ *object)
 	float size[2]; //FIXME: Change to Vec2f
 	
 	omSetStatBit(object, 0x100);
-	object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(E3PlayerCntWork), HU_MEMNUM_OVL);
+	object->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(E3PlayerCntWork), MEMORY_DEFAULT_NUM);
 	work = object->data;
 	index = 0;
 	group = HuSprGrpCreate(3);
 	work->frameGroup = group;
 	HuSprGrpPosSet(group, 288, 80);
-	anim = HuSprAnimRead(HuDataReadNum(2, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(2, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 30008, 0);
 	HuSprGrpMemberSet(group, index, index2);
 	HuSprTPLvlSet(group, index, 0.5f);
 	index++;
-	anim = HuSprAnimRead(HuDataReadNum(1, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(1, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 30000, 0);
 	HuSprGrpMemberSet(group, index, index2);
 	index++;
-	anim = HuSprAnimRead(HuDataReadNum(3, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(3, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 1, 0);
 	HuSprGrpMemberSet(group, index, index2);
 	HuSprTPLvlSet(group, index, 0.4f);
-	anim = HuSprAnimRead(HuDataReadNum(12, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(12, MEMORY_DEFAULT_NUM));
 	work->arrow = anim;
-	work->arrowHilite = HuSprAnimRead(HuDataReadNum(13, HU_MEMNUM_OVL));
+	work->arrowHilite = HuSprAnimRead(HuDataReadNum(13, MEMORY_DEFAULT_NUM));
 	group = HuSprGrpCreate(2);
 	work->arrowGroupL = group;
 	HuSprGrpPosSet(group, 140, 96);
@@ -636,7 +636,7 @@ static void InitPlayerCnt(OMOBJ *object)
 		object->work[1] = 1;
 		object->work[2] = 1;
 	}
-	object->objFunc = UpdatePlayerCnt;
+	object->func = UpdatePlayerCnt;
 	(void)object;
 }
 
@@ -674,7 +674,7 @@ static s32 charComSfxTbl[] = {
 	742
 };
 
-static void UpdateCharSelCursor(OMOBJ *object, s32 backF)
+static void UpdateCharSelCursor(omObjData *object, s32 backF)
 {
 	s32 i;
 	E3CharSelWork *work;
@@ -721,7 +721,7 @@ static void UpdateCharSelCursor(OMOBJ *object, s32 backF)
 	}
 }
 
-static s32 UpdateCharSelPlayerCursor(OMOBJ *object)
+static s32 UpdateCharSelPlayerCursor(omObjData *object)
 {
 	E3CharSelWork *temp_r31;
 	s32 temp_r30;
@@ -823,7 +823,7 @@ static s32 UpdateCharSelPlayerCursor(OMOBJ *object)
 	return temp_r22;
 }
 
-static s32 UpdateCharSelComCursor(OMOBJ *object)
+static s32 UpdateCharSelComCursor(omObjData *object)
 {
 	E3CharSelWork *temp_r31;
 	s16 temp_r30;
@@ -923,7 +923,7 @@ static s32 UpdateCharSelComCursor(OMOBJ *object)
 	return temp_r21;
 }
 
-static s32 CheckCharSel(OMOBJ *object)
+static s32 CheckCharSel(omObjData *object)
 {
 	E3CharSelWork *work;
 	s32 result;
@@ -943,7 +943,7 @@ static s32 CheckCharSel(OMOBJ *object)
 	return result;
 }
 
-static void UpdateCharSel(OMOBJ *object)
+static void UpdateCharSel(omObjData *object)
 {
 	s32 i;
 	E3CharSelWork *work;
@@ -1032,7 +1032,7 @@ static s32 hiliteSprTbl[] = {
 	23
 };
 
-static void InitCharSel(OMOBJ *object)
+static void InitCharSel(omObjData *object)
 {
 	E3CharSelWork *work;
 	s32 i;
@@ -1043,25 +1043,25 @@ static void InitCharSel(OMOBJ *object)
 	s16 j;
 	s16 x;
 	omSetStatBit(object, 0x100);
-	object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(E3CharSelWork), HU_MEMNUM_OVL);
+	object->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(E3CharSelWork), MEMORY_DEFAULT_NUM);
 	work = object->data;
 	i=0;
 	member=0;
 	group = HuSprGrpCreate(3);
 	work->frameGroup = group;
 	HuSprGrpPosSet(group, 288, 200);
-	anim = HuSprAnimRead(HuDataReadNum(2, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(2, MEMORY_DEFAULT_NUM));
 	work->anims[member] = anim;
 	sprite = HuSprCreate(anim, 30008, 0);
 	HuSprGrpMemberSet(group, member, sprite);
 	HuSprTPLvlSet(group, member, 0.5f);
 	member++;
-	anim = HuSprAnimRead(HuDataReadNum(1, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(1, MEMORY_DEFAULT_NUM));
 	work->anims[member] = anim;
 	sprite = HuSprCreate(anim, 30000, 0);
 	HuSprGrpMemberSet(group, member, sprite);
 	member++;
-	anim = HuSprAnimRead(HuDataReadNum(3, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(3, MEMORY_DEFAULT_NUM));
 	work->anims[member] = anim;
 	sprite = HuSprCreate(anim, 1, 0);
 	HuSprGrpMemberSet(group, member, sprite);
@@ -1072,14 +1072,14 @@ static void InitCharSel(OMOBJ *object)
 	HuSprGrpPosSet(group, 288, 200);
 	x = -203;
 	for(j=0; j<8; j++, member++) {
-		anim = HuSprAnimRead(HuDataReadNum(charSpriteTbl[j], HU_MEMNUM_OVL));
+		anim = HuSprAnimRead(HuDataReadNum(charSpriteTbl[j], MEMORY_DEFAULT_NUM));
 		work->anims[member] = anim;
 		sprite = HuSprCreate(anim, 28010, 0);
 		HuSprGrpMemberSet(group, j, sprite);
 		HuSprPosSet(group, j, x, 0);
 		x += 58;
 	}
-	anim = HuSprAnimRead(HuDataReadNum(24, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(24, MEMORY_DEFAULT_NUM));
 	work->anims[member] = anim;
 	member++;
 	x = -203;
@@ -1098,7 +1098,7 @@ static void InitCharSel(OMOBJ *object)
 	HuSprGrpPosSet(group, 0, 0);
 	for(i=0; i<7; i++) {
 		if(i < 5) {
-			anim = HuSprAnimRead(HuDataReadNum(cursorSpriteTbl[i], HU_MEMNUM_OVL));
+			anim = HuSprAnimRead(HuDataReadNum(cursorSpriteTbl[i], MEMORY_DEFAULT_NUM));
 			work->anims[member] = anim;
 			member++;
 		}
@@ -1111,7 +1111,7 @@ static void InitCharSel(OMOBJ *object)
 	HuSprGrpPosSet(group, 0, 0);
 	for(i=0; i<7; i++) {
 		if(i < 5) {
-			anim = HuSprAnimRead(HuDataReadNum(hiliteSprTbl[i], HU_MEMNUM_OVL));
+			anim = HuSprAnimRead(HuDataReadNum(hiliteSprTbl[i], MEMORY_DEFAULT_NUM));
 			work->anims[member] = anim;
 			member++;
 		}
@@ -1127,7 +1127,7 @@ static void InitCharSel(OMOBJ *object)
 	object->work[1] = 0;
 	object->work[2] = 0;
 	object->work[3] = 0;
-	object->objFunc = UpdateCharSel;
+	object->func = UpdateCharSel;
 }
 
 typedef struct e3_rumble_cfg_work {
@@ -1150,7 +1150,7 @@ static u32 rumbleMess[] = {
 	MAKE_MESSID(0x22, 0x07)
 };
 
-static void UpdateRumbleCfg(OMOBJ *object)
+static void UpdateRumbleCfg(omObjData *object)
 {
 	E3RumbleCfgWork *work;
 	s32 i;
@@ -1226,7 +1226,7 @@ static void UpdateRumbleCfg(OMOBJ *object)
 	}
 }
 
-static void InitRumbleCfg(OMOBJ *object)
+static void InitRumbleCfg(omObjData *object)
 {
 	E3RumbleCfgWork *work;
 	s16 index2;
@@ -1238,31 +1238,31 @@ static void InitRumbleCfg(OMOBJ *object)
 	float size[2]; //FIXME: Change to Vec2f
 	
 	omSetStatBit(object, 0x100);
-	object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(E3RumbleCfgWork), HU_MEMNUM_OVL);
+	object->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(E3RumbleCfgWork), MEMORY_DEFAULT_NUM);
 	work = object->data;
 	index = 0;
 	group = HuSprGrpCreate(3);
 	work->frameGroup = group;
 	HuSprGrpPosSet(group, 288, 303);
-	anim = HuSprAnimRead(HuDataReadNum(8, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(8, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 30008, 0);
 	HuSprGrpMemberSet(group, index, index2);
 	HuSprTPLvlSet(group, index, 0.5f);
 	index++;
-	anim = HuSprAnimRead(HuDataReadNum(7, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(7, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 30000, 0);
 	HuSprGrpMemberSet(group, index, index2);
 	index++;
-	anim = HuSprAnimRead(HuDataReadNum(9, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(9, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 1, 0);
 	HuSprGrpMemberSet(group, index, index2);
 	HuSprTPLvlSet(group, index, 0.4f);
-	anim = HuSprAnimRead(HuDataReadNum(12, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(12, MEMORY_DEFAULT_NUM));
 	work->arrow = anim;
-	work->arrowHilite = HuSprAnimRead(HuDataReadNum(13, HU_MEMNUM_OVL));
+	work->arrowHilite = HuSprAnimRead(HuDataReadNum(13, MEMORY_DEFAULT_NUM));
 	group = HuSprGrpCreate(2);
 	work->arrowGroupL = group;
 	HuSprGrpPosSet(group, 240, 319);
@@ -1307,7 +1307,7 @@ static void InitRumbleCfg(OMOBJ *object)
 	object->work[1] = 0;
 	object->work[2] = 0;
 	object->work[3] = 0;
-	object->objFunc = UpdateRumbleCfg;
+	object->func = UpdateRumbleCfg;
 	(void)object;
 }
 
@@ -1338,7 +1338,7 @@ static Vec2f boardSelCursorPosTbl[] = {
 	284, 418
 };
 
-static void UpdateModeSel(OMOBJ *object)
+static void UpdateModeSel(omObjData *object)
 {
 	E3ModeSelWork *work;
 	u16 btnDown;
@@ -1455,7 +1455,7 @@ static void UpdateModeSel(OMOBJ *object)
 	}
 }
 
-static void InitModeSel(OMOBJ *object)
+static void InitModeSel(omObjData *object)
 {
 	E3ModeSelWork *work;
 	s16 index2;
@@ -1465,24 +1465,24 @@ static void InitModeSel(OMOBJ *object)
 	float size[2]; //FIXME: Change to Vec2f
 	
 	omSetStatBit(object, 0x100);
-	object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(E3ModeSelWork), HU_MEMNUM_OVL);
+	object->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(E3ModeSelWork), MEMORY_DEFAULT_NUM);
 	work = object->data;
 	index = 0;
 	group = HuSprGrpCreate(3);
 	work->frameGroup = group;
 	HuSprGrpPosSet(group, 288, 398);
-	anim = HuSprAnimRead(HuDataReadNum(5, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(5, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 30008, 0);
 	HuSprGrpMemberSet(group, index, index2);
 	HuSprTPLvlSet(group, index, 0.5f);
 	index++;
-	anim = HuSprAnimRead(HuDataReadNum(4, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(4, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 30000, 0);
 	HuSprGrpMemberSet(group, index, index2);
 	index++;
-	anim = HuSprAnimRead(HuDataReadNum(6, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(6, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 1, 0);
 	HuSprGrpMemberSet(group, index, index2);
@@ -1493,12 +1493,12 @@ static void InitModeSel(OMOBJ *object)
 	group = HuSprGrpCreate(2);
 	work->cursorGroup = group;
 	HuSprGrpPosSet(group, modeSelCursorPosTbl[work->mode].x, modeSelCursorPosTbl[work->mode].y);
-	anim = HuSprAnimRead(HuDataReadNum(10, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(10, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 10000, 0);
 	HuSprGrpMemberSet(group, 0, index2);
 	index++;
-	anim = HuSprAnimRead(HuDataReadNum(11, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(11, MEMORY_DEFAULT_NUM));
 	work->frame[index] = anim;
 	index2 = HuSprCreate(anim, 10008, 0);
 	HuSprGrpMemberSet(group, 1, index2);
@@ -1528,7 +1528,7 @@ static void InitModeSel(OMOBJ *object)
 	object->work[1] = 0;
 	object->work[2] = 0;
 	object->work[3] = 0;
-	object->objFunc = UpdateModeSel;
+	object->func = UpdateModeSel;
 }
 
 #define E3_BG_SPEED 0.5f
@@ -1549,7 +1549,7 @@ typedef struct e3_bg_work {
 	E3BGTile tiles[E3_BG_MAX_TILE];
 } E3BGWork;
 
-static void E3BGUpdate(OMOBJ *object)
+static void E3BGUpdate(omObjData *object)
 {
 	E3BGTile *tile;
 	s32 i;
@@ -1571,7 +1571,7 @@ static void E3BGUpdate(OMOBJ *object)
 	}
 }
 
-void E3BGCreate(OMOBJ *object)
+void E3BGCreate(omObjData *object)
 {
 	E3BGTile *tile;
 	E3BGWork *work;
@@ -1585,11 +1585,11 @@ void E3BGCreate(OMOBJ *object)
 	float y;
 	
 	omSetStatBit(object, 0x100);
-	object->data = HuMemDirectMallocNum(HEAP_HEAP, sizeof(E3BGWork), HU_MEMNUM_OVL);
+	object->data = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(E3BGWork), MEMORY_DEFAULT_NUM);
 	work = object->data;
 	group = HuSprGrpCreate(E3_BG_MAX_TILE);
 	work->group = group;
-	anim = HuSprAnimRead(HuDataReadNum(0, HU_MEMNUM_OVL));
+	anim = HuSprAnimRead(HuDataReadNum(0, MEMORY_DEFAULT_NUM));
 	work->anim =anim;
 	tile = &work->tiles[0];
 	tile_idx = 0;
@@ -1613,7 +1613,7 @@ void E3BGCreate(OMOBJ *object)
 	object->work[1] = 0;
 	object->work[2] = 0;
 	object->work[3] = 0;
-	object->objFunc = E3BGUpdate;
+	object->func = E3BGUpdate;
 }
 
 typedef struct camera_view_params {
@@ -1644,22 +1644,22 @@ static CameraViewParams camViewTbl[] = {
 	}
 };
 
-static void UpdateCamera(OMOBJ *object);
+static void UpdateCamera(omObjData *object);
 
-static void InitCamera(OMOBJ *object)
+static void InitCamera(omObjData *object)
 {
 	u32 *work;
-	object->data = HuMemDirectMallocNum(HEAP_HEAP, 3*sizeof(u32), HU_MEMNUM_OVL);
+	object->data = HuMemDirectMallocNum(HEAP_SYSTEM, 3*sizeof(u32), MEMORY_DEFAULT_NUM);
 	work = object->data;
 	work[0] = 0;
 	object->work[0] = 0;
 	object->work[1] = 0;
 	object->work[2] = 0;
 	object->work[3] = 0;
-	object->objFunc = UpdateCamera;
+	object->func = UpdateCamera;
 }
 
-static void UpdateCamera(OMOBJ *object)
+static void UpdateCamera(omObjData *object)
 {
 	u32 *work = object->data;
 	if(object->work[0]) {

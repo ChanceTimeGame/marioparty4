@@ -18,7 +18,7 @@ typedef struct UnkShadowDataStruct {
     /* 0x18 */ Vec camTarget;
 } UnkShadowDataStruct; /* size = 0x24 */
 
-OMOBJ *presentGuide;
+omObjData *presentGuide;
 
 static UnkShadowDataStruct shadow = {
     { 0.0f, 3000.0f, 1.0f },
@@ -26,16 +26,16 @@ static UnkShadowDataStruct shadow = {
     { 0.0f, 0.0f, 0.0f },
 };
 
-static void ExecPresentView(OMOBJ *object);
-static void ExecPresentGet(OMOBJ *object);
+static void ExecPresentView(omObjData *object);
+static void ExecPresentGet(omObjData *object);
 void PresentWinDispOff(PresentWindow *work);
 void PresentWinChoiceSet(PresentWindow *work, s32 choice);
 static void ExecWindow(void);
 
-OMOBJ *PresentStateCreate(void)
+omObjData *PresentStateCreate(void)
 {
-    OMOBJ *object = omAddObjEx(presentObjMan, 1000, 0, 0, 4, NULL);
-    StateWork *work = HuMemDirectMallocNum(HEAP_HEAP, sizeof(StateWork), HU_MEMNUM_OVL);
+    omObjData *object = omAddObjEx(presentObjMan, 1000, 0, 0, 4, NULL);
+    StateWork *work = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(StateWork), MEMORY_DEFAULT_NUM);
     object->data = work;
 
     work->quitTimer = 0;
@@ -49,19 +49,19 @@ OMOBJ *PresentStateCreate(void)
 
     if (omovlevtno > 0) {
         OSReport("*** PRESENTROOM ( PRESENT GET MODE ) ***\n");
-        object->objFunc = ExecPresentGet;
-        object->mode = 0;
+        object->func = ExecPresentGet;
+        object->unk10 = 0;
     }
     else {
         OSReport("*** PRESENTROOM ( PRESENT VIEW MODE ) ***\n");
-        object->objFunc = ExecPresentView;
-        object->mode = 0;
+        object->func = ExecPresentView;
+        object->unk10 = 0;
     }
 
     return object;
 }
 
-void PresentStateKill(OMOBJ *object)
+void PresentStateKill(omObjData *object)
 {
     PresentWindow **var_r31 = object->data;
 
@@ -72,46 +72,46 @@ void PresentStateKill(OMOBJ *object)
     HuMemDirectFree(var_r31);
 }
 
-static void ExecPresentView(OMOBJ *object)
+static void ExecPresentView(omObjData *object)
 {
     StateWork *work = object->data;
 
-    switch (object->mode) {
+    switch (object->unk10) {
         case 0:
             WipeCreate(WIPE_MODE_IN, WIPE_TYPE_NORMAL, 60);
-            object->mode = 1;
+            object->unk10 = 1;
         case 1:
             if (WipeStatGet()) {
                 return;
             }
-            object->mode = 2;
+            object->unk10 = 2;
         case 2:
             PresentExecModeSet(present, 1);
-            object->mode = 3;
+            object->unk10 = 3;
         case 3:
             if (PresentExecModeGet(present)) {
                 return;
             }
-            object->mode = 4;
+            object->unk10 = 4;
         case 4:
             PresentGuideExecModeSet(presentGuide, PRESENT_GUIDE_MODE_ENTER);
-            object->mode = 5;
+            object->unk10 = 5;
         case 5:
             if (PresentGuideExecModeGet(presentGuide)) {
                 return;
             }
-            object->mode = 6;
+            object->unk10 = 6;
         case 6:
             HuAudFXPlay(66);
             PresentWinAnimIn(work->window);
             PresentWinMesSet(work->window, MAKE_MESSID(0x32, 0x02));
-            object->mode = 7;
+            object->unk10 = 7;
         case 7:
             if (work->window->state) {
                 return;
             }
             PresentWinChoiceSet(work->window, 1);
-            object->mode = 8;
+            object->unk10 = 8;
         case 8:
             if (work->window->state) {
                 return;
@@ -119,25 +119,25 @@ static void ExecPresentView(OMOBJ *object)
             PresentWinAnimOut(work->window);
             if (!work->window->choice) {
                 work->quitTimer = 0;
-                object->mode = 11;
+                object->unk10 = 11;
                 return;
             }
             else {
-                object->mode = 9;
+                object->unk10 = 9;
                 return;
             }
         case 9:
             PresentGuideExecModeSet(presentGuide, PRESENT_GUIDE_MODE_LEAVE);
-            object->mode = 10;
+            object->unk10 = 10;
             return;
         case 10:
             if (PresentGuideExecModeGet(presentGuide)) {
                 return;
             }
-            object->mode = 2;
+            object->unk10 = 2;
             return;
         case 11:
-            object->mode = 12;
+            object->unk10 = 12;
             work->quitTimer = 0;
         case 12:
             if (work->window->state) {
@@ -145,38 +145,38 @@ static void ExecPresentView(OMOBJ *object)
             }
             if (work->quitTimer++ >= 60) {
                 omSysExitReq = 1;
-                object->objFunc = NULL;
-                object->mode = 0;
+                object->func = NULL;
+                object->unk10 = 0;
             }
         default:
             break;
     }
 }
 
-static void ExecPresentGet(OMOBJ *object)
+static void ExecPresentGet(omObjData *object)
 {
     void *sp8 = object->data;
 
-    switch (object->mode) {
+    switch (object->unk10) {
         case 0:
             PresentSelectedIDSet(present, omovlevtno - 1);
-            object->mode = 1;
+            object->unk10 = 1;
         case 1:
             PresentExecModeSet(present, PRESENT_MODE_GET);
-            object->mode = 2;
+            object->unk10 = 2;
         case 2:
             if (PresentExecModeGet(present) == PRESENT_MODE_NONE) {
-                object->mode = 3;
+                object->unk10 = 3;
             }
             else {
                 break;
             }
         case 3:
-            object->mode = 4;
+            object->unk10 = 4;
         case 4:
             omSysExitReq = 1;
-            object->objFunc = NULL;
-            object->mode = 0;
+            object->func = NULL;
+            object->unk10 = 0;
             break;
         default:
             break;
@@ -185,7 +185,7 @@ static void ExecPresentGet(OMOBJ *object)
 
 PresentWindow *PresentWinCreate(s32 id)
 {
-    PresentWindow *var_r31 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(PresentWindow), HU_MEMNUM_OVL);
+    PresentWindow *var_r31 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(PresentWindow), MEMORY_DEFAULT_NUM);
 
     var_r31->messToBeSet = 0;
     var_r31->messWaitSignal = 0;

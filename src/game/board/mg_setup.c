@@ -15,6 +15,16 @@
 
 #include "ext_math.h"
 #include <string.h>
+#ifdef TARGET_PC
+#include "port/game_settings.h"
+#include <stdio.h>
+#endif
+
+#ifdef TARGET_PC
+// game.devForceMinigame / game.devMinigameSweep: see DevForcedMG below.
+static s32 devForceIdx = -1;  // this setup's forced entry, CenterStatus -> ExecMGSetup
+static s32 devSweepNum = -1;  // the sweep's next minigame number
+#endif
 
 // structs
 typedef struct structActiveMG {
@@ -100,8 +110,8 @@ static s16 mgPlayBattle[2];
 static u8 hiliteTimer;
 static u8 hiliteBlinkLen;
 static u8 hiliteShowF;
-static OMOBJ* mgSetupObj;
-static HUPROCESS* mgSetupProc;
+static omObjData* mgSetupObj;
+static Process* mgSetupProc;
 
 
 // sdata
@@ -116,15 +126,15 @@ static void SetupStatusLayout(void);
 static s32 GetMGType(void);
 static s32 GetMGTypeTeam(void);
 static void CreateMGSetup(void);
-static void UpdateMGSetup(OMOBJ*);
-static void CenterStatus(bitcopy*, OMOBJ*);
-static void SeparateStatus(bitcopy*, OMOBJ*);
-static void PopupVS(bitcopy*, OMOBJ*);
-static void FallMGType(bitcopy*, OMOBJ*);
-static void LuckyMGFall(bitcopy*, OMOBJ*);
+static void UpdateMGSetup(omObjData*);
+static void CenterStatus(bitcopy*, omObjData*);
+static void SeparateStatus(bitcopy*, omObjData*);
+static void PopupVS(bitcopy*, omObjData*);
+static void FallMGType(bitcopy*, omObjData*);
+static void LuckyMGFall(bitcopy*, omObjData*);
 static void HideLuckyValue(void);
-static void UpdateLuckyValue(bitcopy*, OMOBJ*);
-static void UpdateMGList(bitcopy*, OMOBJ*);
+static void UpdateLuckyValue(bitcopy*, omObjData*);
+static void UpdateMGList(bitcopy*, omObjData*);
 
 // FUNCTIONS //
 
@@ -262,6 +272,17 @@ static void ExecMGSetup(void) {
     HuDataDirClose(DATADIR_BGUEST);
     HuDataDirClose(sp60[GWBoardGet()]);
     HuPrcSleep(2);
+#ifdef TARGET_PC
+    if (devForceIdx >= 0) {
+        /* Flushed beacon for mp4sweep.ps1 (OSReport is lost in a crash). */
+        fprintf(stderr, "PB_MGSWEEP play m%d type %d turn %d/%d (roulette had m%d)\n",
+                (int)(devForceIdx + 401), (int)mgInfoTbl[devForceIdx].type, (int)GWSystem.turn,
+                (int)GWSystem.max_turn, (int)(mgNext + 401));
+        fflush(stderr);
+        mgNext = devForceIdx;
+        devForceIdx = -1;
+    }
+#endif
     if (_CheckFlag(FLAG_ID_MAKE(0, 11)) != 0) {
         var_r23 = 0x140000;
     } else {
@@ -296,6 +317,68 @@ static void ExecMGSetup(void) {
     HuPrcEnd();
 }
 
+#ifdef TARGET_PC
+// game.devForceMinigame / game.devMinigameSweep (include/port/game_settings.h).
+// mgInfoTbl is indexed by minigame number - 401 (mgNext + 0x191 elsewhere).
+// Bowser (type 3) and Battle (type 4) minigames are accepted too and played with the 4P
+// layout: that exercises the overlay and its teardown, not their board events (Bowser's
+// pick, the Battle space's coin stakes), so it is not evidence for those events.
+
+// Bowser/Battle minigames and the others are separate sweeps: a sweep keeps to the class
+// (type 0-2, or 3-4) of the minigame it started from.
+static s32 DevSweepIdx(s32 num, s32 bowserBattle) {
+    s32 i;
+    for (i = 0; mgInfoTbl[i].ovl != 0xFFFF; i++) {
+        if (i == num - 401) {
+            if (mgInfoTbl[i].type > 4 || (mgInfoTbl[i].type >= 3) != bowserBattle) {
+                return -1;
+            }
+            return i;
+        }
+    }
+    return -2; // past the table
+}
+
+static s32 DevForcedMG(void) {
+    s32 num = partyboard_settings_dev_force_minigame();
+    s32 idx;
+    s32 bowserBattle;
+    if (num < 0) {
+        return -1;
+    }
+    bowserBattle = DevSweepIdx(num, 1) >= 0;
+    if (partyboard_settings_dev_minigame_sweep()) {
+        if (devSweepNum < 0) {
+            devSweepNum = num;
+        }
+        while ((idx = DevSweepIdx(devSweepNum, bowserBattle)) == -1) {
+            devSweepNum++;
+        }
+        if (idx < 0) {
+            OSReport("mg_setup.c: game.devMinigameSweep: past the table, board picks normally\n");
+            return -1;
+        }
+        devSweepNum++;
+        return idx;
+    }
+    idx = DevSweepIdx(num, bowserBattle);
+    if (idx < 0) {
+        OSReport("mg_setup.c: game.devForceMinigame=%d is not a 4P/1vs3/2vs2/Bowser/Battle minigame, ignoring\n", (int)num);
+    }
+    return idx;
+}
+
+// No colour roll produced a forced type: give it a legal layout for SetupStatusLayout
+// (colour 2 marks the solo player of a 1vs3 and one pair of a 2vs2), rotated by turn.
+static void DevForceColors(s32 type) {
+    s32 i, first = GWSystem.turn % 4;
+    for (i = 0; i < 4; i++) {
+        s32 k = (i - first + 4) % 4;
+        GWPlayer[i].color = (type == 1 && k == 0) || (type == 2 && k < 2) ? 2 : 1;
+    }
+}
+#endif
+
 static void DetermineMGList(bitcopy* arg0) {
     MgInfo* var_r31;
     s32 temp_r23;
@@ -322,8 +405,8 @@ static void DetermineMGList(bitcopy* arg0) {
         }
     }
     mgListAll[var_r24] = -1;
-    temp_r26 = HuMemDirectMallocNum(HEAP_HEAP, var_r27 * 4, HU_MEMNUM_OVL);
-    temp_r25 = HuMemDirectMallocNum(HEAP_HEAP, var_r27 * 2, HU_MEMNUM_OVL);
+    temp_r26 = HuMemDirectMallocNum(HEAP_SYSTEM, var_r27 * 4, MEMORY_DEFAULT_NUM);
+    temp_r25 = HuMemDirectMallocNum(HEAP_SYSTEM, var_r27 * 2, MEMORY_DEFAULT_NUM);
     var_r31 = mgInfoTbl;
     
     for (var_r29 = var_r30 = 0; var_r30 < var_r27; var_r30++, var_r31++) {
@@ -633,7 +716,7 @@ static void CreateMGSetup(void) {
     temp_r29->unk_02 = 0;
     temp_r29->unk_03 = 0;
     temp_r29->unk_04 = 0;
-    temp_r28->unk_0C = HuMemDirectMallocNum(HEAP_HEAP, sizeof(unkSubstructR31), HU_MEMNUM_OVL);
+    temp_r28->unk_0C = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(unkSubstructR31), MEMORY_DEFAULT_NUM);
     temp_r31 = temp_r28->unk_0C;
     temp_r31->unk_00[0] = HuSprGrpCreate(0xD);
     
@@ -647,7 +730,7 @@ static void CreateMGSetup(void) {
     HuSprGrpPosSet(temp_r31->unk_00[0], 288.0f, 240.0f);
 }
 
-static void UpdateMGSetup(OMOBJ* arg0) {
+static void UpdateMGSetup(omObjData* arg0) {
     bitcopy* var_r31;
     s32 var_r29;
 
@@ -695,7 +778,7 @@ static void UpdateMGSetup(OMOBJ* arg0) {
     }
 }
 
-static void CenterStatus(bitcopy* arg0, OMOBJ* arg1) {
+static void CenterStatus(bitcopy* arg0, omObjData* arg1) {
     s32 var_r31;
     bitcopy* temp_r30;
 
@@ -719,6 +802,18 @@ static void CenterStatus(bitcopy* arg0, OMOBJ* arg1) {
     } else {
         mgType = GetMGType();
     }
+#ifdef TARGET_PC
+    devForceIdx = DevForcedMG();
+    if (devForceIdx >= 0 && (s32) GWSystem.team == 0) {
+        OSReport("mg_setup.c: game.devForceMinigame: type %d -> %d for m%d\n", (int)mgType,
+                 (int)mgInfoTbl[devForceIdx].type, (int)(devForceIdx + 401));
+        mgType = mgInfoTbl[devForceIdx].type <= 2 ? mgInfoTbl[devForceIdx].type : 0;
+        DevForceColors(mgType);
+    } else if (devForceIdx >= 0) {
+        OSReport("mg_setup.c: game.devForceMinigame: team mode, not forced\n");
+        devForceIdx = -1;
+    }
+#endif
     if (mgType == 0) {
         arg0->field01_bit0 = 4;
     } else {
@@ -736,7 +831,7 @@ static void CenterStatus(bitcopy* arg0, OMOBJ* arg1) {
     temp_r30->unk_04 = 0;
 }
 
-static void SeparateStatus(bitcopy* arg0, OMOBJ* arg1) {
+static void SeparateStatus(bitcopy* arg0, omObjData* arg1) {
     Vec sp8;
     f32 temp_f30;
     f32 temp_f29;
@@ -782,7 +877,7 @@ static void SeparateStatus(bitcopy* arg0, OMOBJ* arg1) {
     }
 }
 
-static void PopupVS(bitcopy* arg0, OMOBJ* arg1) {
+static void PopupVS(bitcopy* arg0, omObjData* arg1) {
     f32 var_f30;
     f32 temp_f31;
     bitcopy* temp_r28;
@@ -823,7 +918,7 @@ static void PopupVS(bitcopy* arg0, OMOBJ* arg1) {
     }
 }
 
-static void FallMGType(bitcopy* arg0, OMOBJ* arg1) {
+static void FallMGType(bitcopy* arg0, omObjData* arg1) {
     Vec sp10;
     s16 sp8[3] = { 3, 1, 2 };
     Vec* temp_r4;
@@ -855,7 +950,7 @@ static void FallMGType(bitcopy* arg0, OMOBJ* arg1) {
     HuSprPosSet(temp_r31->unk_00[0], temp_r30, temp_r31->unk_1C[0][temp_r30].x, temp_r31->unk_1C[0][temp_r30].y);
 }
 
-static void LuckyMGFall(bitcopy* arg0, OMOBJ* arg1) {
+static void LuckyMGFall(bitcopy* arg0, omObjData* arg1) {
     u16 spC;
     u16 spA;
     s16 sp8[3] = { 3, 1, 2 };
@@ -926,7 +1021,7 @@ static void HideLuckyValue(void) {
     HuSprAttrSet(temp_r31->unk_00[0], 9, 4);
 }
 
-static void UpdateLuckyValue(bitcopy* arg0, OMOBJ* arg1) {
+static void UpdateLuckyValue(bitcopy* arg0, omObjData* arg1) {
     s32 var_r23;
     f32 temp_f29;
     s32 temp_r3;
@@ -1028,7 +1123,7 @@ static GXColor hiliteColTbl[3] = {
     { 0xF8, 0xF2, 0x13, 0x00 }
 };
 
-static void UpdateMGList(bitcopy* arg0, OMOBJ* arg1) {
+static void UpdateMGList(bitcopy* arg0, omObjData* arg1) {
     f32 sp18[2];
     s32 sp14;
     f32 var_f26;

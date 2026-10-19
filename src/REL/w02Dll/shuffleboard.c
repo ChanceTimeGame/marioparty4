@@ -12,8 +12,8 @@
 #endif
 
 
-HUPROCESS *lbl_1_bss_378;
-HUPROCESS *lbl_1_bss_374;
+Process *lbl_1_bss_378;
+Process *lbl_1_bss_374;
 s16 lbl_1_bss_370;
 s16 lbl_1_bss_36E;
 s16 lbl_1_bss_36C;
@@ -98,7 +98,8 @@ void fn_1_93C8(u32 arg0)
 
 s32 fn_1_94AC(void)
 {
-	lbl_1_bss_378 = NULL;
+    lbl_1_bss_378 = NULL;
+    // TODO PC
 }
 
 void fn_1_98D8(void);

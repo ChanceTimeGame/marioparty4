@@ -34,8 +34,8 @@ s32 fn_1_524C(s32 arg0);
 void fn_1_66F8(void);
 void fn_1_7414(HU3DMODEL *model, Mtx matrix);
 
-OMOBJ *lbl_1_bss_6C;
-HUPROCESS *lbl_1_bss_68;
+omObjData *lbl_1_bss_6C;
+Process *lbl_1_bss_68;
 s32 lbl_1_bss_64;
 s32 lbl_1_bss_60;
 s16 lbl_1_bss_5E;
@@ -56,7 +56,7 @@ s16 lbl_1_bss_3E[2];
 s16 lbl_1_bss_36[4];
 s16 lbl_1_bss_E[4][5];
 s16 lbl_1_bss_C;
-HUPROCESS *lbl_1_bss_8;
+Process *lbl_1_bss_8;
 s16 lbl_1_bss_4;
 s32 lbl_1_bss_0;
 
@@ -79,7 +79,7 @@ void ObjectSetup(void)
     lbl_1_bss_54 = GWMGAvailGet(var_r30 + 0x191);
     Hu3DCameraCreate(1);
     Hu3DCameraPerspectiveSet(1, 30.0f, 20.0f, 15000.0f, 1.2f);
-    Hu3DCameraViewportSet(1, 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 1.0f);
+    Hu3DCameraViewportSet(1, 0.0f, 0.0f, HU_FB_WIDTHF, HU_FB_HEIGHTF, 0.0f, 1.0f);
     CRot.x = 0.0f;
     CRot.y = 0.0f;
     CRot.z = 0.0f;
@@ -1104,7 +1104,7 @@ void fn_1_4948(void)
 void fn_1_51BC(s16 arg0)
 {
     s16 var_r31;
-    OMOVLHIS *var_r30;
+    omOvlHisData *var_r30;
     u32 var_r29;
 
     WipeColorSet(0xFF, 0xFF, 0xFF);
@@ -1224,25 +1224,25 @@ s32 fn_1_524C(s32 arg0)
         }
     }
     var_r27 = HuSprGrpCreate(5);
-    var_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_ZTAR, 67), HU_MEMNUM_OVL));
+    var_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_ZTAR, 67), MEMORY_DEFAULT_NUM));
     var_r25 = HuSprCreate(var_r26, 0x32, 0);
     HuSprGrpMemberSet(var_r27, 0, var_r25);
     HuSprTPLvlSet(var_r27, 0, 0.9f);
     HuSprPosSet(var_r27, 0, 0.0f, 0.0f);
     HuSprScaleSet(var_r27, 0, 1.1f, 1.0f);
-    var_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_ZTAR, 65), HU_MEMNUM_OVL));
+    var_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_ZTAR, 65), MEMORY_DEFAULT_NUM));
     var_r25 = HuSprCreate(var_r26, 0x28, 0);
     HuSprGrpMemberSet(var_r27, 1, var_r25);
     HuSprPosSet(var_r27, 1, 0.0f, -90.0f);
-    var_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_ZTAR, 66), HU_MEMNUM_OVL));
+    var_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_ZTAR, 66), MEMORY_DEFAULT_NUM));
     var_r25 = HuSprCreate(var_r26, 0x28, 0);
     HuSprGrpMemberSet(var_r27, 2, var_r25);
     HuSprPosSet(var_r27, 2, 0.0f, 0.0f);
-    var_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_ZTAR, 68), HU_MEMNUM_OVL));
+    var_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_ZTAR, 68), MEMORY_DEFAULT_NUM));
     var_r25 = HuSprCreate(var_r26, 0x28, 1);
     HuSprGrpMemberSet(var_r27, 3, var_r25);
     HuSprPosSet(var_r27, 3, 180.0f, 0.0f);
-    var_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_ZTAR, 68), HU_MEMNUM_OVL));
+    var_r26 = HuSprAnimRead(HuDataReadNum(DATA_MAKE_NUM(DATADIR_ZTAR, 68), MEMORY_DEFAULT_NUM));
     var_r25 = HuSprCreate(var_r26, 0x28, 0);
     HuSprGrpMemberSet(var_r27, 4, var_r25);
     HuSprPosSet(var_r27, 4, -180.0f, 0.0f);
@@ -1543,4 +1543,8 @@ void fn_1_7414(HU3DMODEL *model, Mtx matrix)
     GXPosition3f32(500.0f, 0.0f, -500.0f);
     GXPosition3f32(500.0f, 0.0f, 500.0f);
     GXPosition3f32(-500.0f, 0.0f, 500.0f);
+    GXEnd();
+#ifdef TARGET_PC
+    GXDestroyTexObj(&spC);
+#endif
 }

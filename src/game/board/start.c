@@ -55,13 +55,13 @@ static void ExecStart(void);
 static void ShowLogo(void);
 static void FocusStart(void);
 static void CreatePlayerStart(void);
-static void ExecPlayerStart(OMOBJ *arg0);
-static void PlayerFall(OMOBJ *arg0, PlayerStartWork *arg1);
-static void PlayerWaitSpeak(OMOBJ *arg0, PlayerStartWork *arg1);
-static void PlayerDiceFall(OMOBJ *arg0, PlayerStartWork *arg1);
-static void PlayerDiceRoll(OMOBJ *arg0, PlayerStartWork *arg1);
-static void PlayerDiceNumShow(OMOBJ *arg0, PlayerStartWork *arg1);
-static void PlayerDiceNumHide(OMOBJ *arg0, PlayerStartWork *arg1);
+static void ExecPlayerStart(omObjData *arg0);
+static void PlayerFall(omObjData *arg0, PlayerStartWork *arg1);
+static void PlayerWaitSpeak(omObjData *arg0, PlayerStartWork *arg1);
+static void PlayerDiceFall(omObjData *arg0, PlayerStartWork *arg1);
+static void PlayerDiceRoll(omObjData *arg0, PlayerStartWork *arg1);
+static void PlayerDiceNumShow(omObjData *arg0, PlayerStartWork *arg1);
+static void PlayerDiceNumHide(omObjData *arg0, PlayerStartWork *arg1);
 static void SetPlayerStartState(s32 arg0, s32 arg1);
 static s32 GetPlayerStartState(s32 arg0);
 static void ExecStartRoll(void);
@@ -77,7 +77,7 @@ static s16 hostMdl;
 static s16 startSpace;
 static s8 playerOrderNew[4];
 static s8 playerOrderOld[4];
-static HUPROCESS *startProc;
+static Process *startProc;
 
 static s16 logoSprGrp = -1;
 static s16 logoSpr = -1;
@@ -89,7 +89,7 @@ static s8 tutorialRollTbl[] = {
     0x02, 0x08, 0x06, 0x00
 };
 
-static OMOBJ *playerStartObj[4] = {
+static omObjData *playerStartObj[4] = {
     NULL, NULL, NULL, NULL
 };
 
@@ -307,7 +307,7 @@ static void FocusStart(void) {
 static void CreatePlayerStart(void) {
     Vec boardPos;
     float offsetX;
-    OMOBJ *boardObj;
+    omObjData *boardObj;
     PlayerStartWork *boardData;
     s8 i;
 
@@ -316,7 +316,7 @@ static void CreatePlayerStart(void) {
         playerOrderOld[i] = i;
         boardObj = omAddObjEx(boardObjMan, 0x100, 0, 0, -1, ExecPlayerStart);
         playerStartObj[i] = boardObj;
-        boardData = omObjGetWork(boardObj, PlayerStartWork);
+        boardData = OM_GET_WORK_PTR(boardObj, PlayerStartWork);
         boardData->isBoardVisible = 0;
         boardData->index = i;
         boardData->_unused = -1;
@@ -349,8 +349,8 @@ static void CreatePlayerStart(void) {
     }
 }
 
-static void ExecPlayerStart(OMOBJ *object) {
-    PlayerStartWork *data = omObjGetWork(object, PlayerStartWork);
+static void ExecPlayerStart(omObjData *object) {
+    PlayerStartWork *data = OM_GET_WORK_PTR(object, PlayerStartWork);
 
     if (data->isBoardVisible != 0 || BoardIsKill()) {
         if (hitFX[data->index] != -1) {
@@ -389,7 +389,7 @@ static void ExecPlayerStart(OMOBJ *object) {
     }
 }
 
-static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
+static void PlayerFall(omObjData *object, PlayerStartWork *data) {
     float fall_duration;
 
     if (data->isActionable != 0) {
@@ -416,7 +416,7 @@ static void PlayerFall(OMOBJ *object, PlayerStartWork *data) {
     BoardPlayerPosSet(playerOrderOld[data->index], object->trans.x, object->trans.y, object->trans.z);
 }
 
-static void PlayerWaitSpeak(OMOBJ *object, PlayerStartWork *data) {
+static void PlayerWaitSpeak(omObjData *object, PlayerStartWork *data) {
     float yRot;
 
     if (data->time == 0) {
@@ -431,7 +431,7 @@ static void PlayerWaitSpeak(OMOBJ *object, PlayerStartWork *data) {
     }
 }
 
-static void PlayerDiceFall(OMOBJ *object, PlayerStartWork *data) {
+static void PlayerDiceFall(omObjData *object, PlayerStartWork *data) {
     Vec boardPos;
     float max;
     float min;
@@ -479,7 +479,7 @@ static s32 playerOrderMesTbl[3] = {
     MAKE_MESSID(0x15, 0x15)
 };
 
-static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
+static void PlayerDiceRoll(omObjData *object, PlayerStartWork *data) {
     Vec boardPos;
     float time;
     u32 jumpCheck;
@@ -557,7 +557,7 @@ static void PlayerDiceRoll(OMOBJ *object, PlayerStartWork *data) {
     data->time++;
 }
 
-static void PlayerDiceNumShow(OMOBJ *object, PlayerStartWork *data) {
+static void PlayerDiceNumShow(omObjData *object, PlayerStartWork *data) {
     float yRot;
 
     data->yRot -= 18;
@@ -572,7 +572,7 @@ static void PlayerDiceNumShow(OMOBJ *object, PlayerStartWork *data) {
     BoardModelRotYSet(data->model, yRot);
 }
 
-static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
+static void PlayerDiceNumHide(omObjData *object, PlayerStartWork *data) {
     float yRot;
 
     switch (data->time) {
@@ -616,10 +616,10 @@ static void PlayerDiceNumHide(OMOBJ *object, PlayerStartWork *data) {
 
 static void SetPlayerStartState(s32 player, s32 state) {
     PlayerStartWork *data;
-    OMOBJ *object;
+    omObjData *object;
 
     object = playerStartObj[player];
-    data = omObjGetWork(object, PlayerStartWork);
+    data = OM_GET_WORK_PTR(object, PlayerStartWork);
     data->state = state;
     data->time = 0;
     data->delay = 0;
@@ -637,10 +637,10 @@ static void SetPlayerStartState(s32 player, s32 state) {
 
 static s32 GetPlayerStartState(s32 player) {
     PlayerStartWork *data;
-    OMOBJ *object;
+    omObjData *object;
 
     object = playerStartObj[player];
-    data = omObjGetWork(object, PlayerStartWork);
+    data = OM_GET_WORK_PTR(object, PlayerStartWork);
     return data->state;
 }
 
@@ -865,8 +865,8 @@ static void OrderPlayers(void) {
     s32 i;
     s32 j;
 
-    playerCfg = HuMemDirectMallocNum(HEAP_HEAP, sizeof(GWPlayerCfg), HU_MEMNUM_OVL);
-    state = HuMemDirectMallocNum(HEAP_HEAP, sizeof(GWPlayer), HU_MEMNUM_OVL);
+    playerCfg = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(GWPlayerCfg), MEMORY_DEFAULT_NUM);
+    state = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(GWPlayer), MEMORY_DEFAULT_NUM);
     for (i = 0; i < 4; i++) {
         playerOrderOld[i] = i;
         memcpy(playerCfg + i, &GWPlayerCfg[i], sizeof(PlayerConfig));

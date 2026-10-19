@@ -43,7 +43,7 @@ static void fn_1_A408(s32 arg0);
 static void fn_1_AB4C(s32 arg0, s32 arg1);
 static void fn_1_B27C(s32 arg0);
 static void fn_1_B6A0(float arg0, s16 arg1);
-static void fn_1_B8E0(OMOBJ *arg0);
+static void fn_1_B8E0(omObjData *arg0);
 static void fn_1_BB10(s32 arg0);
 static void fn_1_BD08(s32 arg0);
 static void fn_1_BD44(void);
@@ -55,8 +55,8 @@ static void fn_1_CACC(void);
 
 static s8 lbl_1_bss_F4;
 static s32 lbl_1_bss_F0;
-static OMOBJ *lbl_1_bss_EC;
-static HUPROCESS *lbl_1_bss_E8;
+static omObjData *lbl_1_bss_EC;
+static Process *lbl_1_bss_E8;
 
 static s16 lbl_1_data_498 = -1;
 static s16 lbl_1_data_49A = -1;
@@ -122,14 +122,14 @@ static s32 lbl_1_data_510[8] = {
 };
 
 void fn_1_8F20(void) {
-    OMOBJ *temp_r3;
+    omObjData *temp_r3;
     BssECWork *temp_r31;
     s32 var_r28;
     s32 i;
 
     temp_r3 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_B8E0);
     lbl_1_bss_EC = temp_r3;
-    temp_r31 = omObjGetWork(temp_r3, BssECWork);
+    temp_r31 = OM_GET_WORK_PTR(temp_r3, BssECWork);
     temp_r31->unk00_field0 = 0;
     temp_r31->unk0C = 0;
     temp_r31->unk08 = 0;
@@ -883,13 +883,13 @@ static void fn_1_B6A0(float arg0, s16 arg1) {
     BoardModelMotionShiftSet(lbl_1_data_498, 1, 0.0f, 8.0f, HU3D_MOTATTR_LOOP);
 }
 
-static void fn_1_B8E0(OMOBJ *arg0) {
+static void fn_1_B8E0(omObjData *arg0) {
     Mtx sp14;
     Vec sp8;
     float temp_f30;
     BssECWork *temp_r30;
 
-    temp_r30 = omObjGetWork(arg0, BssECWork);
+    temp_r30 = OM_GET_WORK_PTR(arg0, BssECWork);
     if (temp_r30->unk00_field0 != 0 || lbl_1_data_49A == -1 || BoardIsKill()) {
         fn_1_BB10(0);
         lbl_1_bss_EC = NULL;
@@ -921,7 +921,7 @@ static void fn_1_BB10(s32 arg0) {
     BssECWork *var_r30;
 
     if (lbl_1_bss_EC) {
-        var_r30 = omObjGetWork(lbl_1_bss_EC, BssECWork);
+        var_r30 = OM_GET_WORK_PTR(lbl_1_bss_EC, BssECWork);
         var_r30->unk08 = arg0;
     }
     if (arg0 != 0) {
@@ -945,7 +945,7 @@ static void fn_1_BD08(s32 arg0) {
     BssECWork *var_r31;
 
     if (lbl_1_bss_EC) {
-        var_r31 = omObjGetWork(lbl_1_bss_EC, BssECWork);
+        var_r31 = OM_GET_WORK_PTR(lbl_1_bss_EC, BssECWork);
         var_r31->unk04 = arg0;
     }
 }
@@ -954,7 +954,7 @@ static void fn_1_BD44(void) {
     BssECWork *var_r31;
 
     if (lbl_1_bss_EC) {
-        var_r31 = omObjGetWork(lbl_1_bss_EC, BssECWork);
+        var_r31 = OM_GET_WORK_PTR(lbl_1_bss_EC, BssECWork);
         var_r31->unk00_field0 = 1;
     }
 }

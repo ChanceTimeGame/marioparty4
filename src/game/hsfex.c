@@ -5,6 +5,7 @@
 
 #include "ext_math.h"
 
+
 #define DISP_HALF_W (HU_DISP_WIDTH/2.0f)
 #define DISP_HALF_H (HU_DISP_HEIGHT/2.0f)
 
@@ -69,7 +70,7 @@ void CamMotionEx(s16 arg0, s16 arg1, Vec *arg2, Vec *arg3, Vec *arg4, float arg5
     temp_r27 = &Hu3DCamera[var_r25];
     temp_f29 = temp_r26->maxTime;
     sp1A = 0.5f + (temp_f29 / 6.0f) + 1.0f;
-    var_r31 = temp_r21 = HuMemDirectMallocNum(HEAP_HEAP, (sp1A + 1) * sizeof(HsfexStruct02), HU_MEMNUM_OVL);
+    var_r31 = temp_r21 = HuMemDirectMallocNum(HEAP_SYSTEM, (sp1A + 1) * sizeof(HsfexStruct02), MEMORY_DEFAULT_NUM);
     var_r31->unk00 = 0.0f;
     var_r31->unk08 = *arg2;
     var_r31->unk20 = *arg4;
@@ -441,8 +442,8 @@ void Hu3D2Dto3D(Vec *arg0, s16 arg1, Vec *arg2) {
     arg2->y = -(temp_f27 - 0.5) * temp_f31;
     arg2->z = -arg0->z;
     C_MTXLookAt(spC, &temp_r31->pos, &temp_r31->up, &temp_r31->target);
-    PSMTXInverse(spC, spC);
-    PSMTXMultVec(spC, arg2, arg2);
+    MTXInverse(spC, spC);
+    MTXMultVec(spC, arg2, arg2);
 }
 
 void Hu3D3Dto2D(Vec *arg0, s16 arg1, Vec *arg2) {
@@ -460,7 +461,7 @@ void Hu3D3Dto2D(Vec *arg0, s16 arg1, Vec *arg2) {
     }
     temp_r31 = &Hu3DCamera[i];
     C_MTXLookAt(sp1C, &temp_r31->pos, &temp_r31->up, &temp_r31->target);
-    PSMTXMultVec(sp1C, arg0, &sp10);
+    MTXMultVec(sp1C, arg0, &sp10);
     temp_f31 = (sind(temp_r31->fov / 2) / cosd(temp_r31->fov / 2)) * sp10.z * HU_DISP_ASPECT;
     temp_f30 = (sind(temp_r31->fov / 2) / cosd(temp_r31->fov / 2)) * sp10.z;
     arg2->x = DISP_HALF_W + sp10.x * (DISP_HALF_W / -temp_f31);

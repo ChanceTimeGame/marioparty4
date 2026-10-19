@@ -71,10 +71,10 @@ static void fn_1_4FB8(s32 arg0);
 static void fn_1_519C(s32 arg0);
 static void fn_1_53A0(void);
 static void fn_1_5490(s32 arg0);
-static void fn_1_56CC(OMOBJ *arg0);
-static void fn_1_57DC(OMOBJ *arg0, Bss4CWork *arg1);
-static void fn_1_587C(OMOBJ *arg0, Bss4CWork *arg1);
-static void fn_1_58FC(OMOBJ *arg0, Bss4CWork *arg1);
+static void fn_1_56CC(omObjData *arg0);
+static void fn_1_57DC(omObjData *arg0, Bss4CWork *arg1);
+static void fn_1_587C(omObjData *arg0, Bss4CWork *arg1);
+static void fn_1_58FC(omObjData *arg0, Bss4CWork *arg1);
 static void fn_1_5968(Vec *arg0);
 static void fn_1_59D0(s32 arg0);
 static s32 fn_1_5B0C(void);
@@ -83,8 +83,8 @@ static void fn_1_5CE4(s32 arg0);
 static s32 fn_1_5EBC(void);
 static void fn_1_5EFC(Vec *arg0);
 static void fn_1_5F58(s32 arg0, u32 *arg1);
-static void fn_1_606C(OMOBJ *arg0);
-static void fn_1_6A0C(OMOBJ *arg0);
+static void fn_1_606C(omObjData *arg0);
+static void fn_1_6A0C(omObjData *arg0);
 static void fn_1_6C4C(s32 arg0);
 static void fn_1_6E90(Bss54Work *arg0);
 
@@ -93,10 +93,10 @@ static char lbl_1_bss_5B[49];
 static s8 lbl_1_bss_5A;
 static s8 lbl_1_bss_59;
 static s8 lbl_1_bss_58;
-static OMOBJ *lbl_1_bss_54;
-static OMOBJ *lbl_1_bss_50;
-static OMOBJ *lbl_1_bss_4C;
-static HUPROCESS *lbl_1_bss_48;
+static omObjData *lbl_1_bss_54;
+static omObjData *lbl_1_bss_50;
+static omObjData *lbl_1_bss_4C;
+static Process *lbl_1_bss_48;
 
 static const u8 lbl_1_rodata_F0[] = {
     20, 15, 10, 5, 1
@@ -248,7 +248,7 @@ static void fn_1_4FB8(s32 arg0) {
     sprintf(lbl_1_bss_5B, "%d", lbl_1_bss_58);
     BoardAudSeqPause(0, 0, 1000);
     BoardWinCreate(2, MAKE_MESSID(48, 28), 6);
-    BoardWinInsertMesSet(MAKE_MESSID_PTR(lbl_1_bss_5B), 0);
+    BOARD_WIN_INSERT_MES_SET_PTR(MAKE_MESSID_PTR(lbl_1_bss_5B), 0);
     BoardWinWait();
     BoardWinKill();
     fn_1_6C4C(arg0);
@@ -317,7 +317,7 @@ static void fn_1_5490(s32 arg0) {
     Vec sp24;
     Vec sp18;
     float temp_f31;
-    OMOBJ *temp_r3;
+    omObjData *temp_r3;
     Bss4CWork *temp_r31;
     s32 spC[] = {
         DATA_MAKE_NUM(DATADIR_W06, 28),
@@ -327,7 +327,7 @@ static void fn_1_5490(s32 arg0) {
 
     temp_r3 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_56CC);
     lbl_1_bss_4C = temp_r3;
-    temp_r31 = omObjGetWork(temp_r3, Bss4CWork);
+    temp_r31 = OM_GET_WORK_PTR(temp_r3, Bss4CWork);
     temp_r31->unk00_field0 = 0;
     temp_r31->unk02 = 0;
     temp_r31->unk00_field2 = 0;
@@ -351,10 +351,10 @@ static void fn_1_5490(s32 arg0) {
     BoardModelMotionStart(lbl_1_data_1DC, 0, 0);
 }
 
-static void fn_1_56CC(OMOBJ *arg0) {
+static void fn_1_56CC(omObjData *arg0) {
     Bss4CWork *temp_r31;
 
-    temp_r31 = omObjGetWork(arg0, Bss4CWork);
+    temp_r31 = OM_GET_WORK_PTR(arg0, Bss4CWork);
     if (temp_r31->unk00_field0 != 0 || BoardIsKill()) {
         BoardModelKill(temp_r31->unk04);
         lbl_1_bss_4C = NULL;
@@ -383,7 +383,7 @@ static void fn_1_56CC(OMOBJ *arg0) {
     }
 }
 
-static void fn_1_57DC(OMOBJ *arg0, Bss4CWork *arg1) {
+static void fn_1_57DC(omObjData *arg0, Bss4CWork *arg1) {
     Vec sp8;
 
     if (arg1->unk01 == 0) {
@@ -398,7 +398,7 @@ static void fn_1_57DC(OMOBJ *arg0, Bss4CWork *arg1) {
     arg1->unk01--;
 }
 
-static void fn_1_587C(OMOBJ *arg0, Bss4CWork *arg1) {
+static void fn_1_587C(omObjData *arg0, Bss4CWork *arg1) {
     if (BoardModelMotionTimeGet(lbl_1_data_1DC) < 32.0f) {
         return;
     }
@@ -408,7 +408,7 @@ static void fn_1_587C(OMOBJ *arg0, Bss4CWork *arg1) {
     BoardModelVisibilitySet(arg1->unk04, 1);
 }
 
-static void fn_1_58FC(OMOBJ *arg0, Bss4CWork *arg1) {
+static void fn_1_58FC(omObjData *arg0, Bss4CWork *arg1) {
     if (arg1->unk00_field2 == 0) {
         HuAudFXPlay(0x49F);
         arg1->unk00_field2 = 1;
@@ -422,7 +422,7 @@ static void fn_1_5968(Vec *arg0) {
     Bss4CWork *temp_r31;
 
     if (lbl_1_bss_4C && arg0) {
-        temp_r31 = omObjGetWork(lbl_1_bss_4C, Bss4CWork);
+        temp_r31 = OM_GET_WORK_PTR(lbl_1_bss_4C, Bss4CWork);
         BoardModelPosGet(temp_r31->unk04, arg0);
     }
 }
@@ -433,7 +433,7 @@ static void fn_1_59D0(s32 arg0) {
     if (!lbl_1_bss_4C) {
         return;
     }
-    temp_r31 = omObjGetWork(lbl_1_bss_4C, Bss4CWork);
+    temp_r31 = OM_GET_WORK_PTR(lbl_1_bss_4C, Bss4CWork);
     temp_r31->unk00_field1 = arg0;
     if (arg0 == 1) {
         lbl_1_bss_4C->trans.x = 0.96666666f * sind(90);
@@ -456,7 +456,7 @@ static s32 fn_1_5B0C(void) {
     Bss4CWork *temp_r31;
 
     if (lbl_1_bss_4C) {
-        temp_r31 = omObjGetWork(lbl_1_bss_4C, Bss4CWork);
+        temp_r31 = OM_GET_WORK_PTR(lbl_1_bss_4C, Bss4CWork);
         return temp_r31->unk00_field1;
     }
     return -1;
@@ -476,12 +476,12 @@ static s32 lbl_1_data_1E4[8] = {
 static void fn_1_5B54(s32 arg0) {
     Vec sp8;
     float var_f31;
-    OMOBJ *temp_r3;
+    omObjData *temp_r3;
     Bss50Work *temp_r31;
 
     temp_r3 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_606C);
     lbl_1_bss_50 = temp_r3;
-    temp_r31 = omObjGetWork(temp_r3, Bss50Work);
+    temp_r31 = OM_GET_WORK_PTR(temp_r3, Bss50Work);
     temp_r31->unk00_field0 = 0;
     temp_r31->unk00_field1 = arg0;
     temp_r31->unk01 = 0;
@@ -508,7 +508,7 @@ static void fn_1_5CE4(s32 arg0) {
     if (!lbl_1_bss_50) {
         return;
     }
-    temp_r31 = omObjGetWork(lbl_1_bss_50, Bss50Work);
+    temp_r31 = OM_GET_WORK_PTR(lbl_1_bss_50, Bss50Work);
     temp_r31->unk00_field2 = arg0;
     if (arg0 == 2) {
         temp_r31->unk01 = 60;
@@ -537,9 +537,13 @@ static s32 fn_1_5EBC(void) {
     Bss50Work *temp_r31;
 
     if (!lbl_1_bss_50) {
+#ifdef __MWERKS__
         return;
+#else
+        return 0;
+#endif
     }
-    temp_r31 = omObjGetWork(lbl_1_bss_50, Bss50Work);
+    temp_r31 = OM_GET_WORK_PTR(lbl_1_bss_50, Bss50Work);
     return temp_r31->unk00_field2;
 }
 
@@ -547,7 +551,7 @@ static void fn_1_5EFC(Vec *arg0) {
     Bss50Work *temp_r31;
 
     if (lbl_1_bss_50) {
-        temp_r31 = omObjGetWork(lbl_1_bss_50, Bss50Work);
+        temp_r31 = OM_GET_WORK_PTR(lbl_1_bss_50, Bss50Work);
         BoardPlayerPosGet(temp_r31->unk00_field1, arg0);
     }
 }
@@ -587,14 +591,14 @@ static void fn_1_5F58(s32 arg0, u32 *arg1) {
     *arg1 = var_r31;
 }
 
-static void fn_1_606C(OMOBJ *arg0) {
+static void fn_1_606C(omObjData *arg0) {
     Vec sp64;
     Vec sp58;
     u32 var_r18;
     Bss50Work *temp_r31;
 
     var_r18 = 0;
-    temp_r31 = omObjGetWork(arg0, Bss50Work);
+    temp_r31 = OM_GET_WORK_PTR(arg0, Bss50Work);
     if (temp_r31->unk00_field0 != 0 || BoardIsKill()) {
         BoardPlayerMotionKill(temp_r31->unk00_field1, temp_r31->unk02);
         BoardModelKill(temp_r31->unk04);
@@ -659,7 +663,7 @@ static void fn_1_606C(OMOBJ *arg0) {
     }
 }
 
-static void fn_1_6A0C(OMOBJ *arg0) {
+static void fn_1_6A0C(omObjData *arg0) {
     float temp_f31;
     Bss54Work *temp_r29;
     Bss54WorkData *var_r30;
@@ -667,7 +671,7 @@ static void fn_1_6A0C(OMOBJ *arg0) {
     s32 var_r27;
     s32 i;
 
-    temp_r29 = omObjGetWork(arg0, Bss54Work);
+    temp_r29 = OM_GET_WORK_PTR(arg0, Bss54Work);
     if (temp_r29->unk00_field0 != 0 || BoardIsKill()) {
         fn_1_6E90(temp_r29);
         HuMemDirectFree(temp_r29->unk0C);
@@ -715,17 +719,17 @@ static void fn_1_6A0C(OMOBJ *arg0) {
 static void fn_1_6C4C(s32 arg0) {
     Vec sp8;
     float var_f31;
-    OMOBJ *temp_r3;
+    omObjData *temp_r3;
     Bss54Work *temp_r30;
     Bss54WorkData *temp_r31;
     s32 i;
 
     temp_r3 = omAddObjEx(boardObjMan, 0x101, 0, 0, -1, fn_1_6A0C);
     lbl_1_bss_54 = temp_r3;
-    temp_r30 = omObjGetWork(temp_r3, Bss54Work);
+    temp_r30 = OM_GET_WORK_PTR(temp_r3, Bss54Work);
     temp_r30->unk00_field0 = 0;
     temp_r30->unk04 = arg0;
-    temp_r30->unk0C = HuMemDirectMallocNum(HEAP_HEAP, 20 * sizeof(Bss54WorkData), HU_MEMNUM_OVL);
+    temp_r30->unk0C = HuMemDirectMallocNum(HEAP_SYSTEM, 20 * sizeof(Bss54WorkData), MEMORY_DEFAULT_NUM);
     BoardPlayerPosGet(arg0, &sp8);
     temp_r30->unk08 = sp8.y + 80.0f;
     memset(temp_r30->unk0C, 0, 20 * sizeof(Bss54WorkData));

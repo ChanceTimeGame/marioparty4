@@ -4,6 +4,7 @@
 #include "game/data.h"
 #include "game/hsfformat.h"
 #include "game/memory.h"
+#include "version.h"
 
 //Max for model properties
 #define HU3D_CLUSTER_MAX 4
@@ -193,15 +194,9 @@
 #define HU3D_LIGHT_TYPE_STATIC 0x8000
 #define HU3D_LIGHT_TYPE_NONE -1
 
-#define Hu3DModelDispOff(modelId) Hu3DModelAttrSet(modelId, HU3D_ATTR_DISPOFF)
-#define Hu3DModelDispOn(modelId) Hu3DModelAttrReset(modelId, HU3D_ATTR_DISPOFF)
-
-#define Hu3DModelZWriteOff(modelId) Hu3DModelAttrSet(modelId, HU3D_ATTR_ZWRITE_OFF)
-#define Hu3DModelZWriteOn(modelId) Hu3DModelAttrReset(modelId, HU3D_ATTR_ZWRITE_OFF)
-
-#define Hu3DModelCreateFile(data_id) (Hu3DModelCreate(HuDataSelHeapReadNum((data_id), HU_MEMNUM_OVL, HEAP_MODEL)))
-#define Hu3DMotionCreateFile(data_id) (Hu3DMotionCreate(HuDataSelHeapReadNum((data_id), HU_MEMNUM_OVL, HEAP_MODEL)))
-#define Hu3DJointMotionFile(model, data_id) (Hu3DJointMotion((model), HuDataSelHeapReadNum((data_id), HU_MEMNUM_OVL, HEAP_MODEL)))
+#define Hu3DModelCreateFile(data_id) (Hu3DModelCreate(HuDataSelHeapReadNum((data_id), MEMORY_DEFAULT_NUM, HEAP_DATA)))
+#define Hu3DMotionCreateFile(data_id) (Hu3DMotionCreate(HuDataSelHeapReadNum((data_id), MEMORY_DEFAULT_NUM, HEAP_DATA)))
+#define Hu3DJointMotionFile(model, data_id) (Hu3DJointMotion((model), HuDataSelHeapReadNum((data_id), MEMORY_DEFAULT_NUM, HEAP_DATA)))
 
 
 //Typedefs for various IDs
@@ -289,8 +284,8 @@ struct Hu3DModel_s {
     u16 lightNum;
     u16 lightId[HU3D_GLIGHT_MAX];
     HU3DLIGHTID lLightId[HU3D_MODEL_LLIGHT_MAX];
-    u32 mallocNo;
-    u32 mallocNoLink;
+    uintptr_t mallocNo;
+    uintptr_t mallocNoLink;
     u32 attr;
     u32 motAttr;
     float ambR;
@@ -316,8 +311,8 @@ struct Hu3DModel_s {
 
 typedef struct Hu3DCamera_s {
     float fov;
-    float near;
-    float far;
+    float nnear;
+    float ffar;
     float aspect;
     float upRot;
     HuVecF pos;
@@ -481,8 +476,8 @@ void Hu3DDrawPreInit(void);
 void Hu3DDraw(HU3DMODEL *modelP, Mtx mtx, Vec *scale);
 BOOL ObjCullCheck(HSFDATA *hsf, HSFOBJECT *objPtr, Mtx mtx);
 void Hu3DDrawPost(void);
-void MakeDisplayList(HU3DMODELID modelId, u32 no);
-HSFCONSTDATA *ObjConstantMake(HSFOBJECT *object, u32 no);
+void MakeDisplayList(HU3DMODELID modelId, uintptr_t no);
+HSFCONSTDATA *ObjConstantMake(HSFOBJECT *object, uintptr_t no);
 void mtxTransCat(Mtx mtx, float x, float y, float z);
 void mtxRotCat(Mtx mtx, float x, float y, float z);
 void mtxRot(Mtx mtx, float x, float y, float z);
@@ -494,7 +489,7 @@ void Hu3DModelObjMtxGet(HU3DMODELID modelId, char *objName, Mtx mtx);
 void PGObjCall(HU3DMODEL *model, HSFOBJECT *object);
 void PGObjCalc(HU3DMODEL *model, HSFOBJECT *object);
 void PGObjReplica(HU3DMODEL *model, HSFOBJECT *object);
-HSFOBJECT *Hu3DObjDuplicate(HSFDATA *hsf, u32 mallocNo);
+HSFOBJECT *Hu3DObjDuplicate(HSFDATA *hsf, uintptr_t mallocNo);
 void Hu3DModelObjDrawInit(void);
 void Hu3DModelObjDraw(HU3DMODELID modelId, char *objName, Mtx mtx);
 
@@ -717,28 +712,28 @@ extern u32 totalTexCnted;
 extern u32 totalTexCacheCnt;
 extern u32 totalTexCacheCnted;
 
-extern HU3DMODEL Hu3DData[0x200];
-extern HU3DCAMERA Hu3DCamera[0x10];
+SHARED_SYM extern HU3DMODEL Hu3DData[0x200];
+SHARED_SYM extern HU3DCAMERA Hu3DCamera[0x10];
 extern ANIMDATA *reflectAnim[5];
-extern ANIMDATA *hiliteAnim[4];
+SHARED_SYM extern ANIMDATA *hiliteAnim[4];
 extern HU3DPROJECTION Hu3DProjection[4];
-extern HU3DSHADOW Hu3DShadowData;
-extern Mtx Hu3DCameraMtx;
-extern Mtx Hu3DCameraMtxXPose;
-extern HU3DLIGHT Hu3DGlobalLight[0x8];
+SHARED_SYM extern HU3DSHADOW Hu3DShadowData;
+SHARED_SYM extern Mtx Hu3DCameraMtx;
+SHARED_SYM extern Mtx Hu3DCameraMtxXPose;
+SHARED_SYM extern HU3DLIGHT Hu3DGlobalLight[0x8];
 extern s16 reflectMapNo;
 extern ANIMDATA *toonAnim;
-extern s16 Hu3DShadowCamBit;
-extern s32 Hu3DShadowF;
-extern s32 shadowModelDrawF;
-extern s16 Hu3DCameraNo;
+SHARED_SYM extern s16 Hu3DShadowCamBit;
+SHARED_SYM extern s32 Hu3DShadowF;
+SHARED_SYM extern s32 shadowModelDrawF;
+SHARED_SYM extern s16 Hu3DCameraNo;
 extern s16 Hu3DCameraBit;
 extern s16 Hu3DPauseF;
-extern GXColor BGColor;
+SHARED_SYM extern GXColor BGColor;
 
-extern HU3DMOTION Hu3DMotion[256];
+SHARED_SYM extern HU3DMOTION Hu3DMotion[256];
 
-extern HU3DTEXANIM Hu3DTexAnimData[HU3D_TEXANIM_MAX];
-extern HU3DTEXSCROLL Hu3DTexScrData[HU3D_TEXSCROLL_MAX];
+SHARED_SYM extern HU3DTEXANIM Hu3DTexAnimData[HU3D_TEXANIM_MAX];
+SHARED_SYM extern HU3DTEXSCROLL Hu3DTexScrData[HU3D_TEXSCROLL_MAX];
 
 #endif

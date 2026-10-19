@@ -106,34 +106,34 @@ static s32 UpdateBoardStatus(void);
 static void BoardStatusProc(void);
 static void MoveBoardStatus(s32 arg0);
 static void UpdateStatusItem(UnkUiStatusStruct *arg0, s32 arg1, s32 arg2);
-static void UpdatePicker(OMOBJ *arg0);
-static void UpdatePickerInput(UnkUiWork01 *arg0, OMOBJ *arg1);
-static void MovePicker(UnkUiWork01 *arg0, OMOBJ *arg1);
-static void UpdateComPickerButton(UnkUiWork01 *arg0, OMOBJ *arg1, s32 *arg2);
-static BOOL CheckPickerButton(UnkUiWork01 *arg0, OMOBJ *arg1, u32 arg2);
-static void UpdateYourTurn(OMOBJ *arg0);
-static void GrowYourTurn(UnkUiWork02 *arg0, OMOBJ *arg1);
-static void WaitYourTurn(UnkUiWork02 *arg0, OMOBJ *arg1);
-static void ShrinkYourTurn(UnkUiWork02 *arg0, OMOBJ *arg1);
+static void UpdatePicker(omObjData *arg0);
+static void UpdatePickerInput(UnkUiWork01 *arg0, omObjData *arg1);
+static void MovePicker(UnkUiWork01 *arg0, omObjData *arg1);
+static void UpdateComPickerButton(UnkUiWork01 *arg0, omObjData *arg1, s32 *arg2);
+static BOOL CheckPickerButton(UnkUiWork01 *arg0, omObjData *arg1, u32 arg2);
+static void UpdateYourTurn(omObjData *arg0);
+static void GrowYourTurn(UnkUiWork02 *arg0, omObjData *arg1);
+static void WaitYourTurn(UnkUiWork02 *arg0, omObjData *arg1);
+static void ShrinkYourTurn(UnkUiWork02 *arg0, omObjData *arg1);
 static void ItemUseTeamProc(s32 arg0);
 static void ItemUseProc(void);
 static void FinishItemUse(s16 arg0, s32 arg1);
 static void DestroyItemUse(void);
 static void TeamItemPosSet(s32 arg0, s32 arg1, Vec *arg2);
 static void ExecItemPick(void);
-static void UpdateItemPick(OMOBJ *arg0);
+static void UpdateItemPick(omObjData *arg0);
 static void MakeItemPickSpace(UnkUiWork03 *arg0);
 static void SetItemUIStatus(s32 arg0);
 static void ItemGetPos(s32 arg0, Vec *arg1);
-static void UpdateItemPickGfx(OMOBJ *arg0);
-static void UpdateItemPickup(OMOBJ *arg0);
+static void UpdateItemPickGfx(omObjData *arg0);
+static void UpdateItemPickup(omObjData *arg0);
 static BOOL CheckItemWindow(void);
 static void HideItemWindow(void);
 static void CreateItemWindow(s32 arg0, s32 arg1);
 static BOOL CheckItemWindowSlide(void);
 static void KillItemWindow(void);
 static void SetItemWindowCurr(s32 arg0);
-static void UpdateItemWindow(OMOBJ *arg0);
+static void UpdateItemWindow(omObjData *arg0);
 static void CreatePickerWindow(UnkUiWork01 *arg0, s32 arg1);
 static void KillPickerWindow(UnkUiWork01 *arg0);
 
@@ -154,75 +154,34 @@ static s8 itemUsed;
 static s8 teamItemPlayer;
 static s16 itemRandTbl[ARRAY_COUNT(GWPlayer->items)];
 static float itemPickupPos;
-static OMOBJ *itemPickObj;
-static HUPROCESS *itemUseProc;
-static OMOBJ *yourTurnObj;
-static OMOBJ *pickerObj;
-static OMOBJ *itemWindowObj;
-static HUPROCESS *statusProc;
+static omObjData *itemPickObj;
+static Process *itemUseProc;
+static omObjData *yourTurnObj;
+static omObjData *pickerObj;
+static omObjData *itemWindowObj;
+static Process *statusProc;
 
 static s16 itemPickupMdlId = -1;
 static s16 yourTurnSprGrp = -1;
 
 static UnkUiStatusStruct uiStatus[4] = { 0 };
 
-static s32 statusSprTbl[11] = {
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x27),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x26),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x29),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x28),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x28),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x28),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x2D),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x28),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x28),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x28),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x2C)
-};
+static s32 statusSprTbl[11] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x27), DATA_MAKE_NUM(DATADIR_BOARD, 0x26), DATA_MAKE_NUM(DATADIR_BOARD, 0x29),
+    DATA_MAKE_NUM(DATADIR_BOARD, 0x28), DATA_MAKE_NUM(DATADIR_BOARD, 0x28), DATA_MAKE_NUM(DATADIR_BOARD, 0x28), DATA_MAKE_NUM(DATADIR_BOARD, 0x2D),
+    DATA_MAKE_NUM(DATADIR_BOARD, 0x28), DATA_MAKE_NUM(DATADIR_BOARD, 0x28), DATA_MAKE_NUM(DATADIR_BOARD, 0x28), DATA_MAKE_NUM(DATADIR_BOARD, 0x2C) };
 
-static s16 statusSprPrioTbl[12] = {
-    0x05F0, 0x05E6, 0x05DC, 0x05D2,
-    0x05DC, 0x05DC, 0x05DC, 0x05DC,
-    0x05DC, 0x05DC, 0x05DC, 0x05DC
-};
+static s16 statusSprPrioTbl[12] = { 0x05F0, 0x05E6, 0x05DC, 0x05D2, 0x05DC, 0x05DC, 0x05DC, 0x05DC, 0x05DC, 0x05DC, 0x05DC, 0x05DC };
 
-static float statusHideOfsTbl[4] = {
-    -230.0f, 230.0f, -230.0f, 230.0f
-};
+static float statusHideOfsTbl[4] = { -230.0f, 230.0f, -230.0f, 230.0f };
 
-static float statusPosTbl[4][2] = {
-    { 114.0f, 84.0f },
-    { HU_DISP_WIDTH-114, 84.0f },
-    { 114.0f, HU_DISP_HEIGHT-84 },
-    { HU_DISP_WIDTH-114, HU_DISP_HEIGHT-84 }
-};
+static float statusPosTbl[4][2]
+    = { { 114.0f, 84.0f }, { HU_DISP_WIDTH - 114, 84.0f }, { 114.0f, HU_DISP_HEIGHT - 84 }, { HU_DISP_WIDTH - 114, HU_DISP_HEIGHT - 84 } };
 
-static u8 statusColTbl[4][4] = {
-    { 0x80, 0x80, 0x80, 0x00 },
-    { 0x1A, 0x84, 0xFF, 0x00 },
-    { 0xFF, 0x1A, 0x2D, 0x00 },
-    { 0x0A, 0xB4, 0x3C, 0x00 }
-};
+static u8 statusColTbl[4][4] = { { 0x80, 0x80, 0x80, 0x00 }, { 0x1A, 0x84, 0xFF, 0x00 }, { 0xFF, 0x1A, 0x2D, 0x00 }, { 0x0A, 0xB4, 0x3C, 0x00 } };
 
-static float statusSprPosTbl[17][2] = {
-    {   0.0f,   0.0f },
-    {   0.0f,   0.0f },
-    { -68.0f,   0.0f },
-    {  80.0f,  14.0f },
-    {  64.0f,  14.0f },
-    {  48.0f,  14.0f },
-    {  26.0f,  14.0f },
-    {  80.0f, -12.0f },
-    {  64.0f, -12.0f },
-    {  48.0f, -12.0f },
-    {  26.0f, -12.0f },
-    { -16.0f,   0.0f },
-    { -18.0f,  32.0f },
-    {  24.0f, -34.0f },
-    {  48.0f, -34.0f },
-    {  72.0f, -34.0f },
-    { -32.0f, -16.0f }
-};
+static float statusSprPosTbl[17][2] = { { 0.0f, 0.0f }, { 0.0f, 0.0f }, { -68.0f, 0.0f }, { 80.0f, 14.0f }, { 64.0f, 14.0f }, { 48.0f, 14.0f },
+    { 26.0f, 14.0f }, { 80.0f, -12.0f }, { 64.0f, -12.0f }, { 48.0f, -12.0f }, { 26.0f, -12.0f }, { -16.0f, 0.0f }, { -18.0f, 32.0f },
+    { 24.0f, -34.0f }, { 48.0f, -34.0f }, { 72.0f, -34.0f }, { -32.0f, -16.0f } };
 
 static float statusItemPosTbl[6][2] = {
     { -56.0f,   0.0f },
@@ -233,80 +192,47 @@ static float statusItemPosTbl[6][2] = {
     { -56.0f, -16.0f }
 };
 
-static s32 itemMdlTbl[14] = {
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x83),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x84),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x85),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x86),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x87),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x88),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x89),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x8A),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x8B),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x8C),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x8D),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x8E),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x8F),
-    DATA_MAKE_NUM(DATADIR_BOARD, 0x90)
-};
+static s32 itemMdlTbl[14] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x83), DATA_MAKE_NUM(DATADIR_BOARD, 0x84), DATA_MAKE_NUM(DATADIR_BOARD, 0x85),
+    DATA_MAKE_NUM(DATADIR_BOARD, 0x86), DATA_MAKE_NUM(DATADIR_BOARD, 0x87), DATA_MAKE_NUM(DATADIR_BOARD, 0x88), DATA_MAKE_NUM(DATADIR_BOARD, 0x89),
+    DATA_MAKE_NUM(DATADIR_BOARD, 0x8A), DATA_MAKE_NUM(DATADIR_BOARD, 0x8B), DATA_MAKE_NUM(DATADIR_BOARD, 0x8C), DATA_MAKE_NUM(DATADIR_BOARD, 0x8D),
+    DATA_MAKE_NUM(DATADIR_BOARD, 0x8E), DATA_MAKE_NUM(DATADIR_BOARD, 0x8F), DATA_MAKE_NUM(DATADIR_BOARD, 0x90) };
 
-static Vec teamItemStatusPosTbl[2] = {
-    { HU_DISP_CENTERX-98, 116.0f, 0.0f },
-    { HU_DISP_CENTERX+98, 116.0f, 0.0f }
-};
+static Vec teamItemStatusPosTbl[2] = { { HU_DISP_CENTERX - 98, 116.0f, 0.0f }, { HU_DISP_CENTERX + 98, 116.0f, 0.0f } };
 
-s32 BoardItemModelGet(s32 arg0) {
-    s32 sp8[14] = {
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x6D),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x6E),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x6F),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x70),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x71),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x72),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x73),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x74),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x76),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x77),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x78),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x79),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x7A),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x7B)
-    };
+s32 BoardItemModelGet(s32 arg0)
+{
+    s32 sp8[14] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x6D), DATA_MAKE_NUM(DATADIR_BOARD, 0x6E), DATA_MAKE_NUM(DATADIR_BOARD, 0x6F),
+        DATA_MAKE_NUM(DATADIR_BOARD, 0x70), DATA_MAKE_NUM(DATADIR_BOARD, 0x71), DATA_MAKE_NUM(DATADIR_BOARD, 0x72),
+        DATA_MAKE_NUM(DATADIR_BOARD, 0x73), DATA_MAKE_NUM(DATADIR_BOARD, 0x74), DATA_MAKE_NUM(DATADIR_BOARD, 0x76),
+        DATA_MAKE_NUM(DATADIR_BOARD, 0x77), DATA_MAKE_NUM(DATADIR_BOARD, 0x78), DATA_MAKE_NUM(DATADIR_BOARD, 0x79),
+        DATA_MAKE_NUM(DATADIR_BOARD, 0x7A), DATA_MAKE_NUM(DATADIR_BOARD, 0x7B) };
 
     return sp8[arg0];
 }
 
-s32 BoardItemNameGet(s32 arg0) {
-    s32 sp8[15] = {
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x00),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x01),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x02),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x03),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x04),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x05),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x06),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x07),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x08),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x09),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x0A),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x0B),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x0C),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x0D),
-        DATA_MAKE_NUM(DATADIR_EFFECT, 0x0E)
-    };
+s32 BoardItemNameGet(s32 arg0)
+{
+    s32 sp8[15] = { DATA_MAKE_NUM(DATADIR_EFFECT, 0x00), DATA_MAKE_NUM(DATADIR_EFFECT, 0x01), DATA_MAKE_NUM(DATADIR_EFFECT, 0x02),
+        DATA_MAKE_NUM(DATADIR_EFFECT, 0x03), DATA_MAKE_NUM(DATADIR_EFFECT, 0x04), DATA_MAKE_NUM(DATADIR_EFFECT, 0x05),
+        DATA_MAKE_NUM(DATADIR_EFFECT, 0x06), DATA_MAKE_NUM(DATADIR_EFFECT, 0x07), DATA_MAKE_NUM(DATADIR_EFFECT, 0x08),
+        DATA_MAKE_NUM(DATADIR_EFFECT, 0x09), DATA_MAKE_NUM(DATADIR_EFFECT, 0x0A), DATA_MAKE_NUM(DATADIR_EFFECT, 0x0B),
+        DATA_MAKE_NUM(DATADIR_EFFECT, 0x0C), DATA_MAKE_NUM(DATADIR_EFFECT, 0x0D), DATA_MAKE_NUM(DATADIR_EFFECT, 0x0E) };
 
     return sp8[arg0];
 }
 
-BOOL BoardStatusStopCheck(s32 arg0) {
+BOOL BoardStatusStopCheck(s32 arg0)
+{
     return (uiStatus[arg0].unk00_bit2) ? FALSE : TRUE;
 }
 
-s32 BoardStatusVisibleGet(s32 arg0) {
+s32 BoardStatusVisibleGet(s32 arg0)
+{
     return uiStatus[arg0].unk00_bit1;
 }
 
-void BoardStatusShowSetAll(s32 arg0) {
+void BoardStatusShowSetAll(s32 arg0)
+{
     s32 i;
 
     for (i = 0; i < 4; i++) {
@@ -314,7 +240,8 @@ void BoardStatusShowSetAll(s32 arg0) {
     }
 }
 
-void BoardStatusItemSet(s32 arg0) {
+void BoardStatusItemSet(s32 arg0)
+{
     UnkUiStatusStruct *temp_r31;
     s32 i;
     s32 j;
@@ -334,11 +261,13 @@ void BoardStatusItemSet(s32 arg0) {
     }
 }
 
-void BoardStatusShowSetForce(s32 arg0) {
+void BoardStatusShowSetForce(s32 arg0)
+{
     uiStatus[arg0].unk00_bit3 = 1;
 }
 
-void BoardStatusGraySet(s32 arg0, s32 arg1) {
+void BoardStatusGraySet(s32 arg0, s32 arg1)
+{
     UnkUiStatusStruct *temp_r31;
     s16 sp10[9] = { 3, 4, 5, 7, 8, 9, 2, 6, 10 };
     s16 var_r28;
@@ -350,7 +279,8 @@ void BoardStatusGraySet(s32 arg0, s32 arg1) {
         var_r29 = 0xFF;
         temp_r31->unk00_bit4 = 1;
         var_r28 = 1500;
-    } else {
+    }
+    else {
         var_r29 = 0x3F;
         temp_r31->unk00_bit4 = 0;
         var_r28 = 1530;
@@ -361,7 +291,8 @@ void BoardStatusGraySet(s32 arg0, s32 arg1) {
     }
 }
 
-void BoardStatusShowSet(s32 arg0, s32 arg1) {
+void BoardStatusShowSet(s32 arg0, s32 arg1)
+{
     UnkUiStatusStruct *temp_r31 = &uiStatus[arg0];
 
     if (temp_r31->unk00_bit3) {
@@ -374,7 +305,8 @@ void BoardStatusShowSet(s32 arg0, s32 arg1) {
             temp_r31->unk10.y = statusPosTbl[arg0][1];
             temp_r31->unk00_bit3 = 0;
         }
-    } else {
+    }
+    else {
         if (!temp_r31->unk00_bit1) {
             temp_r31->unk00_bit1 = 1;
             temp_r31->unk10.x = statusPosTbl[arg0][0];
@@ -385,17 +317,20 @@ void BoardStatusShowSet(s32 arg0, s32 arg1) {
     }
 }
 
-void BoardStatusItemHideSet(s32 arg0, s32 arg1) {
+void BoardStatusItemHideSet(s32 arg0, s32 arg1)
+{
     UnkUiStatusStruct *temp_r31 = &uiStatus[arg0];
 
     if (arg1 != 0) {
         temp_r31->unk00_bit5 = 1;
-    } else {
+    }
+    else {
         temp_r31->unk00_bit5 = 0;
     }
 }
 
-void BoardStatusTargetPosSet(s32 arg0, Vec *arg1) {
+void BoardStatusTargetPosSet(s32 arg0, Vec *arg1)
+{
     UnkUiStatusStruct *temp_r31 = &uiStatus[arg0];
 
     temp_r31->unk10.x = arg1->x;
@@ -403,14 +338,16 @@ void BoardStatusTargetPosSet(s32 arg0, Vec *arg1) {
     temp_r31->unk00_bit2 = 1;
 }
 
-void BoardStatusPosGet(s32 arg0, Vec *arg1) {
+void BoardStatusPosGet(s32 arg0, Vec *arg1)
+{
     UnkUiStatusStruct *temp_r31 = &uiStatus[arg0];
 
     arg1->x = temp_r31->unk04.x;
     arg1->y = temp_r31->unk04.y;
 }
 
-void BoardStatusPosSet(s32 arg0, Vec *arg1) {
+void BoardStatusPosSet(s32 arg0, Vec *arg1)
+{
     UnkUiStatusStruct *temp_r30 = &uiStatus[arg0];
 
     temp_r30->unk04.x = arg1->x;
@@ -418,7 +355,8 @@ void BoardStatusPosSet(s32 arg0, Vec *arg1) {
     BoardStatusTargetPosSet(arg0, arg1);
 }
 
-void BoardStatusHammerCreate(s32 arg0) {
+void BoardStatusHammerCreate(s32 arg0)
+{
     UnkUiStatusStruct *temp_r31 = &uiStatus[arg0];
     float spC[2];
     s32 var_r30;
@@ -450,20 +388,23 @@ void BoardStatusHammerCreate(s32 arg0) {
     }
 }
 
-void BoardStatusHammerShowSet(s32 arg0, s32 arg1) {
+void BoardStatusHammerShowSet(s32 arg0, s32 arg1)
+{
     UnkUiStatusStruct *temp_r31 = &uiStatus[arg0];
 
     if (temp_r31->unk00_bit6) {
         if (arg1 != 0) {
             HuSprAttrSet(temp_r31->unk02, 0x10, HUSPR_ATTR_LOOP);
-        } else {
+        }
+        else {
             HuSprAttrReset(temp_r31->unk02, 0x10, HUSPR_ATTR_LOOP);
             HuSprAttrSet(temp_r31->unk02, 0x10, HUSPR_ATTR_NOANIM);
         }
     }
 }
 
-void BoardStatusHammerKill(s32 arg0) {
+void BoardStatusHammerKill(s32 arg0)
+{
     UnkUiStatusStruct *temp_r31 = &uiStatus[arg0];
 
     if (temp_r31->unk00_bit6) {
@@ -472,7 +413,8 @@ void BoardStatusHammerKill(s32 arg0) {
     }
 }
 
-void BoardStatusKill(void) {
+void BoardStatusKill(void)
+{
     UnkUiStatusStruct *temp_r31;
     s32 i;
 
@@ -488,7 +430,8 @@ void BoardStatusKill(void) {
     }
 }
 
-void BoardStatusCreate(void) {
+void BoardStatusCreate(void)
+{
     s32 i;
 
     memset(uiStatus, 0, 0x70);
@@ -514,28 +457,23 @@ void BoardStatusCreate(void) {
     }
 }
 
-static void KillAllBoardStatus(void) {
+static void KillAllBoardStatus(void)
+{
     BoardStatusKill();
     statusProc = NULL;
 }
 
-static void CreateBoardStatusSprite(s32 arg0, UnkUiStatusStruct *arg1) {
+static void CreateBoardStatusSprite(s32 arg0, UnkUiStatusStruct *arg1)
+{
     float var_f31;
     float var_f30;
     s16 sp8;
     s32 temp_r28;
     s32 temp_r27;
     s16 temp_r26;
-    s32 spC[] = {
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x2E),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x2F),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x30),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x31),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x32),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x33),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x34),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x35)
-    };
+    s32 spC[] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x2E), DATA_MAKE_NUM(DATADIR_BOARD, 0x2F), DATA_MAKE_NUM(DATADIR_BOARD, 0x30),
+        DATA_MAKE_NUM(DATADIR_BOARD, 0x31), DATA_MAKE_NUM(DATADIR_BOARD, 0x32), DATA_MAKE_NUM(DATADIR_BOARD, 0x33),
+        DATA_MAKE_NUM(DATADIR_BOARD, 0x34), DATA_MAKE_NUM(DATADIR_BOARD, 0x35) };
     s32 i;
 
     temp_r28 = GWPlayerCfg[arg0].character;
@@ -549,10 +487,11 @@ static void CreateBoardStatusSprite(s32 arg0, UnkUiStatusStruct *arg1) {
         HuSprAttrSet(arg1->unk02, i, 8);
         HuSprPosSet(arg1->unk02, i, statusSprPosTbl[i][0], statusSprPosTbl[i][1]);
     }
-    if ((s32) GWSystem.team != 0) {
+    if ((s32)GWSystem.team != 0) {
         if (GWPlayerTeamGet(arg0) == 0) {
             HuSprBankSet(arg1->unk02, 1, 2);
-        } else {
+        }
+        else {
             HuSprBankSet(arg1->unk02, 1, 1);
         }
     }
@@ -584,12 +523,13 @@ static void CreateBoardStatusSprite(s32 arg0, UnkUiStatusStruct *arg1) {
     }
 }
 
-void BoardSpriteCreate(s32 file, s32 prio, ANIMDATA **anim, s16 *sprite) {
+void BoardSpriteCreate(s32 file, s32 prio, ANIMDATA **anim, s16 *sprite)
+{
     s16 temp_r28;
     void *temp_r27;
     ANIMDATA *temp_r31;
 
-    temp_r27 = HuDataSelHeapReadNum(file, HU_MEMNUM_OVL, HEAP_MODEL);
+    temp_r27 = HuDataSelHeapReadNum(file, MEMORY_DEFAULT_NUM, HEAP_DATA);
     temp_r31 = HuSprAnimRead(temp_r27);
     temp_r28 = HuSprCreate(temp_r31, prio, 0);
     if (anim) {
@@ -600,7 +540,8 @@ void BoardSpriteCreate(s32 file, s32 prio, ANIMDATA **anim, s16 *sprite) {
     }
 }
 
-static s32 UpdateBoardStatus(void) {
+static s32 UpdateBoardStatus(void)
+{
     UnkUiStatusStruct *temp_r31;
     u8 *temp_r28;
     s32 temp_r27;
@@ -621,13 +562,15 @@ static s32 UpdateBoardStatus(void) {
             if (temp_r27 != -1 && temp_r31->unk00_bit5) {
                 UpdateStatusItem(temp_r31, j, temp_r27);
                 HuSprAttrReset(temp_r31->unk02, j + 0xD, HUSPR_ATTR_DISPOFF);
-            } else {
+            }
+            else {
                 HuSprAttrSet(temp_r31->unk02, j + 0xD, HUSPR_ATTR_DISPOFF);
             }
         }
         if (GWPlayer[i].com) {
             HuSprAttrReset(temp_r31->unk02, 0xC, HUSPR_ATTR_DISPOFF);
-        } else {
+        }
+        else {
             HuSprAttrSet(temp_r31->unk02, 0xC, HUSPR_ATTR_DISPOFF);
         }
         temp_r28 = statusColTbl[GWPlayer[i].color];
@@ -638,7 +581,8 @@ static s32 UpdateBoardStatus(void) {
     return 0;
 }
 
-static void BoardStatusProc(void) {
+static void BoardStatusProc(void)
+{
     while (1) {
         if (omSysExitReq != 0 || UpdateBoardStatus() != 0) {
             break;
@@ -648,7 +592,8 @@ static void BoardStatusProc(void) {
     HuPrcEnd();
 }
 
-static void MoveBoardStatus(s32 arg0) {
+static void MoveBoardStatus(s32 arg0)
+{
     UnkUiStatusStruct *temp_r30 = &uiStatus[arg0];
     float var_f30;
     Vec spC;
@@ -657,7 +602,8 @@ static void MoveBoardStatus(s32 arg0) {
     if (ABS(spC.x) < 1.0f && ABS(spC.y) < 1.0f) {
         spC = temp_r30->unk10;
         temp_r30->unk00_bit2 = 0;
-    } else {
+    }
+    else {
         OSs8tof32(&temp_r30->unk01, &var_f30);
         var_f30 /= 32;
         VECScale(&spC, &spC, var_f30);
@@ -668,7 +614,8 @@ static void MoveBoardStatus(s32 arg0) {
     temp_r30->unk04.y = spC.y;
 }
 
-void BoardSpriteDigitUpdate(s16 arg0, s16 arg1, s32 arg2) {
+void BoardSpriteDigitUpdate(s16 arg0, s16 arg1, s32 arg2)
+{
     s32 temp_r29;
     s32 temp_r28;
     s32 temp_r27;
@@ -678,20 +625,23 @@ void BoardSpriteDigitUpdate(s16 arg0, s16 arg1, s32 arg2) {
     temp_r27 = (arg2 - (temp_r29 * 100 + temp_r28 * 10)) % 10;
     if (temp_r29 == 0) {
         HuSprBankSet(arg0, arg1 + 2, 0xA);
-    } else {
+    }
+    else {
         HuSprBankSet(arg0, arg1 + 2, temp_r29);
     }
     if (temp_r28 == 0 && temp_r29 == 0) {
         HuSprBankSet(arg0, arg1 + 1, temp_r27);
         HuSprAttrSet(arg0, arg1, 4);
-    } else {
+    }
+    else {
         HuSprBankSet(arg0, arg1 + 1, temp_r28);
         HuSprBankSet(arg0, arg1, temp_r27);
         HuSprAttrReset(arg0, arg1, HUSPR_ATTR_DISPOFF);
     }
 }
 
-static void UpdateStatusItem(UnkUiStatusStruct *arg0, s32 arg1, s32 arg2) {
+static void UpdateStatusItem(UnkUiStatusStruct *arg0, s32 arg1, s32 arg2)
+{
     float temp_f31;
     float temp_f30;
 
@@ -701,26 +651,20 @@ static void UpdateStatusItem(UnkUiStatusStruct *arg0, s32 arg1, s32 arg2) {
     HuSprPosSet(arg0->unk02, arg1 + 0xD, temp_f31, temp_f30);
 }
 
-void BoardPickerCreate(s32 arg0, s8 arg1, void *arg2, s8 arg3) {
+void BoardPickerCreate(s32 arg0, s8 arg1, void *arg2, s8 arg3)
+{
     UnkUiWork01 *temp_r31;
-    OMOBJ *temp_r30;
+    omObjData *temp_r30;
     s32 temp_r28;
     s16 sp12;
-    s32 sp14[] = {
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x1E),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x1F),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x20),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x21),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x22),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x23),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x24),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x25)
-    };
+    s32 sp14[] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x1E), DATA_MAKE_NUM(DATADIR_BOARD, 0x1F), DATA_MAKE_NUM(DATADIR_BOARD, 0x20),
+        DATA_MAKE_NUM(DATADIR_BOARD, 0x21), DATA_MAKE_NUM(DATADIR_BOARD, 0x22), DATA_MAKE_NUM(DATADIR_BOARD, 0x23),
+        DATA_MAKE_NUM(DATADIR_BOARD, 0x24), DATA_MAKE_NUM(DATADIR_BOARD, 0x25) };
 
     temp_r28 = GWPlayer[arg0].character;
     temp_r30 = omAddObjEx(boardObjMan, 0x107, 0, 0, -1, &UpdatePicker);
     pickerObj = temp_r30;
-    temp_r31 = omObjGetWork(temp_r30, UnkUiWork01);
+    temp_r31 = OM_GET_WORK_PTR(temp_r30, UnkUiWork01);
     temp_r31->unk00_bit0 = 0;
     temp_r31->unk00_bit6 = 0;
     temp_r31->unk00_bit5 = arg0;
@@ -748,29 +692,34 @@ void BoardPickerCreate(s32 arg0, s8 arg1, void *arg2, s8 arg3) {
     CreatePickerWindow(temp_r31, 1);
 }
 
-void BoardPickerBackFlagSet(s32 arg0) {
+void BoardPickerBackFlagSet(s32 arg0)
+{
     if (pickerObj) {
         if (arg0 != 0) {
             pickerBackF = 0;
-        } else {
+        }
+        else {
             pickerBackF = 1;
         }
         if (arg0 == 0) {
-            KillPickerWindow(omObjGetWork(pickerObj, UnkUiWork01));
-            CreatePickerWindow(omObjGetWork(pickerObj, UnkUiWork01), 0);
+            KillPickerWindow(OM_GET_WORK_PTR(pickerObj, UnkUiWork01));
+            CreatePickerWindow(OM_GET_WORK_PTR(pickerObj, UnkUiWork01), 0);
         }
     }
 }
 
-BOOL BoardPickerDoneCheck(void) {
+BOOL BoardPickerDoneCheck(void)
+{
     if (pickerObj) {
         return FALSE;
-    } else {
+    }
+    else {
         return TRUE;
     }
 }
 
-s32 BoardPickerPosGet(Vec *arg0) {
+s32 BoardPickerPosGet(Vec *arg0)
+{
     if (pickerObj == 0 || arg0 == 0) {
         return -1;
     }
@@ -780,24 +729,29 @@ s32 BoardPickerPosGet(Vec *arg0) {
     return 0;
 }
 
-s32 BoardPickerChoiceGet(void) {
+s32 BoardPickerChoiceGet(void)
+{
     return pickerChoice;
 }
 
-static void UpdatePicker(OMOBJ *arg0) {
-    UnkUiWork01 *temp_r31 = omObjGetWork(arg0, UnkUiWork01);
+static void UpdatePicker(omObjData *arg0)
+{
+    UnkUiWork01 *temp_r31 = OM_GET_WORK_PTR(arg0, UnkUiWork01);
 
     if (temp_r31->unk00_bit0 || BoardIsKill()) {
         HuWinKill(temp_r31->unk06);
         HuSprGrpKill(temp_r31->unk04);
         pickerObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
-    } else {
+    }
+    else {
         if (temp_r31->unk03 != 0) {
             temp_r31->unk03--;
-        } else if (pickerChoice != -1 || temp_r31->unk00_bit7) {
+        }
+        else if (pickerChoice != -1 || temp_r31->unk00_bit7) {
             temp_r31->unk00_bit0 = 1;
-        } else {
+        }
+        else {
             UpdatePickerInput(temp_r31, arg0);
         }
         MovePicker(temp_r31, arg0);
@@ -805,7 +759,8 @@ static void UpdatePicker(OMOBJ *arg0) {
     }
 }
 
-static void UpdatePickerInput(UnkUiWork01 *arg0, OMOBJ *arg1) {
+static void UpdatePickerInput(UnkUiWork01 *arg0, omObjData *arg1)
+{
     s32 sp8;
     s32 temp_r29;
 
@@ -813,7 +768,8 @@ static void UpdatePickerInput(UnkUiWork01 *arg0, OMOBJ *arg1) {
         sp8 = 0;
         if (GWPlayer[arg0->unk00_bit5].com && arg0->unk01 != -1) {
             UpdateComPickerButton(arg0, arg1, &sp8);
-        } else {
+        }
+        else {
             temp_r29 = GWPlayer[arg0->unk00_bit5].port;
             sp8 = HuPadDStkRep[temp_r29] | HuPadBtnDown[temp_r29];
         }
@@ -825,7 +781,8 @@ static void UpdatePickerInput(UnkUiWork01 *arg0, OMOBJ *arg1) {
     }
 }
 
-static void MovePicker(UnkUiWork01 *arg0, OMOBJ *arg1) {
+static void MovePicker(UnkUiWork01 *arg0, omObjData *arg1)
+{
     float temp_f31 = 0.5f;
     Vec sp14;
     Vec sp8;
@@ -842,7 +799,8 @@ static void MovePicker(UnkUiWork01 *arg0, OMOBJ *arg1) {
         arg1->trans.y = arg1->rot.y;
         arg1->trans.z = arg1->rot.z;
         arg0->unk00_bit6 = 0;
-    } else {
+    }
+    else {
         VECScale(&sp8, &sp8, temp_f31);
         VECAdd(&sp14, &sp8, &sp8);
         arg1->trans.x = sp8.x;
@@ -852,34 +810,40 @@ static void MovePicker(UnkUiWork01 *arg0, OMOBJ *arg1) {
     }
 }
 
-static void UpdateComPickerButton(UnkUiWork01 *arg0, OMOBJ *arg1, s32 *arg2) {
+static void UpdateComPickerButton(UnkUiWork01 *arg0, omObjData *arg1, s32 *arg2)
+{
     if (arg0->unk02 == arg0->unk01) {
         *arg2 = 0x100;
-    } else {
+    }
+    else {
         *arg2 = 2;
     }
 }
 
-static BOOL CheckPickerButton(UnkUiWork01 *arg0, OMOBJ *arg1, u32 arg2) {
+static BOOL CheckPickerButton(UnkUiWork01 *arg0, omObjData *arg1, u32 arg2)
+{
     BOOL var_r30 = FALSE;
 
     if (arg2 == 0x100) {
         pickerChoice = arg0->unk02;
         HuAudFXPlay(2);
         var_r30 = TRUE;
-    } else if (arg2 == 0x200 && pickerBackF == 0) {
+    }
+    else if (arg2 == 0x200 && pickerBackF == 0) {
         arg0->unk00_bit0 = 1;
         arg0->unk00_bit7 = 1;
         pickerChoice = -1;
         HuAudFXPlay(3);
         var_r30 = TRUE;
-    } else if (arg2 & 1) {
+    }
+    else if (arg2 & 1) {
         var_r30 = TRUE;
         if (pickerChoiceDefault > 1) {
             HuAudFXPlay(0);
         }
         arg0->unk02--;
-    } else if (arg2 & 2) {
+    }
+    else if (arg2 & 2) {
         var_r30 = TRUE;
         if (pickerChoiceDefault > 1) {
             HuAudFXPlay(0);
@@ -898,23 +862,17 @@ static BOOL CheckPickerButton(UnkUiWork01 *arg0, OMOBJ *arg1, u32 arg2) {
     return var_r30;
 }
 
-void BoardYourTurnExec(s32 arg0) {
+void BoardYourTurnExec(s32 arg0)
+{
     s32 temp_r29;
     UnkUiWork02 *temp_r31;
-    s32 sp8[] = {
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x43),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x44),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x45),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x46),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x47),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x48),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x49),
-        DATA_MAKE_NUM(DATADIR_BOARD, 0x4A)
-    };
+    s32 sp8[] = { DATA_MAKE_NUM(DATADIR_BOARD, 0x43), DATA_MAKE_NUM(DATADIR_BOARD, 0x44), DATA_MAKE_NUM(DATADIR_BOARD, 0x45),
+        DATA_MAKE_NUM(DATADIR_BOARD, 0x46), DATA_MAKE_NUM(DATADIR_BOARD, 0x47), DATA_MAKE_NUM(DATADIR_BOARD, 0x48),
+        DATA_MAKE_NUM(DATADIR_BOARD, 0x49), DATA_MAKE_NUM(DATADIR_BOARD, 0x4A) };
 
     temp_r29 = GWPlayer[arg0].character;
     yourTurnObj = omAddObjEx(boardObjMan, 0x10B, 0, 0, -1, &UpdateYourTurn);
-    temp_r31 = omObjGetWork(yourTurnObj, UnkUiWork02);
+    temp_r31 = OM_GET_WORK_PTR(yourTurnObj, UnkUiWork02);
     temp_r31->unk00_bit0 = 0;
     temp_r31->unk00_bit5 = arg0;
     temp_r31->unk00_bit3 = 0;
@@ -933,15 +891,17 @@ void BoardYourTurnExec(s32 arg0) {
     }
 }
 
-static void UpdateYourTurn(OMOBJ *arg0) {
-    UnkUiWork02 *temp_r31 = omObjGetWork(arg0, UnkUiWork02);
+static void UpdateYourTurn(omObjData *arg0)
+{
+    UnkUiWork02 *temp_r31 = OM_GET_WORK_PTR(arg0, UnkUiWork02);
 
     if (temp_r31->unk00_bit0 || BoardIsKill()) {
         HuSprGrpKill(yourTurnSprGrp);
         yourTurnSprGrp = -1;
         yourTurnObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
-    } else {
+    }
+    else {
         switch (temp_r31->unk00_bit3) {
             case 0:
                 GrowYourTurn(temp_r31, arg0);
@@ -956,7 +916,8 @@ static void UpdateYourTurn(OMOBJ *arg0) {
     }
 }
 
-static void GrowYourTurn(UnkUiWork02 *arg0, OMOBJ *arg1) {
+static void GrowYourTurn(UnkUiWork02 *arg0, omObjData *arg1)
+{
     float temp_f30;
 
     arg0->unk01 += 7;
@@ -969,7 +930,8 @@ static void GrowYourTurn(UnkUiWork02 *arg0, OMOBJ *arg1) {
     HuSprScaleSet(yourTurnSprGrp, 0, temp_f30, temp_f30);
 }
 
-static void WaitYourTurn(UnkUiWork02 *arg0, OMOBJ *arg1) {
+static void WaitYourTurn(UnkUiWork02 *arg0, omObjData *arg1)
+{
     float temp_f30;
 
     arg0->unk01 += 7;
@@ -983,7 +945,8 @@ static void WaitYourTurn(UnkUiWork02 *arg0, OMOBJ *arg1) {
     HuSprTPLvlSet(yourTurnSprGrp, 0, 1.0f - temp_f30);
 }
 
-static void ShrinkYourTurn(UnkUiWork02 *arg0, OMOBJ *arg1) {
+static void ShrinkYourTurn(UnkUiWork02 *arg0, omObjData *arg1)
+{
     s32 temp_r30 = GWPlayer[arg0->unk00_bit5].port;
 
     if ((HuPadBtnDown[temp_r30] & 0x100) || GWPlayer[arg0->unk00_bit5].com || _CheckFlag(FLAG_ID_MAKE(1, 11))) {
@@ -993,7 +956,8 @@ static void ShrinkYourTurn(UnkUiWork02 *arg0, OMOBJ *arg1) {
     }
 }
 
-s32 BoardItemUseExec(s32 arg0) {
+s32 BoardItemUseExec(s32 arg0)
+{
     BoardPauseDisableSet(1);
     itemPlayer = arg0;
     itemUseProc = HuPrcChildCreate(ItemUseProc, 0x2004, 0x4000, 0, boardMainProc);
@@ -1004,7 +968,8 @@ s32 BoardItemUseExec(s32 arg0) {
     return itemUsed;
 }
 
-static void ItemUseTeamProc(s32 arg0) {
+static void ItemUseTeamProc(s32 arg0)
+{
     UnkUiStatusStruct *temp_r22;
     Vec sp40;
     Vec sp34;
@@ -1018,9 +983,10 @@ static void ItemUseTeamProc(s32 arg0) {
             if (itemTeamF != 0) {
                 BoardStatusTargetPosSet(itemPlayer, &teamItemStatusPosTbl[0]);
                 BoardStatusTargetPosSet(teamItemPlayer, &teamItemStatusPosTbl[1]);
-            } else {
-                BoardStatusTargetPosSet(itemPlayer, (Vec*) statusPosTbl[0]);
-                BoardStatusTargetPosSet(teamItemPlayer, (Vec*) statusPosTbl[1]);
+            }
+            else {
+                BoardStatusTargetPosSet(itemPlayer, (Vec *)statusPosTbl[0]);
+                BoardStatusTargetPosSet(teamItemPlayer, (Vec *)statusPosTbl[1]);
             }
             sp2C[0] = BoardPlayerTeamFind(itemPlayer);
             sp2C[1] = BoardPlayerSameTeamFind(sp2C[0]);
@@ -1032,16 +998,14 @@ static void ItemUseTeamProc(s32 arg0) {
             while (!BoardStatusStopCheck(itemPlayer) || !BoardStatusStopCheck(teamItemPlayer)) {
                 HuPrcVSleep();
             }
-        } else {
+        }
+        else {
             for (i = 0; i < 4; i++) {
                 sp40.x = statusPosTbl[i][0];
                 sp40.y = statusPosTbl[i][1];
                 BoardStatusTargetPosSet(i, &sp40);
             }
-            while (!BoardStatusStopCheck(0)
-                || !BoardStatusStopCheck(1)
-                || !BoardStatusStopCheck(2)
-                || !BoardStatusStopCheck(3)) {
+            while (!BoardStatusStopCheck(0) || !BoardStatusStopCheck(1) || !BoardStatusStopCheck(2) || !BoardStatusStopCheck(3)) {
                 sp34.z = 0.0f;
                 for (i = 0; i < 4; i++) {
                     temp_r22 = &uiStatus[i];
@@ -1059,7 +1023,8 @@ static void ItemUseTeamProc(s32 arg0) {
     }
 }
 
-static void ItemUseProc(void) {
+static void ItemUseProc(void)
+{
     s32 var_r24;
     s16 temp_r23;
     s32 var_r25;
@@ -1070,7 +1035,8 @@ static void ItemUseProc(void) {
     itemTeam = GWPlayerTeamGet(itemPlayer);
     if (GWTeamGet()) {
         itemTeamF = 1;
-    } else {
+    }
+    else {
         itemTeamF = 0;
     }
     for (i = 0; i < 4; i++) {
@@ -1137,7 +1103,8 @@ static void ItemUseProc(void) {
     HuPrcEnd();
 }
 
-static void FinishItemUse(s16 arg0, s32 arg1) {
+static void FinishItemUse(s16 arg0, s32 arg1)
+{
     s32 var_r30;
     s32 i;
     s16 temp_r29;
@@ -1173,7 +1140,8 @@ static void FinishItemUse(s16 arg0, s32 arg1) {
     }
 }
 
-static void DestroyItemUse(void) {
+static void DestroyItemUse(void)
+{
     s32 i;
 
     CharEffectLayerSet(1);
@@ -1185,7 +1153,8 @@ static void DestroyItemUse(void) {
     itemUseProc = NULL;
 }
 
-void BoardMakeRandomItem(void) {
+void BoardMakeRandomItem(void)
+{
     s32 chosenItemIndex;
     s32 i;
 
@@ -1198,30 +1167,34 @@ void BoardMakeRandomItem(void) {
     BoardItemBagItemSet(itemRandTbl);
 }
 
-static inline void TeamItemPosSetInlineFunc01(s32 arg0, s32 arg1, Vec *arg2) {
-    UnkUiWork03 *temp_r29 = omObjGetWork(itemPickObj, UnkUiWork03);
-    Vec (*temp_r31)[6] = (void*) temp_r29->unk04;
+static inline void TeamItemPosSetInlineFunc01(s32 arg0, s32 arg1, Vec *arg2)
+{
+    UnkUiWork03 *temp_r29 = OM_GET_WORK_PTR(itemPickObj, UnkUiWork03);
+    Vec(*temp_r31)[6] = (void *)temp_r29->unk04;
 
     temp_r31[arg0][arg1 + 2].x = arg2->x;
     temp_r31[arg0][arg1 + 2].y = arg2->y;
     temp_r31[arg0][arg1 + 2].z = arg2->z;
 }
 
-static inline void TeamItemPosSetInlineFunc02(s32 arg0, s32 arg1, Vec *arg2) {
-    UnkUiWork03 *temp_r29 = omObjGetWork(itemPickObj, UnkUiWork03);
-    Vec (*temp_r31)[6] = (void*) temp_r29->unk04;
+static inline void TeamItemPosSetInlineFunc02(s32 arg0, s32 arg1, Vec *arg2)
+{
+    UnkUiWork03 *temp_r29 = OM_GET_WORK_PTR(itemPickObj, UnkUiWork03);
+    Vec(*temp_r31)[6] = (void *)temp_r29->unk04;
 
     (temp_r31 + 4)[arg0][arg1 + 2].x = arg2->x;
     (temp_r31 + 4)[arg0][arg1 + 2].y = arg2->y;
     (temp_r31 + 4)[arg0][arg1 + 2].z = arg2->z;
 }
 
-static void TeamItemPosSet(s32 arg0, s32 arg1, Vec *arg2) {
+static void TeamItemPosSet(s32 arg0, s32 arg1, Vec *arg2)
+{
     TeamItemPosSetInlineFunc01(arg0, arg1, arg2);
     TeamItemPosSetInlineFunc02(arg0, arg1, arg2);
 }
 
-static inline void ExecItemPickInlineFunc01(Vec (*arg0)[6]) {
+static inline void ExecItemPickInlineFunc01(Vec (*arg0)[6])
+{
     Vec sp1C;
     Vec sp28;
     Vec sp34;
@@ -1235,7 +1208,8 @@ static inline void ExecItemPickInlineFunc01(Vec (*arg0)[6]) {
             sp14 = GWPlayer[i].items[j];
             if (sp14 == BOARD_ITEM_NONE) {
                 itemMdlId[i][j] = -1;
-            } else {
+            }
+            else {
                 BoardCameraRotGet(&sp1C);
                 temp_r24 = BoardModelCreate(itemMdlTbl[sp14], 0, 0);
                 itemMdlId[i][j] = temp_r24;
@@ -1255,13 +1229,14 @@ static inline void ExecItemPickInlineFunc01(Vec (*arg0)[6]) {
     }
 }
 
-static inline void ExecItemPickInlineFunc02(s32 arg0, s8 arg1, s32 arg2) {
+static inline void ExecItemPickInlineFunc02(s32 arg0, s8 arg1, s32 arg2)
+{
     UnkUiWork03 *sp10;
 
     BoardPickerCreate(arg0, arg1, itemPosTemp, arg2);
     CreateItemWindow(arg0, arg1);
-    sp10 = omObjGetWork(pickerObj, UnkUiWork03);
-    pickerObj->objFunc = UpdateItemPickGfx;
+    sp10 = OM_GET_WORK_PTR(pickerObj, UnkUiWork03);
+    pickerObj->func = UpdateItemPickGfx;
     while (!CheckItemWindow()) {
         HuPrcVSleep();
     }
@@ -1270,7 +1245,8 @@ static inline void ExecItemPickInlineFunc02(s32 arg0, s8 arg1, s32 arg2) {
     }
 }
 
-static void ExecItemPick(void) {
+static void ExecItemPick(void)
+{
     Vec sp40;
     s32 sp18;
     s32 var_r22;
@@ -1278,14 +1254,14 @@ static void ExecItemPick(void) {
     s32 i;
     s32 j;
     UnkUiWork03 *temp_r27;
-    Vec (*temp_r28)[6];
+    Vec(*temp_r28)[6];
 
     if (_CheckFlag(FLAG_ID_MAKE(1, 11))) {
         BoardTutorialHostHide(0);
     }
     itemPickObj = omAddObjEx(boardObjMan, 0x7E03, 0, 0, -1, &UpdateItemPick);
-    temp_r27 = omObjGetWork(itemPickObj, UnkUiWork03);
-    temp_r27->unk04 = HuMemDirectMallocNum(HEAP_HEAP, 8 * sizeof(Vec[6]), HU_MEMNUM_OVL);
+    temp_r27 = OM_GET_WORK_PTR(itemPickObj, UnkUiWork03);
+    temp_r27->unk04 = HuMemDirectMallocNum(HEAP_SYSTEM, 8 * sizeof(Vec[6]), MEMORY_DEFAULT_NUM);
     temp_r27->unk00_bit0 = 0;
     temp_r27->unk01 = 0;
     temp_r27->unk02 = 0;
@@ -1295,22 +1271,25 @@ static void ExecItemPick(void) {
     BoardStatusItemHideSet(1, 0);
     BoardStatusItemHideSet(2, 0);
     BoardStatusItemHideSet(3, 0);
-    temp_r28 = (void*) temp_r27->unk04;
+    temp_r28 = (void *)temp_r27->unk04;
     for (var_r22 = i = 0; i < 4; i++) {
         if (itemTeamF != 0) {
             if (itemTeam == GWPlayerTeamGet(i)) {
                 if (itemPlayer == i) {
                     var_r22 = 0;
-                } else {
+                }
+                else {
                     var_r22 = 1;
                 }
                 sp40.x = teamItemStatusPosTbl[var_r22].x;
                 sp40.y = teamItemStatusPosTbl[var_r22].y;
-            } else {
+            }
+            else {
                 sp40.x = statusPosTbl[i][0] + statusHideOfsTbl[i];
                 sp40.y = statusPosTbl[i][1];
             }
-        } else {
+        }
+        else {
             sp40.x = statusPosTbl[i][0];
             sp40.y = statusPosTbl[i][1];
         }
@@ -1328,7 +1307,7 @@ static void ExecItemPick(void) {
             (temp_r28 + 4)[i][j].z = temp_r28[i][j].z = 0.0f;
         }
     }
-    ExecItemPickInlineFunc01((void*) temp_r27->unk04);
+    ExecItemPickInlineFunc01((void *)temp_r27->unk04);
     memset(itemPosTemp, 0, 0x48);
     var_r23 = BoardPlayerItemCount(itemPlayer);
     ItemGetPos(itemPlayer, &itemPosTemp[0]);
@@ -1344,10 +1323,11 @@ static void ExecItemPick(void) {
     ExecItemPickInlineFunc02(itemPlayer, var_r23, sp18);
 }
 
-static void UpdateItemPick(OMOBJ *arg0) {
-    UnkUiWork03 *temp_r28 = omObjGetWork(arg0, UnkUiWork03);
+static void UpdateItemPick(omObjData *arg0)
+{
+    UnkUiWork03 *temp_r28 = OM_GET_WORK_PTR(arg0, UnkUiWork03);
     UnkUiStatusStruct *temp_r26;
-    Vec (*temp_r27)[6];
+    Vec(*temp_r27)[6];
     Vec sp14;
     Vec sp8;
     float temp_f30;
@@ -1370,10 +1350,12 @@ static void UpdateItemPick(OMOBJ *arg0) {
         HuMemDirectFree(temp_r28->unk04);
         itemPickObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
-    } else {
+    }
+    else {
         if (temp_r28->unk02 != 0) {
             temp_r28->unk02--;
-        } else {
+        }
+        else {
             switch (temp_r28->unk01) {
                 case 3:
                     temp_r28->unk00_bit1 = 1;
@@ -1388,7 +1370,7 @@ static void UpdateItemPick(OMOBJ *arg0) {
             }
         }
         MakeItemPickSpace(temp_r28);
-        temp_r27 = (void*) temp_r28->unk04;
+        temp_r27 = (void *)temp_r28->unk04;
         for (i = 0; i < 4; i++) {
             temp_r26 = &uiStatus[i];
             for (j = 0; j < 6; j++) {
@@ -1412,14 +1394,15 @@ static void UpdateItemPick(OMOBJ *arg0) {
     }
 }
 
-static void MakeItemPickSpace(UnkUiWork03 *arg0) {
+static void MakeItemPickSpace(UnkUiWork03 *arg0)
+{
     Vec sp8;
     float var_f29;
     s32 i;
     s32 j;
-    Vec (*temp_r28)[6];
+    Vec(*temp_r28)[6];
 
-    temp_r28 = (void*) arg0->unk04;
+    temp_r28 = (void *)arg0->unk04;
     if (!arg0->unk00_bit1) {
         if (arg0->unk03 < 90) {
             if (arg0->unk03 == 0) {
@@ -1432,7 +1415,8 @@ static void MakeItemPickSpace(UnkUiWork03 *arg0) {
                 arg0->unk03 = 90;
             }
         }
-    } else {
+    }
+    else {
         if (arg0->unk03 > 0) {
             arg0->unk03 -= 6;
             if (arg0->unk03 < 0) {
@@ -1453,7 +1437,8 @@ static void MakeItemPickSpace(UnkUiWork03 *arg0) {
                 if (arg0->unk00_bit1 && arg0->unk03 == 0) {
                     arg0->unk00_bit0 = 1;
                 }
-            } else {
+            }
+            else {
                 var_f29 = 0.3f;
                 VECScale(&sp8, &sp8, var_f29);
                 VECAdd(&temp_r28[i][j], &sp8, &sp8);
@@ -1464,9 +1449,10 @@ static void MakeItemPickSpace(UnkUiWork03 *arg0) {
     }
 }
 
-static void SetItemUIStatus(s32 arg0) {
-    UnkUiWork03 *temp_r27 = omObjGetWork(itemPickObj, UnkUiWork03);
-    Vec (*temp_r28)[6] = (void*) temp_r27->unk04;
+static void SetItemUIStatus(s32 arg0)
+{
+    UnkUiWork03 *temp_r27 = OM_GET_WORK_PTR(itemPickObj, UnkUiWork03);
+    Vec(*temp_r28)[6] = (void *)temp_r27->unk04;
     float var_f31;
     float var_f30;
     s32 i;
@@ -1508,7 +1494,8 @@ static void SetItemUIStatus(s32 arg0) {
     temp_r27->unk01 = arg0;
 }
 
-void BoardItemGetDestPos(s32 arg0, Vec *arg1) {
+void BoardItemGetDestPos(s32 arg0, Vec *arg1)
+{
     Vec spC;
     s32 i;
 
@@ -1516,11 +1503,12 @@ void BoardItemGetDestPos(s32 arg0, Vec *arg1) {
     spC.y = statusPosTbl[arg0][1];
     spC.z = 0.0f;
     for (i = 0; i < 3; i++) {
-        VECAdd((Vec*) &statusItemPosTbl[i + 2], &spC, &arg1[i]);
+        VECAdd((Vec *)&statusItemPosTbl[i + 2], &spC, &arg1[i]);
     }
 }
 
-static void ItemGetPos(s32 arg0, Vec *arg1) {
+static void ItemGetPos(s32 arg0, Vec *arg1)
+{
     Vec spC;
     s32 var_r29;
     s32 i;
@@ -1528,22 +1516,25 @@ static void ItemGetPos(s32 arg0, Vec *arg1) {
     if (itemTeamF != 0) {
         if (itemPlayer == arg0) {
             var_r29 = 0;
-        } else {
+        }
+        else {
             var_r29 = 1;
         }
         spC.x = teamItemStatusPosTbl[var_r29].x;
         spC.y = teamItemStatusPosTbl[var_r29].y;
-    } else {
+    }
+    else {
         spC.x = statusPosTbl[arg0][0];
         spC.y = statusPosTbl[arg0][1];
     }
     spC.z = 0.0f;
     for (i = 0; i < 3; i++) {
-        VECAdd((Vec*) statusItemPosTbl[i + 2], &spC, &arg1[i]);
+        VECAdd((Vec *)statusItemPosTbl[i + 2], &spC, &arg1[i]);
     }
 }
 
-void BoardItemStatusKill(s32 arg0) {
+void BoardItemStatusKill(s32 arg0)
+{
     Vec sp68[3];
     Vec sp44[3];
     Vec sp20[3];
@@ -1558,11 +1549,13 @@ void BoardItemStatusKill(s32 arg0) {
             if (arg0 == itemPlayer) {
                 sp8.x = teamItemStatusPosTbl[0].x;
                 sp8.y = teamItemStatusPosTbl[0].y;
-            } else {
+            }
+            else {
                 sp8.x = teamItemStatusPosTbl[1].x;
                 sp8.y = teamItemStatusPosTbl[1].y;
             }
-        } else {
+        }
+        else {
             sp8.x = statusPosTbl[arg0][0];
             sp8.y = statusPosTbl[arg0][1];
         }
@@ -1594,18 +1587,21 @@ void BoardItemStatusKill(s32 arg0) {
     }
 }
 
-static void UpdateItemPickGfx(OMOBJ *arg0) {
-    UnkUiWork01 *temp_r30 = omObjGetWork(arg0, UnkUiWork01);
+static void UpdateItemPickGfx(omObjData *arg0)
+{
+    UnkUiWork01 *temp_r30 = OM_GET_WORK_PTR(arg0, UnkUiWork01);
 
     if (temp_r30->unk00_bit0 || BoardIsKill()) {
         HuWinKill(temp_r30->unk06);
         HuSprGrpKill(temp_r30->unk04);
         pickerObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
-    } else {
+    }
+    else {
         if (temp_r30->unk03 != 0) {
             temp_r30->unk03--;
-        } else {
+        }
+        else {
             if (!CheckItemWindowSlide()) {
                 temp_r30->unk00_bit6 = 1;
             }
@@ -1620,9 +1616,10 @@ static void UpdateItemPickGfx(OMOBJ *arg0) {
                 HuSprBankSet(temp_r30->unk04, 0, 1);
                 HuSprAttrSet(temp_r30->unk04, 0, HUSPR_ATTR_LOOP);
                 HuSprAttrReset(temp_r30->unk04, 0, HUSPR_ATTR_NOANIM);
-                arg0->objFunc = UpdateItemPickup;
+                arg0->func = UpdateItemPickup;
                 HuWinDispOff(temp_r30->unk06);
-            } else {
+            }
+            else {
                 itemUsed = -1;
             }
         }
@@ -1630,8 +1627,9 @@ static void UpdateItemPickGfx(OMOBJ *arg0) {
     }
 }
 
-static void UpdateItemPickup(OMOBJ *arg0) {
-    UnkUiWork01 *temp_r31 = omObjGetWork(arg0, UnkUiWork01);
+static void UpdateItemPickup(omObjData *arg0)
+{
+    UnkUiWork01 *temp_r31 = OM_GET_WORK_PTR(arg0, UnkUiWork01);
     Vec sp50;
     Vec sp44;
     Vec sp38;
@@ -1652,11 +1650,14 @@ static void UpdateItemPickup(OMOBJ *arg0) {
         HuSprGrpKill(temp_r31->unk04);
         pickerObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
-    } else if (temp_r31->unk03 != 0) {
+    }
+    else if (temp_r31->unk03 != 0) {
         temp_r31->unk03--;
-    } else if (pickerChoice == -1) {
+    }
+    else if (pickerChoice == -1) {
         temp_r31->unk00_bit0 = 1;
-    } else {
+    }
+    else {
         var_r29 = temp_r31->unk00_bit5;
         var_r28 = pickerChoice;
         if (GWTeamGet() && pickerChoice >= BoardPlayerItemCount(temp_r31->unk00_bit5)) {
@@ -1699,7 +1700,8 @@ static void UpdateItemPickup(OMOBJ *arg0) {
                     arg0->trans.x -= itemPickupPos;
                     arg0->trans.y += itemPickupPos;
                     itemPickupPos *= 0.98f;
-                } else {
+                }
+                else {
                     sp50.x = arg0->trans.x;
                     sp50.y = arg0->trans.y;
                     sp50.z = 3200.0f;
@@ -1716,7 +1718,8 @@ static void UpdateItemPickup(OMOBJ *arg0) {
                     temp_r31->unk03 = 0x12;
                     BoardPlayerItemRemove(var_r29, var_r28);
                     temp_r31->unk00_bit3 = 5;
-                } else {
+                }
+                else {
                     arg0->trans.x -= itemPickupPos;
                     arg0->trans.y += itemPickupPos;
                     itemPickupPos *= 0.9f;
@@ -1738,7 +1741,8 @@ static void UpdateItemPickup(OMOBJ *arg0) {
                 if (ABS(sp14.x) < 1.0f && ABS(sp14.y) < 1.0f) {
                     HuSprAttrSet(temp_r31->unk04, 0, 4);
                     temp_r31->unk00_bit3 = 6;
-                } else {
+                }
+                else {
                     VECScale(&sp14, &sp14, 0.1f);
                     VECAdd(&sp20, &sp14, &sp50);
                     sp50.z = 3200.0f;
@@ -1755,30 +1759,34 @@ static void UpdateItemPickup(OMOBJ *arg0) {
     }
 }
 
-static BOOL CheckItemWindow(void) {
+static BOOL CheckItemWindow(void)
+{
     UnkUiWork01 *temp_r31;
 
     if (pickerObj == 0) {
         return TRUE;
     }
-    temp_r31 = omObjGetWork(pickerObj, UnkUiWork01);
+    temp_r31 = OM_GET_WORK_PTR(pickerObj, UnkUiWork01);
     if (temp_r31->unk00_bit3 == 6) {
         return TRUE;
-    } else {
+    }
+    else {
         return FALSE;
     }
 }
 
-static void HideItemWindow(void) {
+static void HideItemWindow(void)
+{
     UnkUiWork01 *temp_r31;
 
     if (pickerObj) {
-        temp_r31 = omObjGetWork(pickerObj, UnkUiWork01);
+        temp_r31 = OM_GET_WORK_PTR(pickerObj, UnkUiWork01);
         temp_r31->unk00_bit0 = 1;
     }
 }
 
-static void CreateItemWindow(s32 arg0, s32 arg1) {
+static void CreateItemWindow(s32 arg0, s32 arg1)
+{
     Vec sp10;
     float sp8[2];
     float temp_f31;
@@ -1786,23 +1794,24 @@ static void CreateItemWindow(s32 arg0, s32 arg1) {
     s32 var_r27;
     s32 temp_r28;
     s32 i;
-    OMOBJ *temp_r26;
+    omObjData *temp_r26;
     UnkUiWork04 *temp_r29;
     UnkUiWindowStruct *temp_r31;
 
     temp_f31 = 0.25f;
     temp_r26 = omAddObjEx(boardObjMan, 0x107, 0, 0, -1, UpdateItemWindow);
     itemWindowObj = temp_r26;
-    temp_r29 = omObjGetWork(temp_r26, UnkUiWork04);
+    temp_r29 = OM_GET_WORK_PTR(temp_r26, UnkUiWork04);
     temp_r29->unk00_bit0 = 0;
     temp_r29->unk01 = 0;
     temp_r29->unk03 = 0;
     temp_r29->unk02 = arg1;
-    temp_r29->unk04 = HuMemDirectMallocNum(HEAP_HEAP, sizeof(UnkUiWindowStruct), HU_MEMNUM_OVL);
+    temp_r29->unk04 = HuMemDirectMallocNum(HEAP_SYSTEM, sizeof(UnkUiWindowStruct), MEMORY_DEFAULT_NUM);
     temp_r26->trans.x = 0.0f;
     if (GWTeamGet()) {
         var_f30 = 32.0f;
-    } else {
+    }
+    else {
         var_f30 = 0.0f;
     }
     temp_r31 = temp_r29->unk04;
@@ -1853,31 +1862,34 @@ static void CreateItemWindow(s32 arg0, s32 arg1) {
     }
 }
 
-static BOOL CheckItemWindowSlide(void) {
+static BOOL CheckItemWindowSlide(void)
+{
     UnkUiWork04 *temp_r31;
 
     if (itemWindowObj == 0) {
         return TRUE;
     }
-    temp_r31 = omObjGetWork(itemWindowObj, UnkUiWork04);
+    temp_r31 = OM_GET_WORK_PTR(itemWindowObj, UnkUiWork04);
     return (temp_r31->unk03 != 0) ? FALSE : TRUE;
 }
 
-static void KillItemWindow(void) {
+static void KillItemWindow(void)
+{
     UnkUiWork04 *temp_r31;
 
     if (itemWindowObj) {
-        temp_r31 = omObjGetWork(itemWindowObj, UnkUiWork04);
+        temp_r31 = OM_GET_WORK_PTR(itemWindowObj, UnkUiWork04);
         temp_r31->unk00_bit0 = 1;
     }
 }
 
-static void SetItemWindowCurr(s32 arg0) {
+static void SetItemWindowCurr(s32 arg0)
+{
     UnkUiWork04 *temp_r31;
     UnkUiWindowStruct *temp_r30;
 
     if (itemWindowObj) {
-        temp_r31 = omObjGetWork(itemWindowObj, UnkUiWork04);
+        temp_r31 = OM_GET_WORK_PTR(itemWindowObj, UnkUiWork04);
         if (temp_r31->unk02 > 1 && arg0 != temp_r31->unk01) {
             temp_r30 = temp_r31->unk04;
             temp_r30->unk74[temp_r31->unk01].x = -576.0f;
@@ -1888,7 +1900,8 @@ static void SetItemWindowCurr(s32 arg0) {
     }
 }
 
-static void UpdateItemWindow(OMOBJ *arg0) {
+static void UpdateItemWindow(omObjData *arg0)
+{
     Vec sp20;
     Vec sp14;
     Vec sp8;
@@ -1899,7 +1912,7 @@ static void UpdateItemWindow(OMOBJ *arg0) {
     Mtx sp5C;
     Mtx sp2C;
 
-    temp_r29 = omObjGetWork(arg0, UnkUiWork04);
+    temp_r29 = OM_GET_WORK_PTR(arg0, UnkUiWork04);
     temp_r31 = temp_r29->unk04;
     if (temp_r29->unk00_bit0 || (BoardIsKill() != 0)) {
         for (i = 0; i < temp_r29->unk02; i++) {
@@ -1916,14 +1929,16 @@ static void UpdateItemWindow(OMOBJ *arg0) {
         HuMemDirectFree(temp_r29->unk04);
         itemWindowObj = NULL;
         omDelObjEx(HuPrcCurrentGet(), arg0);
-    } else {
+    }
+    else {
         var_r27 = 0;
         for (i = 0; i < temp_r29->unk02; i++) {
             if ((temp_r31->unk06[i] != -1) && (temp_r31->unk12[i] != -1)) {
                 VECSubtract(&temp_r31->unk74[i], &temp_r31->unk2C[i], &sp20);
                 if (VECMag(&sp20) <= 1.0f) {
                     temp_r31->unk2C[i] = temp_r31->unk74[i];
-                } else {
+                }
+                else {
                     VECScale(&sp20, &sp20, 0.3f);
                     VECAdd(&sp20, &temp_r31->unk2C[i], &temp_r31->unk2C[i]);
                     var_r27 = 1;
@@ -1939,9 +1954,9 @@ static void UpdateItemWindow(OMOBJ *arg0) {
                 Hu3D2Dto3D(&sp14, 1, &sp14);
                 BoardModelPosSetV(temp_r31->unk06[i], &sp14);
                 BoardCameraRotGet(&sp8);
-                PSMTXRotRad(sp2C, 'y', MTXDegToRad(arg0->trans.x));
-                PSMTXRotRad(sp5C, 'x', MTXDegToRad(sp8.x + 10.0f));
-                PSMTXConcat(sp5C, sp2C, sp2C);
+                MTXRotRad(sp2C, 'y', MTXDegToRad(arg0->trans.x));
+                MTXRotRad(sp5C, 'x', MTXDegToRad(sp8.x + 10.0f));
+                MTXConcat(sp5C, sp2C, sp2C);
                 BoardModelMtxSet(temp_r31->unk06[i], &sp2C);
                 BoardModelRotSet(temp_r31->unk06[i], 0.0f, 0.0f, 0.0f);
             }
@@ -1951,14 +1966,15 @@ static void UpdateItemWindow(OMOBJ *arg0) {
     }
 }
 
-static void CreatePickerWindow(UnkUiWork01 *arg0, s32 arg1) {
+static void CreatePickerWindow(UnkUiWork01 *arg0, s32 arg1)
+{
     float spC[2];
-    
+
     float posX;
     float posY;
     float yOfs;
     s32 var_r30;
-    #if VERSION_NTSC
+#if VERSION_NTSC
     switch (GWGameStat.language) {
         case 1:
             yOfs = 0.0f;
@@ -1967,17 +1983,18 @@ static void CreatePickerWindow(UnkUiWork01 *arg0, s32 arg1) {
             yOfs = 0.0f;
             break;
     }
-    #else
+#else
     yOfs = 0;
-    #endif
+#endif
     if (arg1 != 0) {
         var_r30 = MAKE_MESSID(0x10, 0x1A);
-    } else {
+    }
+    else {
         var_r30 = MAKE_MESSID(0x10, 0x1B);
     }
     HuWinMesMaxSizeGet(1, spC, var_r30);
     posX = -10000.0f;
-    posY = yOfs + (HU_DISP_HEIGHT-128);
+    posY = yOfs + (HU_DISP_HEIGHT - 128);
     arg0->unk06 = HuWinCreate(posX, posY, spC[0], spC[1], 0);
     HuWinBGTPLvlSet(arg0->unk06, 0.0f);
     HuWinMesSpeedSet(arg0->unk06, 0);
@@ -1987,7 +2004,8 @@ static void CreatePickerWindow(UnkUiWork01 *arg0, s32 arg1) {
     }
 }
 
-static void KillPickerWindow(UnkUiWork01 *arg0) {
+static void KillPickerWindow(UnkUiWork01 *arg0)
+{
     if (arg0->unk06 != -1) {
         HuWinKill(arg0->unk06);
         arg0->unk06 = -1;

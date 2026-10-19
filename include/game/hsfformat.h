@@ -45,6 +45,47 @@
 #define HSF_TRACK_MATERIAL 9
 #define HSF_TRACK_ATTRIBUTE 10
 
+//HSF Channel Types
+#define HSF_CHANNEL_LITCOLOR_R 0
+#define HSF_CHANNEL_LITCOLOR_G 1
+#define HSF_CHANNEL_LITCOLOR_B 2
+#define HSF_CHANNEL_POSX 8
+#define HSF_CHANNEL_POSY 9
+#define HSF_CHANNEL_POSZ 10
+#define HSF_CHANNEL_TARGETX 11
+#define HSF_CHANNEL_TARGETY 12
+#define HSF_CHANNEL_TARGETZ 13
+#define HSF_CHANNEL_UPROT 14
+#define HSF_CHANNEL_FOV 15
+#define HSF_CHANNEL_NEAR 17
+#define HSF_CHANNEL_FAR 18
+
+#define HSF_CHANNEL_LOCK 24
+#define HSF_CHANNEL_DISPOFF 26
+#define HSF_CHANNEL_ROTX 28
+#define HSF_CHANNEL_ROTY 29
+#define HSF_CHANNEL_ROTZ 30
+#define HSF_CHANNEL_SCALEX 31
+#define HSF_CHANNEL_SCALEY 32
+#define HSF_CHANNEL_SCALEZ 33
+#define HSF_CHANNEL_MORPH 40
+#define HSF_CHANNEL_LIGHTCOLOR_R 43
+#define HSF_CHANNEL_LIGHTCOLOR_G 44
+#define HSF_CHANNEL_LIGHTCOLOR_B 45
+
+#define HSF_CHANNEL_COLOR_R 49
+#define HSF_CHANNEL_COLOR_G 50
+#define HSF_CHANNEL_COLOR_B 51
+#define HSF_CHANNEL_SHADOWCOLOR_R 52
+#define HSF_CHANNEL_SHADOWCOLOR_G 53
+#define HSF_CHANNEL_SHADOWCOLOR_B 54
+#define HSF_CHANNEL_INVALPHA 57
+#define HSF_CHANNEL_REFALPHA 60
+#define HSF_CHANNEL_KCOLOR 62
+#define HSF_CHANNEL_NBT_TPLVL 63
+#define HSF_CHANNEL_64 64
+#define HSF_CHANNEL_BITMAP 67
+
 //HSF Curve Types
 #define HSF_CURVE_STEP 0
 #define HSF_CURVE_LINEAR 1
@@ -154,6 +195,16 @@ typedef struct HsfAttribute_s {
     u32 maxLod;
     u32 flag;
     HSFBITMAP *bitmap;
+#ifdef OPTIMIZED_TEXTURE_LOADING
+    bool tex_initialized;
+    bool tex8000_initialized;
+    bool tlut_initialized;
+    bool tlut8000_initialized;
+    GXTexObj tex_obj;
+    GXTexObj tex8000_obj;
+    GXTlutObj tlut_obj;
+    GXTlutObj tlut8000_obj; // used in dataFmt 11
+#endif
 } HSFATTRIBUTE;
 
 typedef struct HsfMaterial_s {
@@ -172,7 +223,7 @@ typedef struct HsfMaterial_s {
     float unk2C;
     u32 flags;
     u32 attrNum;
-    s32 *attr;
+    intptr_t *attr;
 } HSFMATERIAL;
 
 typedef struct HsfBuffer_s {
@@ -315,7 +366,8 @@ typedef struct HsfMesh_s {
     HSFCLUSTER **cluster;
     u32 cenvNum;
     HSFCENV *cenv;
-    void *file[2];
+    HuVecF *vtxtop;
+    HuVecF *normtop;
 } HSFMESH;
 
 typedef struct hsf_camera {
@@ -323,8 +375,8 @@ typedef struct hsf_camera {
     HuVecF target;
     float upRot;
     float fov;
-    float near;
-    float far;
+    float nnear;
+    float ffar;
 } HSFCAMERA;
 
 typedef struct hsf_light {
@@ -391,6 +443,9 @@ typedef struct HsfTrack_s {
         float value;
         void *data;
     };
+#ifdef BYTESWAPPING
+    void *dataTop;
+#endif
 } HSFTRACK;
 
 typedef struct HsfMotion_s {
@@ -437,6 +492,9 @@ typedef struct HsfData_s {
     HSFOBJECT *object;
     HSFMAPATTR *mapAttr;
     HSFMATRIX *matrix;
+#ifdef BYTESWAPPING
+    void **symbol;
+#endif
     s16 sceneNum;
     s16 attributeNum;
     s16 materialNum;

@@ -68,7 +68,7 @@ static void ItemDestroy(void);
 static void RestoreDestroy(void);
 static void ItemSizeShowAnim(void);
 static void ItemRotProc(void);
-static HUPROCESS *ItemShowProc(UnkItemShowProcStruct *arg0, Vec *arg1);
+static Process *ItemShowProc(UnkItemShowProcStruct *arg0, Vec *arg1);
 static s16 ItemGetTarget(void);
 static void ItemSizeSet(s32 arg0);
 static void ExecItemMini(void);
@@ -117,7 +117,7 @@ static char booCoinStr[8];
 static float genieFov;
 static ANIMDATA *genieParticleAnim;
 static s16 geniePlayerMot[3];
-static HUPROCESS *itemProc;
+static Process *itemProc;
 
 static s32 itemMotTbl[2] = { DATA_MAKE_NUM(DATADIR_BOARD, 117), -1 };
 
@@ -394,16 +394,16 @@ static inline void BoardUiInlineFunc03(s32 arg0)
     BoardPlayerIdleSet(arg0);
 }
 
-static inline void BoardUiInlineFunc04(HUPROCESS *arg0, s32 arg1)
+static inline void BoardUiInlineFunc04(Process *arg0, s32 arg1)
 {
     UnkItemShowProcStruct *temp_r19 = arg0->user_data;
 
     temp_r19->unk00 = arg1;
 }
 
-static inline HUPROCESS *BoardUiInlineFunc05(UnkItemShowProcStruct *arg0)
+static inline Process *BoardUiInlineFunc05(UnkItemShowProcStruct *arg0)
 {
-    HUPROCESS *temp_r27;
+    Process *temp_r27;
 
     temp_r27 = HuPrcCreate(ItemRotProc, 0x2004, 0x1000, 0);
     temp_r27->user_data = arg0;
@@ -411,12 +411,12 @@ static inline HUPROCESS *BoardUiInlineFunc05(UnkItemShowProcStruct *arg0)
     return temp_r27;
 }
 
-static HUPROCESS *ItemShowProc(UnkItemShowProcStruct *arg0, Vec *arg1)
+static Process *ItemShowProc(UnkItemShowProcStruct *arg0, Vec *arg1)
 {
     Vec sp20;
     Vec sp14;
     Vec sp8;
-    HUPROCESS *var_r29;
+    Process *var_r29;
 
     var_r29 = NULL;
     BoardPlayerPosGet(currItemRestore, &sp20);
@@ -1042,7 +1042,7 @@ static void ExecItemSwap(void)
     }
     BoardModelRotGet(suitMdl, &sp3C);
     Hu3DCameraSet(0, sp108);
-    PSMTXInverse(sp108, spD8);
+    MTXInverse(sp108, spD8);
     Hu3DMtxRotGet(spD8, &sp48);
     sp3C.x = sp48.x;
     for (var_r31 = 0; var_r31 < var_r28 / 2; var_r31++) {
@@ -1684,8 +1684,8 @@ static void ExecItemBooBall(void)
     UnkItemShowProcStruct sp80;
     Vec sp74;
     Vec sp68;
-    HUPROCESS *temp_r17;
-    HUPROCESS *sp1C;
+    Process *temp_r17;
+    Process *sp1C;
     s16 spC;
     s16 spA;
     s32 sp18;
@@ -1802,7 +1802,7 @@ static void ExecItemBooBall(void)
                     sprintf(booCoinStr, "%d", spC);
                     HuAudFXPlay(0x4C);
                     BoardWinCreate(2, var_r30, 3);
-                    BoardWinInsertMesSet(MAKE_MESSID_PTR(booCoinStr), 0);
+                    BOARD_WIN_INSERT_MES_SET_PTR(MAKE_MESSID_PTR(booCoinStr), 0);
                     BoardWinWait();
                     BoardWinKill();
                     BoardStatusShowSetAll(1);
@@ -2161,7 +2161,7 @@ static void GenieSceneExec(void)
     Vec sp38;
     Vec sp2C;
     Vec sp20;
-    HUPROCESS *temp_r21;
+    Process *temp_r21;
     float temp_f30;
     float var_f31;
     s16 temp_r25;
@@ -2358,7 +2358,7 @@ static void ExecItemGenie(void)
     Vec sp18;
     Vec spC;
     HU3DPARTICLE *sp8;
-    HUPROCESS *temp_r27;
+    Process *temp_r27;
     float var_f29;
     float var_f31;
     float var_f30;
@@ -2504,7 +2504,7 @@ static void ExecItemBagJump(void)
     float var_f31;
     s16 temp_r31;
 
-    temp_r31 = (s16)HuPrcCurrentGet()->user_data;
+    temp_r31 = HuPrcCurrentGet()->user_data_u32;
     BoardModelScaleGet(temp_r31, &sp20);
     BoardModelPosGet(temp_r31, &sp14);
     sp8 = sp14;
@@ -2543,7 +2543,7 @@ static void ExecItemBagShow(void)
     Vec sp14;
     Vec sp8;
     float var_f31;
-    HUPROCESS *temp_r31;
+    Process *temp_r31;
     UnkItemShowProcStruct *temp_r30;
     UnkItemShowProcStruct *temp_r29;
 
@@ -2587,8 +2587,8 @@ static void ExecItemBag(void)
     s16 temp_r23;
     s16 i;
     u16 var_r25;
-    HUPROCESS *temp_r29;
-    HUPROCESS *temp_r24;
+    Process *temp_r29;
+    Process *temp_r24;
 
     for (i = 0; i < 3; i++) {
         if (itemBagItems[i] == -1) {
@@ -2653,7 +2653,7 @@ static void ExecItemBag(void)
             BoardModelScaleSetV(sp8[var_r30], &sp24);
             BoardModelVisibilitySet(sp8[var_r30], 1);
             temp_r29 = HuPrcChildCreate(ExecItemBagJump, 0x2004, 0x1000, 0, HuPrcCurrentGet());
-            temp_r29->user_data = (void *)sp8[var_r30];
+            temp_r29->user_data_u32 = sp8[var_r30];
             temp_r29 = HuPrcChildCreate(ExecItemBagShow, 0x2004, 0x1000, 0, HuPrcCurrentGet());
             temp_r29->user_data = temp_r24;
             while (GWPlayer[currItemRestore].jump) {
