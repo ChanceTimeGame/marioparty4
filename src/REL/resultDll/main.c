@@ -24,11 +24,6 @@
 
 #ifndef __MWERKS__
 #include "game/esprite.h"
-#ifdef TARGET_PC
-#include "port/settings.h"
-#include <stdio.h>
-#include <time.h>
-#endif
 #endif
 
 static StageModel resultModel[] = { { DATA_MAKE_NUM(DATADIR_RESULT, 0x00), 1, 0, -1, -1, { 148, 132, 500 }, { 0, 0, 0 }, { 1, 1, 1 } },
@@ -1004,19 +999,11 @@ void ResultCoinNumGet(s16 *coinNum)
 static void SaveExec(void)
 {
     s16 sprId;
-#ifdef TARGET_PC
-    clock_t saveStart = clock();
-#endif
     Hu3DAllKill();
     HuSprClose();
     HuSprInit();
     espInit();
     HuPrcVSleep();
-#ifdef TARGET_PC
-    // Quick saves (game.quickSaves): save without the save screen and its fades; the screen
-    // is already faded out, as on retail's no-save path.
-    if (!partyboard_settings_quickSaves())
-#endif
     {
         sprId = espEntry(0x860020, 5000, 0);
         espPosSet(sprId, 288.0, 240.0);
@@ -1045,13 +1032,6 @@ static void SaveExec(void)
     else {
         GWSaveModeSet(1);
     }
-#ifdef TARGET_PC
-    fprintf(stderr, "PB_SAVE board quick=%d saved=%d %ld ms\n", partyboard_settings_quickSaves(), saveExecF,
-        (long)((clock() - saveStart) * 1000 / CLOCKS_PER_SEC));
-    if (partyboard_settings_quickSaves()) {
-        return;
-    }
-#endif
     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 20);
     while (WipeStatGet()) {
         HuPrcVSleep();

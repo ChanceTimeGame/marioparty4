@@ -96,7 +96,7 @@ static u16 faceCnt;
 static u16 *faceNumBuf;
 static s32 DLTotalNum;
 static u32 totalSize;
-static uintptr_t mallocNo;
+static u32 mallocNo;
 static s32 curModelID;
 static s16 polySize;
 static BOOL PGFinishF;
@@ -104,7 +104,7 @@ static u8 *PGName;
 static BOOL TL32F;
 static BOOL CancelTRXF;
 
-SHARED_SYM u8 texMtxTbl[]
+u8 texMtxTbl[]
     = { GX_TEXMTX0, GX_TEXMTX1, GX_TEXMTX2, GX_TEXMTX3, GX_TEXMTX4, GX_TEXMTX5, GX_TEXMTX6, GX_TEXMTX7, GX_TEXMTX8, GX_TEXMTX9 };
 
 static s16 oneceF = TRUE;
@@ -1621,9 +1621,6 @@ static void SetShadowTex(void) {
     GXInitTexObj(&texObj, Hu3DShadowData.buf, Hu3DShadowData.size, Hu3DShadowData.size, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
     GXInitTexObjLOD(&texObj, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
     GXLoadTexObj(&texObj, shadowMapNo);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&texObj);
-#endif
 }
 
 static void SetShadow(HU3DDRAWOBJ *drawObj, s16 tevStage, s16 texCoord)
@@ -2034,12 +2031,6 @@ static void LoadTexture(HU3DMODEL *modelP, HSFBITMAP *bmpPtr, HSFATTRIBUTE *attr
         GXInitTexObjLOD(&texObj, GX_LIN_MIP_LIN, GX_LINEAR, 0.0f, bmpPtr->maxLod - 1, 0.0f, GX_TRUE, GX_TRUE, GX_ANISO_1);
     }
     GXLoadTexObj(&texObj, texId);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&sp1C);
-    if (arg1->dataFmt == 9 || arg1->dataFmt == 10 || arg1->dataFmt == 11) {
-        GXDestroyTlutObj(&sp10);
-    }
-#endif
 }
 #endif
 
@@ -2565,7 +2556,7 @@ static void ObjDraw(HU3DDRAWOBJ *arg0)
     }
 }
 
-void MakeDisplayList(HU3DMODELID modelId, uintptr_t no)
+void MakeDisplayList(HU3DMODELID modelId, u32 no)
 {
     HSFDATA *hsf;
     HU3DMODEL *modelP;
@@ -2624,9 +2615,6 @@ static void MDObjMesh(HSFDATA *hsf, HSFOBJECT *objPtr) {
     Hu3DObjInfoP->drawData = DrawData = HuMemDirectMallocNum(HEAP_DATA, matChgCnt * sizeof(HSFDRAWDATA), mallocNo);
     memset(DrawData, 0, matChgCnt * sizeof(HSFDRAWDATA));
     DLBufP = DLBufStartP = HuMemDirectMallocNum(HEAP_DATA, DLTotalNum, mallocNo);
-#ifdef TARGET_PC
-    memset(DLBufP, 0, DLTotalNum);
-#endif
     DCInvalidateRange(DLBufStartP, DLTotalNum);
     DLFirstF = 0;
     materialBak = PTR_INVALID;
@@ -2659,7 +2647,7 @@ static void MDObjMesh(HSFDATA *hsf, HSFOBJECT *objPtr) {
     }
 }
 
-HSFCONSTDATA *ObjConstantMake(HSFOBJECT *object, uintptr_t no) {
+HSFCONSTDATA *ObjConstantMake(HSFOBJECT *object, u32 no) {
     HSFCONSTDATA *constDataP = HuMemDirectMallocNum(HEAP_DATA, sizeof(HSFCONSTDATA), no);
     object->constData = constDataP;
     constDataP->attr = HU3D_CONST_NONE;
@@ -2684,7 +2672,7 @@ static void MDFaceDraw(HSFOBJECT *objPtr, HSFFACE *face) {
     if (matP != materialBak || polyTypeBak != (face->type & 7) || (face->type & 7) == 4) {
         polyTypeBak = face->type & 7;
         materialBak = matP;
-        DrawData[drawCnt].dlOfs = (uintptr_t)DLBufP - (uintptr_t)DLBufStartP;
+        DrawData[drawCnt].dlOfs = (u32)DLBufP - (u32)DLBufStartP;
         GXBeginDisplayList(DLBufP, 0x20000);
         GXResetWriteGatherPipe();
         if (matP->attrNum == 0) {
@@ -3398,7 +3386,7 @@ void PGObjReplica(HU3DMODEL *model, HSFOBJECT *object) {
     }
 }
 
-HSFOBJECT *Hu3DObjDuplicate(HSFDATA *hsf, uintptr_t mallocNo) {
+HSFOBJECT *Hu3DObjDuplicate(HSFDATA *hsf, u32 mallocNo) {
     HSFOBJECT *objBuf;
     HSFOBJECT *srcObj;
     HSFOBJECT *objPtr;
@@ -3412,7 +3400,7 @@ HSFOBJECT *Hu3DObjDuplicate(HSFDATA *hsf, uintptr_t mallocNo) {
     for (i = 0; i < hsf->objectNum; i++, objPtr++, srcObj++) {
         if (objPtr->type != HSF_OBJ_LIGHT && objPtr->type != HSF_OBJ_CAMERA) {
             if (objPtr->mesh.parent) {
-                objPtr->mesh.parent = (HSFOBJECT*) ((u8*) objBuf + ((uintptr_t) srcObj->mesh.parent - (uintptr_t) hsf->object));
+                objPtr->mesh.parent = (HSFOBJECT*) ((u8*) objBuf + ((u32) srcObj->mesh.parent - (u32) hsf->object));
             }
             objPtr->mesh.children = HuMemDirectMallocNum(HEAP_DATA, srcObj->mesh.childrenCount * sizeof(HSFOBJECT *), mallocNo);
             if (srcObj->constData) {
@@ -3420,7 +3408,7 @@ HSFOBJECT *Hu3DObjDuplicate(HSFDATA *hsf, uintptr_t mallocNo) {
                 memcpy(objPtr->constData, srcObj->constData, sizeof(HSFCONSTDATA));
             }
             for (j = 0; j < srcObj->mesh.childrenCount; j++) {
-                objPtr->mesh.children[j] = (HSFOBJECT*) ((u8*) objBuf + ((uintptr_t) srcObj->mesh.children[j] - (uintptr_t) hsf->object));
+                objPtr->mesh.children[j] = (HSFOBJECT*) ((u8*) objBuf + ((u32) srcObj->mesh.children[j] - (u32) hsf->object));
             }
         }
     }

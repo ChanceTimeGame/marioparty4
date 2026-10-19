@@ -35,21 +35,17 @@ typedef struct om_obj_man {
 omObjData *omDBGSysKeyObj;
 Process *omwatchproc;
 OMOVL omnextovl;
-SHARED_SYM OMOVL omcurovl;
+OMOVL omcurovl;
 s32 omcurdll;
-SHARED_SYM s32 omovlhisidx;
-SHARED_SYM s32 omovlevtno;
+s32 omovlhisidx;
+s32 omovlevtno;
 s32 omnextovlevtno;
-SHARED_SYM u32 omovlstat;
+u32 omovlstat;
 static s32 omnextovlstat;
 char omUPauseFlag;
-SHARED_SYM s16 omSysExitReq;
+s16 omSysExitReq;
 s16 omdispinfo;
 
-#ifdef TARGET_PC
-OMOVL pcOvlToKill = DLL_NONE;
-s16 pcOvlKillArg = 0;
-#endif
 
 static omOvlHisData omovlhis[OM_OVL_HIS_MAX];
 
@@ -75,12 +71,6 @@ static void omWatchOverlayProc(void)
 {
     while (1) {
         if (omcurovl == DLL_NONE) {
-#ifdef TARGET_PC
-            if (pcOvlToKill >= 0) {
-                omDLLNumEnd(pcOvlToKill, pcOvlKillArg);
-                pcOvlToKill = DLL_NONE;
-            }
-#endif
             if (omnextovl >= 0 && fadeStat == 0) {
                 HuPrcSleep(0);
                 OSReport("++++++++++++++++++++ Start New OVL %d (EVT:%d STAT:0x%08x) ++++++++++++++++++\n", omnextovl, omnextovlevtno, omnextovlstat);
@@ -174,13 +164,7 @@ void omOvlKill(s16 arg)
     HuAudFXListnerKill();
     OSReport("OvlKill %d\n", arg);
     omSysExitReq = FALSE;
-#ifdef TARGET_PC
-    // this function is called from the DLL, we can't kill it directly here
-    pcOvlToKill = omcurovl;
-    pcOvlKillArg = arg;
-#else
     omDLLNumEnd(omcurovl, arg);
-#endif
     omcurovl = DLL_NONE;
     omDBGSysKeyObj = NULL;
 }

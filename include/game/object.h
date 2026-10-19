@@ -6,9 +6,6 @@
 #include "game/process.h"
 #include "game/dvd.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 #define OM_DLL_MAX 20
 
@@ -52,7 +49,7 @@ typedef struct om_obj_data {
 /* 0x0A */ s16 next_idx;
 /* 0x0C */ s16 group;
 /* 0x0E */ u16 group_idx;
-/* 0x10 */ uintptr_t unk10;
+/* 0x10 */ u32 unk10;
 /* 0x14 */ omObjFunc func;
 /* 0x18 */ Vec trans;
 /* 0x24 */ Vec rot;
@@ -61,15 +58,13 @@ typedef struct om_obj_data {
 /* 0x40 */ s16 *model;
 /* 0x44 */ u16 mtncnt;
 /* 0x48 */ s16 *motion;
-/* 0x4C */ uintptr_t work[4];
+/* 0x4C */ u32 work[4];
 /* 0x5C */ void *data;
 } omObjData;
 
 typedef struct om_dll_data {
 	char *name;
-#ifdef _WIN32
-    HMODULE hModule;
-#elif defined(__linux__)
+#if   defined(__linux__)
     void *handle;
 #else
 	OSModuleHeader *module;
@@ -113,9 +108,6 @@ void omDLLEnd(s16 dllno, s16 flag);
 omDllData *omDLLLink(omDllData **dll_ptr, s16 overlay, s16 flag);
 void omDLLUnlink(omDllData *dll_ptr, s16 flag);
 s32 omDLLSearch(s16 overlay);
-#ifdef TARGET_PC
-void omDLLFreeAll(void);
-#endif
 void omDLLInfoDump(OSModuleInfo *module);
 void omDLLHeaderDump(OSModuleHeader *module);
 
@@ -129,26 +121,26 @@ void omSysPauseCtrl(s16 flag);
 extern omObjData *omDBGSysKeyObj;
 extern Process *omwatchproc;
 extern OMOVL omnextovl;
-SHARED_SYM extern OMOVL omcurovl;
+extern OMOVL omcurovl;
 extern s32 omcurdll;
-SHARED_SYM extern s32 omovlhisidx;
-SHARED_SYM extern s32 omovlevtno;
+extern s32 omovlhisidx;
+extern s32 omovlevtno;
 extern s32 omnextovlevtno;
-SHARED_SYM extern u32 omovlstat;
+extern u32 omovlstat;
 extern char omUPauseFlag;
-SHARED_SYM extern s16 omSysExitReq;
+extern s16 omSysExitReq;
 extern s16 omdispinfo;
 extern u8 omSysPauseEnableFlag;
 extern OMOVL omprevovl;
 
 extern omDllData *omDLLinfoTbl[OM_DLL_MAX];
 
-SHARED_SYM extern Vec CRot;
-SHARED_SYM extern Vec Center;
-SHARED_SYM extern float CZoom;
-SHARED_SYM extern Vec CRotM[16];
-SHARED_SYM extern Vec CenterM[16];
-SHARED_SYM extern float CZoomM[16];
-SHARED_SYM extern s16 omDBGMenuButton;
+extern Vec CRot;
+extern Vec Center;
+extern float CZoom;
+extern Vec CRotM[16];
+extern Vec CenterM[16];
+extern float CZoomM[16];
+extern s16 omDBGMenuButton;
 
 #endif

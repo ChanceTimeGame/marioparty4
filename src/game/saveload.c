@@ -12,19 +12,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#ifdef TARGET_PC
-#include <port/byteswap.h>
-#include "port/settings.h"
-
-// Quick saves (game.quickSaves): the write still happens where retail makes it, without the
-// "saving" boxes and their waits, which cover a real memory card's write time; the host's
-// card file is written in milliseconds. Every error message still shows. -1 marks a box that
-// was never opened.
-#define SL_QUICK() partyboard_settings_quickSaves()
-#define SL_WIN_CLOSE(window) if ((window) >= 0) { HuWinExAnimOut(window); HuWinExCleanup(window); }
-#else
 #define SL_WIN_CLOSE(window) { HuWinExAnimOut(window); HuWinExCleanup(window); }
-#endif
 
 #if VERSION_ENG
 #define SAVE_WRITE_BEGIN _SetFlag(FLAG_ID_MAKE(3, 0));
@@ -42,13 +30,13 @@ static void SLKillSaveWin(void);
 
 extern u8 UnMountCnt;
 
-SHARED_SYM CARDFileInfo curFileInfo;
-SHARED_SYM SaveBufAll saveBuf;
+CARDFileInfo curFileInfo;
+SaveBufAll saveBuf;
 
 u64 SLSerialNo;
-SHARED_SYM s32 saveExecF;
+s32 saveExecF;
 u8 curBoxNo;
-SHARED_SYM s16 curSlotNo;
+s16 curSlotNo;
 
 #if VERSION_JP
 static u8 commentTbl[2][32] = { "マリオパーティ４", "？？月？？日　データ？です。" };
@@ -57,7 +45,7 @@ static u8 sjisNumTbl[20] = "０１２３４５６７８９";
 static u8 commentTbl[2][32] = { "Mario Party 4", "File 0  00/00/0000" };
 #endif
 
-SHARED_SYM char *SaveFileNameTbl[] = { "MARIPA4BOX0", "MARIPA4BOX1", "MARIPA4BOX2" };
+char *SaveFileNameTbl[] = { "MARIPA4BOX0", "MARIPA4BOX1", "MARIPA4BOX2" };
 
 s32 SaveEnableF = 1;
 
@@ -155,12 +143,6 @@ s32 SLFileCreate(char *fileName, u32 size, void *addr)
         SLMessOut(3);
         return CARD_RESULT_INSSPACE;
     }
-#ifdef TARGET_PC
-    if (SL_QUICK()) {
-        window = -1;
-    }
-    else
-#endif
     {
         HuWinInit(1);
         HuWinMesMaxSizeGet(1, winSize, MAKE_MESSID(16, 11));
@@ -216,17 +198,6 @@ s32 SLFileWrite(s32 length, void *addr)
     if (SaveEnableF == 0) {
         return 0;
     }
-#ifdef TARGET_PC
-    if (SL_QUICK()) {
-        SAVE_WRITE_BEGIN
-        result = HuCardWrite(&curFileInfo, addr, length, 0);
-        if (result == 0) {
-            result = SLStatSet(1);
-        }
-        SAVE_WRITE_END
-        return result;
-    }
-#endif
     HuWinInit(1);
     HuWinMesMaxSizeGet(1, winSize, MAKE_MESSID(16, 11));
     window = HuWinExCreateStyled(-10000.0f, 200.0f, winSize[0], winSize[1], -1, 2);
@@ -410,9 +381,6 @@ void SLCommonSet(void)
     create_time = OSGetTime();
     GWGameStat.create_time = create_time;
     memcpy(&saveBuf.data.stat, &GWGameStat, sizeof(GameStat));
-#ifdef TARGET_PC
-    byteswap_gamestat(&saveBuf.data.stat);
-#endif
     SLSaveDataInfoSet(&create_time);
 }
 
@@ -421,14 +389,8 @@ void SLSaveBoard(void)
     s16 i;
 
     memcpy(&saveBuf.data.system, &GWSystem, sizeof(SystemState));
-#ifdef TARGET_PC
-    byteswap_systemstate(&saveBuf.data.system);
-#endif
     for (i = 0; i < 4; i++) {
         memcpy(SAVE_GET_PLAYER(i), &GWPlayer[i], sizeof(PlayerState));
-#ifdef TARGET_PC
-        byteswap_playerstate((PlayerState*)SAVE_GET_PLAYER(i));
-#endif
     }
 }
 
@@ -437,14 +399,8 @@ void SLSaveBoardStory(void)
     s16 i;
 
     memcpy(&saveBuf.data.systemStory, &GWSystem, sizeof(SystemState));
-#ifdef TARGET_PC
-    byteswap_systemstate(&saveBuf.data.systemStory);
-#endif
     for (i = 0; i < 4; i++) {
         memcpy(SAVE_GET_PLAYER_STORY(i), &GWPlayer[i], sizeof(PlayerState));
-#ifdef TARGET_PC
-        byteswap_playerstate((PlayerState*)SAVE_GET_PLAYER_STORY(i));
-#endif
     }
 }
 
@@ -555,12 +511,6 @@ static s16 SLCreateSaveWin(void)
     float size[2];
     s16 window;
 
-#ifdef TARGET_PC
-    if (SL_QUICK()) {
-        saveMessWin = -1;
-        return -1;
-    }
-#endif
     HuWinInit(1);
     HU_WIN_INSERT_MES_SIZE_GET_PTR(MAKE_MESSID_PTR(SAVEWIN_MESS[curSlotNo]), 0);
     HuWinMesMaxSizeGet(1, size, MAKE_MESSID(16, 68));
@@ -605,9 +555,6 @@ s32 SLLoad(void)
 void SLLoadGameStat(void)
 {
     memcpy(&GWGameStat, &saveBuf.data.stat, sizeof(GameStat));
-#ifdef TARGET_PC
-    byteswap_gamestat(&GWGameStat);
-#endif
 }
 
 void SLLoadBoard(void)
@@ -615,14 +562,8 @@ void SLLoadBoard(void)
     s16 i;
 
     memcpy(&GWSystem, &saveBuf.data.system, sizeof(SystemState));
-#ifdef TARGET_PC
-    byteswap_systemstate(&GWSystem);
-#endif
     for (i = 0; i < 4; i++) {
         memcpy(&GWPlayer[i], SAVE_GET_PLAYER(i), sizeof(PlayerState));
-#ifdef TARGET_PC
-        byteswap_playerstate(&GWPlayer[i]);
-#endif
         GWPlayerCfg[i].character = GWPlayer[i].character;
         GWPlayerCfg[i].pad_idx = GWPlayer[i].port;
         GWPlayerCfg[i].diff = GWPlayer[i].diff;
@@ -636,14 +577,8 @@ void SLLoadBoardStory(void)
     s16 i;
 
     memcpy(&GWSystem, &saveBuf.data.systemStory, sizeof(SystemState));
-#ifdef TARGET_PC
-    byteswap_systemstate(&GWSystem);
-#endif
     for (i = 0; i < 4; i++) {
         memcpy(&GWPlayer[i], SAVE_GET_PLAYER_STORY(i), sizeof(PlayerState));
-#ifdef TARGET_PC
-        byteswap_playerstate(&GWPlayer[i]);
-#endif
         GWPlayerCfg[i].character = GWPlayer[i].character;
         GWPlayerCfg[i].pad_idx = GWPlayer[i].port;
         GWPlayerCfg[i].diff = GWPlayer[i].diff;
@@ -679,9 +614,6 @@ BOOL SLCheckSumCheck(void)
 {
     u16 *save_checksum = (u16 *)&saveBuf.buf[sizeof(SaveBufData)];
     u16 checksum = SLCheckSumGet();
-#ifdef TARGET_PC
-    byteswap_u16(&checksum);
-#endif
     if (*save_checksum == checksum) {
         return TRUE;
     }
@@ -877,7 +809,7 @@ s16 SLMessOut(s16 mess)
 {
     WindowData *var_r26;
     float size[2];
-    uintptr_t slot_mess;
+    u32 slot_mess;
     s32 save_mess;
     s32 has_choice;
     s16 window;

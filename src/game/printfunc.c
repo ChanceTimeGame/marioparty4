@@ -6,12 +6,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#ifdef TARGET_PC
-#include <string.h>
-#include "port/dolassets.h"
-#else
 extern u8 ank8x8_4b[];
-#endif
 
 struct strline_data {
     u16 type;
@@ -29,7 +24,7 @@ struct strline_data {
 static struct strline_data strline[256];
 static char pfStrBuf[256];
 
-SHARED_SYM int fontcolor;
+int fontcolor;
 u16 empstrline;
 u16 strlinecnt;
 BOOL saftyFrameF;
@@ -306,10 +301,6 @@ void pfDrawFonts(void)
             }
         }
     }
-#ifdef TARGET_PC
-    // TODO PC though maybe it's fine to never destroy it?
-    // GXDestroyTexObj(&font_tex);
-#endif
 }
 
 #define SAFETY_W 16

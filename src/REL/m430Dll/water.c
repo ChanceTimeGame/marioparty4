@@ -511,9 +511,7 @@ void fn_1_6180(M430DllWork *work)
         var_r30->scale = 0.0f;
         var_r30->color.a = 0;
     }
-#ifndef TARGET_PC
     DCStoreRange(var_r30, sizeof(HU3DPARTICLEDATA));
-#endif
 }
 
 void fn_1_6540(M430DllWork *work)
@@ -1278,9 +1276,6 @@ void fn_1_8CE0(HU3DMODEL *model, Mtx matrix)
     GXSetNumIndStages(0);
     GXSetTevDirect(GX_TEVSTAGE0);
     GXSetTevDirect(GX_TEVSTAGE1);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&sp24);
-#endif
 }
 
 Vec lbl_1_data_60[6] = {

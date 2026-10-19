@@ -23,12 +23,7 @@ static XFB_COLOR XFB_Colors[5] = {
     { 0x40, 0x80, 0x80 }
 };
 
-#ifdef TARGET_PC
-// TODO PC?
-u8 Ascii8x8_1bpp[0x800];
-#else
 #include "Ascii8x8_1bpp.inc"
-#endif
 
 static XFB_GEOMETRY XFB_Geometry;
 
@@ -64,9 +59,6 @@ void OSPanic(const char* file, int line, const char* msg, ...) {
     XFB_CR(puts, &sp74, &sp70);
     va_start(args, msg);
     vsnprintf(buffer, 0x400U, msg, args);
-#ifdef TARGET_PC
-    fputs(buffer, stderr);
-#endif
     puts = XFB_puts((s8*)buffer, sp74, sp70);
     XFB_CR(puts, &sp74, &sp70);
     XFB_WriteBackCache();

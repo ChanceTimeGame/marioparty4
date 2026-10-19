@@ -6,7 +6,7 @@
 #include "game/hu3d.h"
 #include "game/object.h"
 
-SHARED_SYM extern u8 texMtxTbl[];
+extern u8 texMtxTbl[];
 
 #define FABS(x) ((x < 0.0f) ? -(x) : (x))
 

@@ -3,26 +3,15 @@
 #include "game/card.h"
 #include "version.h"
 
-#ifdef TARGET_PC
-#include "port/settings.h"
-#include "port/port_version.h"
-#endif
 
 static void *cardWork;
-SHARED_SYM u8 UnMountCnt;
+u8 UnMountCnt;
 
 static void MountCallBack(s32 chan, s32 result);
 
 void HuCardInit(void)
 {
-#ifdef TARGET_PC
-        CARDSetLoadType(partyboard_settings_card_file_type());
-        // Aurora takes the card region from the 4-character game code; any other
-        // string leaves the card path empty and every probe reports no card.
-        CARDInit(partyboard_version_is_pal() ? "GMPP" : "GMPE", "01");
-#else
 	CARDInit();
-#endif
 	cardWork = HuMemDirectMalloc(HEAP_SYSTEM, CARD_WORKAREA_SIZE);
 }
 

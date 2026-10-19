@@ -17,8 +17,7 @@ import os
 import sys
 from pathlib import Path
 
-# Standalone copy of Chance Time's games/mp4/ (there, tools/ and extern/ sit two
-# levels up). Operate from the repository root whatever the invocation.
+# Operate from the repository root whatever the invocation.
 GAME_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = GAME_ROOT
 sys.path.insert(0, str(REPO_ROOT))
@@ -151,6 +150,7 @@ version_num = VERSIONS.index(config.version)
 # Apply arguments
 config.build_dir = args.build_dir
 config.tools_dir = Path("tools")
+# builds 1.5.4 byte-identical (adc8df9); the host port uses the newer extern/musyx.
 config.dtk_path = args.dtk
 config.objdiff_path = args.objdiff
 config.binutils_path = args.binutils

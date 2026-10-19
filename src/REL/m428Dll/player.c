@@ -235,7 +235,7 @@ s32 fn_1_F288(Vec *arg0, Vec *arg1, float arg8);
 s32 fn_1_F538(Vec *arg0, Vec *arg1, Vec *arg2, float arg8);
 s32 fn_1_FB8C(Vec *arg0, Vec *arg1, float arg8, s32 arg2, s32 arg3);
 
-SHARED_SYM extern u32 GlobalCounter;
+extern u32 GlobalCounter;
 
 Vec lbl_1_data_150[4] = {
     { -140.0f, -400.0f, 0.0f },

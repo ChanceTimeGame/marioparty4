@@ -83,8 +83,8 @@ typedef struct HuSprGrp_s {
     Mtx mtx;
 } HUSPRGRP;
 
-SHARED_SYM extern HUSPRITE HuSprData[HUSPR_MAX];
-SHARED_SYM extern HUSPRGRP HuSprGrpData[HUSPR_GRP_MAX];
+extern HUSPRITE HuSprData[HUSPR_MAX];
+extern HUSPRGRP HuSprGrpData[HUSPR_GRP_MAX];
 
 void HuSprInit(void);
 void HuSprClose(void);
@@ -104,9 +104,6 @@ void HuSprGrpMemberKill(s16 group, s16 member);
 void HuSprGrpKill(s16 group);
 void HuSprKill(s16 sprite);
 void HuSprAnimKill(ANIMDATA *anim);
-#ifdef BYTESWAPPING
-void HuSprAnimSrcFreed(void *ptr);
-#endif
 void HuSprAttrSet(s16 group, s16 member, s32 attr);
 void HuSprAttrReset(s16 group, s16 member, s32 attr);
 void HuSprPosSet(s16 group, s16 member, float x, float y);

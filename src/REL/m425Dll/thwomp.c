@@ -15,8 +15,8 @@
 
 #include "REL/m425Dll.h"
 
-SHARED_SYM extern u32 GlobalCounter;
-SHARED_SYM extern HU3DLIGHT Hu3DLocalLight[0x20];
+extern u32 GlobalCounter;
+extern HU3DLIGHT Hu3DLocalLight[0x20];
 
 typedef struct M425DllUnkStruct4 {
     s16 unk_00;

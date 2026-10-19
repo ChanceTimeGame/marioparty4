@@ -17,7 +17,7 @@ void BoardTutorialItemSet(s8 arg0);
 void BoardTutorialHostSet(s16 arg0);
 void BoardTutorialHostHide(s8 arg0);
 
-SHARED_SYM extern s32 boardTutorialData[4];
+extern s32 boardTutorialData[4];
 extern s8 boardTutorialDirInputX;
 extern s8 boardTutorialDirInputY;
 extern s16 boardTutorialDirInputTime;
@@ -25,6 +25,6 @@ extern s32 boardTutorialBlockPos;
 extern s8 boardTutorialBlockItem;
 extern s8 boardTutorialBlockF;
 extern s8 boardTutorialUseItem;
-SHARED_SYM extern s8 boardTutorialF;
+extern s8 boardTutorialF;
 
 #endif

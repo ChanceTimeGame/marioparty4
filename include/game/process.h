@@ -3,11 +3,7 @@
 
 #include "dolphin/types.h"
 
-#ifdef TARGET_PC
-#include "libco/libco.h"
-#else
 #include "game/jmp.h"
-#endif
 
 #ifndef __MWERKS__
 #include <stdio.h>
@@ -30,23 +26,16 @@ typedef struct process {
     u16 stat;
     u16 prio;
     s32 sleep_time;
-#ifdef TARGET_PC
-    cothread_t thread;
-#else
-    uintptr_t base_sp;
+    u32 base_sp;
     jmp_buf jump;
-#endif
     void (*dtor)(void);
     union {
         void *user_data; // TODO rename to property
-        volatile uintptr_t user_data_u32;
+        volatile u32 user_data_u32;
     };
 } Process;
 
 void HuPrcInit(void);
-#ifdef TARGET_PC
-void HuPrcFreeAll(void);
-#endif
 void HuPrcEnd(void);
 Process *HuPrcCreate(void (*func)(void), u16 prio, u32 stack_size, s32 extra_size);
 void HuPrcChildLink(Process *parent, Process *child);

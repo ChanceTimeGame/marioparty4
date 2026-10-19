@@ -70,7 +70,7 @@ static void HuDecodeSlide(DECODE *decode)
     dstPOrig = decode->dst;
     while(decode->size) {
         if(flagLen == 0) {
-#if defined(__MWERKS__) || defined(BYTESWAPPING)
+#if defined(__MWERKS__)
             flag = (*decode->src++) << 24;
             flag += (*decode->src++) << 16;
             flag += (*decode->src++) << 8;
@@ -124,7 +124,7 @@ static void HuDecodeFslide(DECODE *decode)
     flag = 0;
     while(decode->size) {
         if(flagLen == 0) {
-#if defined(__MWERKS__) || defined(BYTESWAPPING)
+#if defined(__MWERKS__)
             flag = (*decode->src++) << 24;
             flag += (*decode->src++) << 16;
             flag += (*decode->src++) << 8;

@@ -3,14 +3,10 @@
 
 static f32 Unit01[] = { 0.0f, 1.0f };
 
-#ifdef TARGET_PC
-#include "math.h"
-#else
 // hack
 extern f32 sinf(f32);
 extern f32 cosf(f32);
 extern f32 tanf(f32);
-#endif
 
 void C_MTXIdentity(Mtx m)
 {
@@ -1323,79 +1319,3 @@ void C_MTXLightOrtho(Mtx m, f32 t, f32 b, f32 l, f32 r, f32 scaleS, f32 scaleT, 
     m[2][3] = 1;
 }
 
-#ifdef TARGET_PC
-void C_MTXReorder(const Mtx src, ROMtx dest)
-{
-    u32 i, j;
-    for (i = 0; i < 3; i++) {
-        for (j = 0; j < 4; j++) {
-            dest[j][i] = src[i][j];
-        }
-    }
-}
-
-void C_MTXMultVec(const Mtx m, const Vec* src, Vec* dst) {
-    Vec vTmp;
-
-    ASSERTMSGLINE(66, m, "MTXMultVec():  NULL MtxPtr 'm' ");
-    ASSERTMSGLINE(67, src, "MTXMultVec():  NULL VecPtr 'src' ");
-    ASSERTMSGLINE(68, dst, "MTXMultVec():  NULL VecPtr 'dst' ");
-
-    vTmp.x = m[0][3] + ((m[0][2] * src->z) + ((m[0][0] * src->x) + (m[0][1] * src->y)));
-    vTmp.y = m[1][3] + ((m[1][2] * src->z) + ((m[1][0] * src->x) + (m[1][1] * src->y)));
-    vTmp.z = m[2][3] + ((m[2][2] * src->z) + ((m[2][0] * src->x) + (m[2][1] * src->y)));
-    dst->x = vTmp.x;
-    dst->y = vTmp.y;
-    dst->z = vTmp.z;
-}
-
-void C_MTXMultVecArray(const Mtx m, const Vec* srcBase, Vec* dstBase, u32 count) {
-    u32 i;
-    Vec vTmp;
-
-    ASSERTMSGLINE(168, m, "MTXMultVecArray():  NULL MtxPtr 'm' ");
-    ASSERTMSGLINE(169, srcBase, "MTXMultVecArray():  NULL VecPtr 'srcBase' ");
-    ASSERTMSGLINE(170, dstBase, "MTXMultVecArray():  NULL VecPtr 'dstBase' ");
-    ASSERTMSGLINE(171, count > 1, "MTXMultVecArray():  count must be greater than 1.");
-
-    for(i = 0; i < count; i++) {
-        vTmp.x = m[0][3] + ((m[0][2] * srcBase->z) + ((m[0][0] * srcBase->x) + (m[0][1] * srcBase->y)));
-        vTmp.y = m[1][3] + ((m[1][2] * srcBase->z) + ((m[1][0] * srcBase->x) + (m[1][1] * srcBase->y)));
-        vTmp.z = m[2][3] + ((m[2][2] * srcBase->z) + ((m[2][0] * srcBase->x) + (m[2][1] * srcBase->y)));
-        dstBase->x = vTmp.x;
-        dstBase->y = vTmp.y;
-        dstBase->z = vTmp.z;
-        srcBase++;
-        dstBase++;
-    }
-}
-
-void C_MTXROMultVecArray(const ROMtx m, const Vec *srcBase, Vec *dstBase, u32 count)
-{
-    for (u32 i = 0; i < count; ++i) {
-        Vec* src = &srcBase[i];
-        Vec* dst = &dstBase[i];
-
-        // Perform matrix-vector multiplication: ROMtx * Vec -> Vec
-        dst->x = m[0][0] * src->x + m[0][1] * src->y + m[0][2] * src->z;
-        dst->y = m[1][0] * src->x + m[1][1] * src->y + m[1][2] * src->z;
-        dst->z = m[2][0] * src->x + m[2][1] * src->y + m[2][2] * src->z;
-    }
-}
-
-void C_MTXMultVecSR(const Mtx m, const Vec* src, Vec* dst) {
-    Vec vTmp;
-
-    ASSERTMSGLINE(313, m, "MTXMultVecSR():  NULL MtxPtr 'm' ");
-    ASSERTMSGLINE(314, src, "MTXMultVecSR():  NULL VecPtr 'src' ");
-    ASSERTMSGLINE(315, dst, "MTXMultVecSR():  NULL VecPtr 'dst' ");
-
-    vTmp.x = (m[0][2] * src->z) + ((m[0][0] * src->x) + (m[0][1] * src->y));
-    vTmp.y = (m[1][2] * src->z) + ((m[1][0] * src->x) + (m[1][1] * src->y));
-    vTmp.z = (m[2][2] * src->z) + ((m[2][0] * src->x) + (m[2][1] * src->y));
-    dst->x = vTmp.x;
-    dst->y = vTmp.y;
-    dst->z = vTmp.z;
-}
-
-#endif

@@ -1,8 +1,4 @@
-#if defined(BYTESWAPPING) || !defined(TARGET_PC)
 #define DATADIR_PREFIX "data"
-#else
-#define DATADIR_PREFIX "data_byteswapped"
-#endif
 
 DATADIR(E3SETUP, DATADIR_PREFIX"/E3setup.bin")
 DATADIR(BBATTLE, DATADIR_PREFIX"/bbattle.bin")

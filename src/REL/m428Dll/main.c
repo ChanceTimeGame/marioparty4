@@ -998,9 +998,6 @@ void fn_1_3B64(void)
             GXEnd();
         }
     }
-#ifdef TARGET_PC
-    GXDestroyTexObj(&sp14);
-#endif
 }
 
 s32 lbl_1_data_EC[] = {

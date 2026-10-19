@@ -15,7 +15,7 @@
 static s32 SearchObjectIndex(HSFDATA *arg0, u32 arg1);
 static s32 SearchAttributeIndex(HSFDATA *arg0, u32 arg1);
 
-SHARED_SYM HU3DMOTION Hu3DMotion[HU3D_MOTION_MAX];
+HU3DMOTION Hu3DMotion[HU3D_MOTION_MAX];
 
 static HSFBITMAP *bitMapPtr;
 

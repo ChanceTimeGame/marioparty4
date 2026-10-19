@@ -4,13 +4,6 @@
 
 #ifndef __MWERKS__
 #include <stdlib.h>
-#ifdef TARGET_PC
-#include "port/game_settings.h"
-#include <string.h>
-#include "game/object.h" // omcurovl
-// game.devAutoMenu: set by BoardObjectSetup when a new game first enters its board.
-s32 pbDevAutoMenuDone;
-#endif
 #endif
 
 typedef struct pad_rumble {
@@ -26,17 +19,17 @@ static void PadADConv(s16 pad, PADStatus *status);
 static int padStatErrOld[4];
 static PadRumble rumbleData[4];
 
-SHARED_SYM u16 HuPadBtn[4];
-SHARED_SYM u16 HuPadBtnDown[4];
-SHARED_SYM u16 HuPadBtnRep[4];
-SHARED_SYM s8 HuPadStkX[4];
-SHARED_SYM s8 HuPadStkY[4];
-SHARED_SYM s8 HuPadSubStkX[4];
-SHARED_SYM s8 HuPadSubStkY[4];
-SHARED_SYM u8 HuPadTrigL[4];
-SHARED_SYM u8 HuPadTrigR[4];
-SHARED_SYM u8 HuPadDStk[4];
-SHARED_SYM u8 HuPadDStkRep[4];
+u16 HuPadBtn[4];
+u16 HuPadBtnDown[4];
+u16 HuPadBtnRep[4];
+s8 HuPadStkX[4];
+s8 HuPadStkY[4];
+s8 HuPadSubStkX[4];
+s8 HuPadSubStkY[4];
+u8 HuPadTrigL[4];
+u8 HuPadTrigR[4];
+u8 HuPadDStk[4];
+u8 HuPadDStkRep[4];
 s8 HuPadErr[4];
 u16 _PadBtn[4];
 u16 _PadBtnDown[4];
@@ -65,9 +58,7 @@ void HuPadInit(void)
     BOOL int_level;
     PADSetSpec(PAD_SPEC_5);
     PADInit();
-#ifndef TARGET_PC
     SISetSamplingRate(0);
-#endif
     int_level = OSDisableInterrupts();
     VISetPostRetraceCallback(PadReadVSync);
     OSRestoreInterrupts(int_level);
@@ -175,21 +166,6 @@ static void PadReadVSync(u32 retraceCount)
                 rumble->duration = 0;
             }
             padStatErrOld[i] = curr_status->err;
-#ifdef TARGET_PC
-            // game.devAutoMenu (port/game_settings.h): pad 1 presses A (Start on the title; held 4 of
-            // every 30 polls) until a party board is set up; it counts as connected meanwhile,
-            // so a run with no controller assigned still gets through the menus.
-            if(i == 0 && !pbDevAutoMenuDone && partyboard_settings_dev_auto_menu()) {
-                static u32 autoTick;
-                u32 t = autoTick++ % 60;
-                if(curr_status->err != PAD_ERR_NONE) {
-                    memset(curr_status, 0, sizeof(*curr_status));
-                }
-                if((t % 30) < 4) {
-                    curr_status->button |= omcurovl == DLL_bootdll ? PAD_BUTTON_START : PAD_BUTTON_A;
-                }
-            }
-#endif
             if(curr_status->err != PAD_ERR_NONE) {
                 _PadErr[i] = curr_status->err;
                 if(curr_status->err != PAD_ERR_TRANSFER && curr_status->err != PAD_ERR_NOT_READY) {

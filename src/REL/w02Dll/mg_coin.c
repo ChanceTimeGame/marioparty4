@@ -331,7 +331,7 @@ void fn_1_46E8(void)
     }
     sprintf(sp8, "%d", lbl_1_bss_84);
     BoardWinCreate(2, MAKE_MESSID(19, 19), 4);
-    BOARD_WIN_INSERT_MES_SET_PTR((uintptr_t)sp8, 0);
+    BOARD_WIN_INSERT_MES_SET_PTR((u32)sp8, 0);
     BoardWinWait();
     BoardWinKill();
     BoardCameraTargetModelSet(-1);
@@ -602,7 +602,7 @@ void fn_1_5868(omObjData *object)
         BoardModelMotionTimeSet(lbl_1_bss_BC[temp_r31->unk8], 0);
         BoardModelAttrReset(lbl_1_bss_BC[temp_r31->unk8], 0x40000002);
         BoardPlayerMotionShiftSet(lbl_1_bss_86, object->motion[1], 0, 5, HU3D_MOTATTR_NONE);
-        lbl_1_bss_A4->work[3] |= (uintptr_t)1 << temp_r31->unk8;
+        lbl_1_bss_A4->work[3] |= (u32)1 << temp_r31->unk8;
         temp_r31->unk0 = 5;
         temp_r31->unk4 = 0;
         sp8.x = object->trans.x;

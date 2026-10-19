@@ -9,7 +9,7 @@ s16 HuSysVWaitGet(s16 old);
 
 typedef s32 (*fadeFunc)(void);
 
-SHARED_SYM WipeState wipeData;
+WipeState wipeData;
 BOOL wipeFadeInF;
 
 static void WipeColorFill(GXColor color);
@@ -330,7 +330,4 @@ static void WipeFrameStill(GXColor color)
 	GXTexCoord2f32(0, 1);
 	GXEnd();
 	GXSetChanMatColor(GX_COLOR0A0, colorN);
-#ifdef TARGET_PC
-  	GXDestroyTexObj(&tex);
-#endif
 }

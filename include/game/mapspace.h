@@ -16,11 +16,11 @@ void CharRotInv(Mtx arg0, Mtx arg1, Vec *arg2, omObjData *arg3);
 
 extern Mtx MapMT;
 extern Mtx MapMTR;
-SHARED_SYM extern float AddX;
-SHARED_SYM extern float AddZ;
-SHARED_SYM extern s32 nMap;
-SHARED_SYM extern s32 nChar;
+extern float AddX;
+extern float AddZ;
+extern s32 nMap;
+extern s32 nChar;
 extern s32 HitFaceCount;
-SHARED_SYM extern omObjData *MapObject[16];
+extern omObjData *MapObject[16];
 
 #endif

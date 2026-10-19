@@ -30,7 +30,7 @@ void pfDrawFonts(void);
 extern BOOL saftyFrameF;
 extern u16 strlinecnt;
 extern u16 empstrline;
-SHARED_SYM extern int fontcolor;
+extern int fontcolor;
 extern u32 procfunc;
 
 #endif

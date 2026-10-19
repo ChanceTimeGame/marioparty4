@@ -8,7 +8,7 @@
 
 #include "ext_math.h"
 
-SHARED_SYM extern u8 texMtxTbl[];
+extern u8 texMtxTbl[];
 
 // PROTO
 void fn_1_E790(M438UnkStruct2 *);

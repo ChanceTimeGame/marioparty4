@@ -3,9 +3,6 @@
 #include "game/process.h"
 #include "dolphin/dvd.h"
 
-#ifdef BYTESWAPPING
-#include "port/byteswap.h"
-#endif
 
 #define STAT_ID_ARAM 0x10000
 
@@ -29,11 +26,7 @@ u32 DirDataSize;
 static u32 DataDirMax;
 static s32 shortAccessSleep;
 static HUDATASTAT ATTRIBUTE_ALIGN(32)
-#if TARGET_PC
-ReadDataStat[DATA_MAX_READSTAT + 1]; // to avoid bug
-#else
 ReadDataStat[DATA_MAX_READSTAT];
-#endif
 
 void HuDataInit(void)
 {
@@ -291,20 +284,11 @@ BOOL HuDataGetAsyncStat(s32 statId)
 static void GetFileInfo(HUDATASTAT *readStat, s32 fileNum)
 {
     u32 *temp_ptr = (u32 *)PTR_OFFSET(readStat->dirP, (fileNum * 4))+1;
-#ifdef BYTESWAPPING
-    u32 ofs = *temp_ptr;
-    byteswap_u32(&ofs);
-    temp_ptr = &ofs;
-#endif
     readStat->fileDataP = PTR_OFFSET(readStat->dirP, *temp_ptr);
     temp_ptr = readStat->fileDataP;
     readStat->rawLen = *temp_ptr++;
     readStat->decodeType = *temp_ptr++;
     readStat->fileDataP = temp_ptr;
-#ifdef BYTESWAPPING
-    byteswap_u32(&readStat->rawLen);
-    byteswap_u32(&readStat->decodeType);
-#endif
 }
 
 void *HuDataRead(s32 dataNum)
@@ -341,12 +325,7 @@ void *HuDataReadNum(s32 dataNum, s32 num)
     }
     readStat = &ReadDataStat[statId];
     GetFileInfo(readStat, dataNum & 0xFFFF);
-#ifdef TARGET_PC
-    // TODO PC why is the allocation invalid if we use HEAP_SYSTEM?
-    buf = HuMemDirectMallocNum(HEAP_DATA, DATA_EFF_SIZE(readStat->rawLen), num);
-#else
     buf = HuMemDirectMallocNum(HEAP_SYSTEM, DATA_EFF_SIZE(readStat->rawLen), num);
-#endif
     if(buf) {
         HuDecodeData(readStat->fileDataP, buf, readStat->rawLen, readStat->decodeType);
     }
@@ -606,7 +585,7 @@ static void *HuDataDecodeIt(void *bufP, s32 bufOfs, s32 num, HeapID heap)
 
 	void *dest;
 	buf =  (s32 *)((u8 *)bufP+bufOfs);
-	if((uintptr_t)buf & 0x3) {
+	if((u32)buf & 0x3) {
 		u8 *data = (u8 *)buf;
 		rawLen = *data++ << 24;
 		rawLen += *data++ << 16;
@@ -622,10 +601,6 @@ static void *HuDataDecodeIt(void *bufP, s32 bufOfs, s32 num, HeapID heap)
 		rawLen = *data++;
 		decodeType = *data++;
 		dataStart = data;
-#ifdef TARGET_PC
-        byteswap_s32(&rawLen);
-        byteswap_s32(&decodeType);
-#endif
 	}
 	switch(heap) {
         case HEAP_MUSIC:
@@ -681,9 +656,6 @@ void *HuDataReadNumHeapShortForce(s32 dataNum, s32 num, HeapID heap)
         return NULL;
     }
     fileNumMax = *fileData;
-#ifdef TARGET_PC
-    byteswap_s32(&fileNumMax);
-#endif
     if(fileNumMax <= fileNum) {
         HuMemDirectFree(fileData);
         OSReport("data.c%d: Data Number Error(0x%08x)\n", 1005, dataNum);
@@ -693,22 +665,13 @@ void *HuDataReadNumHeapShortForce(s32 dataNum, s32 num, HeapID heap)
     dataHdr = fileData;
     dataHdr += fileNum+1;
     fileOfs = *dataHdr;
-#ifdef TARGET_PC
-    byteswap_s32(&fileOfs);
-#endif
     readOfs = OSRoundDown32B(fileOfs);
     if(fileNumMax <= fileNum+1) {
         readLen = fileInfo.length;
         dataOfs = readLen-readOfs;
     } else {
         dataHdr++;
-#ifdef TARGET_PC
-        dataOfs = *dataHdr;
-        byteswap_s32(&dataOfs);
-        dataOfs -= readOfs;
-#else
         dataOfs = (*dataHdr)-readOfs;
-#endif
         readLen = fileInfo.length;
     }
     readLen = OSRoundUp32B(dataOfs);

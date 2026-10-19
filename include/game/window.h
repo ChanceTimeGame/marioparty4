@@ -6,7 +6,7 @@
 #include "version.h"
 
 #define MAKE_MESSID(bank, mess) (((bank) << 16)+(mess))
-#define MAKE_MESSID_PTR(ptr) ((uintptr_t)(ptr))
+#define MAKE_MESSID_PTR(ptr) ((u32)(ptr))
 
 typedef struct {
     /* 0x00 */ u8 color;
@@ -76,8 +76,8 @@ typedef struct {
     /* 0x160 */ u8 ATTRIBUTE_ALIGN(32) mess_pal[10][3];
 } WindowData; // Size 0x180
 
-SHARED_SYM extern WindowData winData[32];
-SHARED_SYM extern void *messDataPtr;
+extern WindowData winData[32];
+extern void *messDataPtr;
 
 void HuWindowInit(void);
 void HuWinInit(s32 mess_data_no);
@@ -140,21 +140,9 @@ void HuWinExCleanup(s16 window);
 void HuWinExAnimPopIn(s16 window, s16 portrait);
 void *MessData_MesPtrGet(void *data, u32 index);
 
-#if TARGET_PC
-void HuWinMesSetPtr(s16 window, uintptr_t mess);
-void HuWinInsertMesSetPtr(s16 window, uintptr_t mess, s16 index);
-void HuWinInsertMesSizeGetPtr(uintptr_t mess, s16 index);
-s16 HuWinKeyWaitNumGetPtr(uintptr_t mess);
-
-#define HU_WIN_MES_SET_PTR HuWinMesSetPtr
-#define HU_WIN_INSERT_MES_SET_PTR HuWinInsertMesSetPtr
-#define HU_WIN_INSERT_MES_SIZE_GET_PTR HuWinInsertMesSizeGetPtr
-#define HU_WIN_KEY_WAIT_NUM_GET_PTR HuWinKeyWaitNumGetPtr
-#else
 #define HU_WIN_MES_SET_PTR HuWinMesSet
 #define HU_WIN_INSERT_MES_SET_PTR HuWinInsertMesSet
 #define HU_WIN_INSERT_MES_SIZE_GET_PTR HuWinInsertMesSizeGet
 #define HU_WIN_KEY_WAIT_NUM_GET_PTR HuWinKeyWaitNumGet
-#endif
 
 #endif

@@ -177,7 +177,7 @@ BOOL OSRestoreInterrupts(BOOL level);
 #endif
 
 #ifndef ASSERTMSG
-#if defined(__STDC_VERSION__) && (199901L <= __STDC_VERSION__) || defined(__MWERKS__) || defined(__SN__)
+#if defined(__STDC_VERSION__) && (199901 <= __STDC_VERSION__) || defined(__MWERKS__) || defined(__SN__)
 #define ASSERTMSG(exp, ...) (void)((exp) || (OSPanic(__FILE__, __LINE__, __VA_ARGS__), 0))
 #else
 #define ASSERTMSG(exp, msg) (void)((exp) || (OSPanic(__FILE__, __LINE__, (msg)), 0))
@@ -208,7 +208,7 @@ BOOL OSRestoreInterrupts(BOOL level);
 #endif
 
 #ifndef ASSERTMSG
-#if defined(__STDC_VERSION__) && (199901L <= __STDC_VERSION__) || defined(__MWERKS__) || defined(__SN__)
+#if defined(__STDC_VERSION__) && (199901 <= __STDC_VERSION__) || defined(__MWERKS__) || defined(__SN__)
 #define ASSERTMSG(exp, ...) ((void)0)
 #else
 #define ASSERTMSG(exp, msg) ((void)0)

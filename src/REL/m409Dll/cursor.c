@@ -47,7 +47,7 @@ void fn_1_C0C0(void)
     Hu3DModelKill(lbl_1_bss_F0.unk4);
 }
 
-SHARED_SYM extern u8 texMtxTbl[];
+extern u8 texMtxTbl[];
 
 void fn_1_C164(unkStruct8 *arg0)
 {

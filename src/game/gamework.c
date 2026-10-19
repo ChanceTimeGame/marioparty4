@@ -6,17 +6,16 @@
 
 #ifndef __MWERKS__
 #include "game/pad.h"
-#include "port/settings.h"
 #endif
 
-SHARED_SYM s16 GwLanguage = 1;
-SHARED_SYM s16 GwLanguageSave = -1;
+s16 GwLanguage = 1;
+s16 GwLanguageSave = -1;
 
-SHARED_SYM GameStat GWGameStatDefault;
-SHARED_SYM GameStat GWGameStat;
-SHARED_SYM SystemState GWSystem;
-SHARED_SYM PlayerState GWPlayer[4];
-SHARED_SYM PlayerConfig GWPlayerCfg[4];
+GameStat GWGameStatDefault;
+GameStat GWGameStat;
+SystemState GWSystem;
+PlayerState GWPlayer[4];
+PlayerConfig GWPlayerCfg[4];
 
 static inline void GWErase(void)
 {
@@ -68,7 +67,7 @@ void GWInit(void)
     InitPlayerConfig();
 #if VERSION_JP
     GWGameStat.language = 0;
-#elif VERSION_ENG && !defined(TARGET_PC)
+#elif VERSION_ENG
     GWGameStat.language = 1;
 #else
     GWLanguageSet(GwLanguage);
@@ -145,7 +144,7 @@ void GWGameStatReset(void)
     game_stat->unk_00 = 0;
 #if VERSION_JP
     game_stat->language = 0;
-#elif VERSION_ENG && !defined(TARGET_PC)
+#elif VERSION_ENG
     game_stat->language = 1;
 #else
     game_stat->language = GwLanguage;
@@ -269,11 +268,6 @@ s32 GWMGAvailGet(s32 id)
     s32 word;
     s32 bit;
     id -= 401;
-#ifdef TARGET_PC
-    if ((u32)id < 64U && partyboard_settings_unlock_all_minigames()) {
-        return 1;
-    }
-#endif
     word = id >> 5;
     bit = id % 32;
     if (GWGameStat.mg_avail[word] & (1 << bit)) {

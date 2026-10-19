@@ -468,12 +468,7 @@ void fn_1_1068(UnkM447Struct_00* arg0) {
             /* fallthrough */
         case 1:
             // Bug: HuAudSeqFadeOut takes two arguments.
-#ifdef TARGET_PC
-            // TODO PC
-            HuAudSeqFadeOut(arg0->unk70, 100);
-#else
             HuAudSeqFadeOut(arg0->unk70);
-#endif
             arg0->unk30 = MGSeqCreate(3, 1);
             arg0->unk1C = 2;
             /* fallthrough */

@@ -17,10 +17,10 @@ static void particleFunc(HU3DMODEL *arg0, Mtx arg1);
 static void ParManFunc(void);
 static void ParManHook(HU3DMODEL *arg0, HU3DPARTICLE *arg1, Mtx mtx);
 
-SHARED_SYM extern u32 GlobalCounter;
+extern u32 GlobalCounter;
 
-SHARED_SYM HU3DTEXANIM Hu3DTexAnimData[HU3D_TEXANIM_MAX];
-SHARED_SYM HU3DTEXSCROLL Hu3DTexScrData[HU3D_TEXSCROLL_MAX];
+HU3DTEXANIM Hu3DTexAnimData[HU3D_TEXANIM_MAX];
+HU3DTEXSCROLL Hu3DTexScrData[HU3D_TEXSCROLL_MAX];
 static Process *parManProc[64];
 
 void Hu3DAnimInit(void)
@@ -64,7 +64,7 @@ HU3DANIMID Hu3DAnimCreate(void *dataP, HU3DMODELID modelId, char *bmpName)
         if (strcmp(bmpName, attrP->bitmap->name) == 0) {
             HU3DATTRANIM *attrAnimP;
             if (!attrP->animWorkP) {
-                attrAnimP = HuMemDirectMallocNum(HEAP_DATA, sizeof(*attrAnimP), (uintptr_t) Hu3DData[modelId].mallocNo);
+                attrAnimP = HuMemDirectMallocNum(HEAP_DATA, sizeof(*attrAnimP), (u32) Hu3DData[modelId].mallocNo);
                 attrP->animWorkP = attrAnimP;
                 attrAnimP->attr = 0;
             } else {
@@ -378,7 +378,7 @@ s16 Hu3DTexScrollCreate(HU3DMODELID modelId, char *bmpName)
         if (strcmp(bmpName, attrP->bitmap->name) == 0) {
             HU3DATTRANIM *attrAnimP;
             if (!attrP->animWorkP) {
-                attrAnimP = HuMemDirectMallocNum(HEAP_DATA, sizeof(*attrAnimP), (uintptr_t) Hu3DData[modelId].mallocNo);
+                attrAnimP = HuMemDirectMallocNum(HEAP_DATA, sizeof(*attrAnimP), (u32) Hu3DData[modelId].mallocNo);
                 attrP->animWorkP = attrAnimP;
                 attrAnimP->attr = 0;
             } else {

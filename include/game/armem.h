@@ -2,13 +2,13 @@
 #define _GAME_ARMEM_H
 
 #include "dolphin.h"
-#include "dolphin/arq.h" /* Aurora moved ARQ out of dolphin/ar.h (3840bf9); its dolphin.h does not include it */
+#include "dolphin/arq.h"
 #include "game/memory.h"
 #include "game/data.h"
 
 #define HU_AMEM_BASE 0x808000
 
-typedef uintptr_t AMEM_PTR;
+typedef u32 AMEM_PTR;
 
 void HuARInit(void);
 AMEM_PTR HuARMalloc(u32 size);

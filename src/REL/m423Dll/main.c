@@ -24,7 +24,7 @@
 
 #define frand7() (frand() & 0x7F)
 
-SHARED_SYM extern u32 GlobalCounter;
+extern u32 GlobalCounter;
 
 typedef struct {
     /* 0x00 */ s32 sizeX;
@@ -741,7 +741,7 @@ void fn_1_F60(omObjData *arg0)
     temp_r30->sizeX = 160;
     temp_r30->sizeY = 160;
     temp_r30->unk08 = GXGetTexBufferSize(temp_r30->sizeX, temp_r30->sizeY, 5, 0, 0);
-    temp_r30->bmpData = HuMemDirectMallocNum(HEAP_DATA, temp_r30->unk08, (uintptr_t)temp_r29->mallocNo);
+    temp_r30->bmpData = HuMemDirectMallocNum(HEAP_DATA, temp_r30->unk08, (u32)temp_r29->mallocNo);
     temp_r30->unk0C = 0.0f;
     arg0->model[4] = fn_1_13A0(temp_r30);
     Hu3DModelCameraSet(arg0->model[4], 5);
@@ -3579,7 +3579,7 @@ s32 fn_1_B304(StructBssA8Data **arg0)
 
     if (lbl_1_bss_A8 == NULL) {
 #ifdef NON_MATCHING
-        return (s32)(uintptr_t)arg0;
+        return (s32)(u32)arg0;
 #else
         return;
 #endif
@@ -4623,9 +4623,6 @@ void fn_1_EF44(HU3DMODEL *arg0, Mtx arg1)
     }
     GXSetNumIndStages(0);
     GXSetTevDirect(GX_TEVSTAGE0);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&sp14);
-#endif
 }
 
 s32 fn_1_F574(Vec arg0, float arg1, s32 arg2)
@@ -5047,9 +5044,6 @@ void fn_1_11008(StructBssD0Data *arg0, void *arg1, s16 arg2, GXTexWrapMode arg3,
         GXInitTexObjLOD(&sp18, GX_NEAR, GX_NEAR, 0.0f, 0.0f, 0.0f, GX_FALSE, GX_FALSE, GX_ANISO_1);
     }
     GXLoadTexObj(&sp18, arg2);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&sp18);
-#endif
 }
 
 s16 fn_1_11114(ANIMDATA *arg0, s16 arg1)

@@ -284,8 +284,8 @@ struct Hu3DModel_s {
     u16 lightNum;
     u16 lightId[HU3D_GLIGHT_MAX];
     HU3DLIGHTID lLightId[HU3D_MODEL_LLIGHT_MAX];
-    uintptr_t mallocNo;
-    uintptr_t mallocNoLink;
+    u32 mallocNo;
+    u32 mallocNoLink;
     u32 attr;
     u32 motAttr;
     float ambR;
@@ -476,8 +476,8 @@ void Hu3DDrawPreInit(void);
 void Hu3DDraw(HU3DMODEL *modelP, Mtx mtx, Vec *scale);
 BOOL ObjCullCheck(HSFDATA *hsf, HSFOBJECT *objPtr, Mtx mtx);
 void Hu3DDrawPost(void);
-void MakeDisplayList(HU3DMODELID modelId, uintptr_t no);
-HSFCONSTDATA *ObjConstantMake(HSFOBJECT *object, uintptr_t no);
+void MakeDisplayList(HU3DMODELID modelId, u32 no);
+HSFCONSTDATA *ObjConstantMake(HSFOBJECT *object, u32 no);
 void mtxTransCat(Mtx mtx, float x, float y, float z);
 void mtxRotCat(Mtx mtx, float x, float y, float z);
 void mtxRot(Mtx mtx, float x, float y, float z);
@@ -489,7 +489,7 @@ void Hu3DModelObjMtxGet(HU3DMODELID modelId, char *objName, Mtx mtx);
 void PGObjCall(HU3DMODEL *model, HSFOBJECT *object);
 void PGObjCalc(HU3DMODEL *model, HSFOBJECT *object);
 void PGObjReplica(HU3DMODEL *model, HSFOBJECT *object);
-HSFOBJECT *Hu3DObjDuplicate(HSFDATA *hsf, uintptr_t mallocNo);
+HSFOBJECT *Hu3DObjDuplicate(HSFDATA *hsf, u32 mallocNo);
 void Hu3DModelObjDrawInit(void);
 void Hu3DModelObjDraw(HU3DMODELID modelId, char *objName, Mtx mtx);
 
@@ -712,28 +712,28 @@ extern u32 totalTexCnted;
 extern u32 totalTexCacheCnt;
 extern u32 totalTexCacheCnted;
 
-SHARED_SYM extern HU3DMODEL Hu3DData[0x200];
-SHARED_SYM extern HU3DCAMERA Hu3DCamera[0x10];
+extern HU3DMODEL Hu3DData[0x200];
+extern HU3DCAMERA Hu3DCamera[0x10];
 extern ANIMDATA *reflectAnim[5];
-SHARED_SYM extern ANIMDATA *hiliteAnim[4];
+extern ANIMDATA *hiliteAnim[4];
 extern HU3DPROJECTION Hu3DProjection[4];
-SHARED_SYM extern HU3DSHADOW Hu3DShadowData;
-SHARED_SYM extern Mtx Hu3DCameraMtx;
-SHARED_SYM extern Mtx Hu3DCameraMtxXPose;
-SHARED_SYM extern HU3DLIGHT Hu3DGlobalLight[0x8];
+extern HU3DSHADOW Hu3DShadowData;
+extern Mtx Hu3DCameraMtx;
+extern Mtx Hu3DCameraMtxXPose;
+extern HU3DLIGHT Hu3DGlobalLight[0x8];
 extern s16 reflectMapNo;
 extern ANIMDATA *toonAnim;
-SHARED_SYM extern s16 Hu3DShadowCamBit;
-SHARED_SYM extern s32 Hu3DShadowF;
-SHARED_SYM extern s32 shadowModelDrawF;
-SHARED_SYM extern s16 Hu3DCameraNo;
+extern s16 Hu3DShadowCamBit;
+extern s32 Hu3DShadowF;
+extern s32 shadowModelDrawF;
+extern s16 Hu3DCameraNo;
 extern s16 Hu3DCameraBit;
 extern s16 Hu3DPauseF;
-SHARED_SYM extern GXColor BGColor;
+extern GXColor BGColor;
 
-SHARED_SYM extern HU3DMOTION Hu3DMotion[256];
+extern HU3DMOTION Hu3DMotion[256];
 
-SHARED_SYM extern HU3DTEXANIM Hu3DTexAnimData[HU3D_TEXANIM_MAX];
-SHARED_SYM extern HU3DTEXSCROLL Hu3DTexScrData[HU3D_TEXSCROLL_MAX];
+extern HU3DTEXANIM Hu3DTexAnimData[HU3D_TEXANIM_MAX];
+extern HU3DTEXSCROLL Hu3DTexScrData[HU3D_TEXSCROLL_MAX];
 
 #endif

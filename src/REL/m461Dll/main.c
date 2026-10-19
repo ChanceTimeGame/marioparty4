@@ -601,7 +601,7 @@ s32 fn_1_2824(WorkPlayerOld *player, WorkPlayerOld *player2)
     player->unk90.z = -(float)player->unk24 / 4.0f;
     if (player->unk90.x != 0.0f || player->unk90.z != 0.0f) {
 #ifdef NON_MATCHING
-        return (s32)(uintptr_t)player;
+        return (s32)(u32)player;
 #else
         return;
 #endif

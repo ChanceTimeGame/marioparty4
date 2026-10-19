@@ -21,9 +21,6 @@
 #include <string.h>
 #endif
 
-#ifdef TARGET_PC
-#include <port/byteswap.h>
-#endif
 
 // bss
 unkStruct5 lbl_1_bss_36C;
@@ -584,16 +581,10 @@ void fn_1_1A60(unkStruct3 *arg0)
                     if (sp18 == 0) {
                         if (temp_r21 != (temp_r28 + 1)) {
                             canvas_bmp_data[temp_r26] = ((sp28[temp_r28].r >> 3) << 10) | ((sp28[temp_r28].g >> 3) << 5) | (sp28[temp_r28].b >> 3) | 0x8000;
-#ifdef TARGET_PC
-                            byteswap_u16(&canvas_bmp_data[temp_r26]);
-#endif
                         }
                     }
                     else {
                         canvas_bmp_data[temp_r26] = ((sp38[temp_r28].r >> 3) << 10) | ((sp38[temp_r28].g >> 3) << 5) | (sp38[temp_r28].b >> 3) | 0x8000;
-#ifdef TARGET_PC
-                        byteswap_u16(&canvas_bmp_data[temp_r26]);
-#endif
                     }
                     if (temp_r21 != (temp_r28 + 1)) {
                         lbl_1_bss_234[temp_r28][temp_r19][temp_r18]++;
@@ -606,13 +597,6 @@ void fn_1_1A60(unkStruct3 *arg0)
         }
     }
     DCStoreRange(canvas_bmp_data, 0xAFC80);
-#ifdef TARGET_PC
-    AnimTexData *tex_data = canvas_bmp->texData;
-    if (tex_data->tex_initialized) {
-        // Refresh the image data because the function modifies it
-        GXInitTexObjData(&tex_data->tex_obj, canvas_bmp_data);
-    }
-#endif
 }
 
 void fn_1_2B18(omObjData *object)
@@ -1581,14 +1565,7 @@ s16 fn_1_66AC(void)
     var_r29 = fn_1_9734(var_r30);
     temp_r31 = (*var_r29)->bmp;
     var_r28 = temp_r31->sizeX * temp_r31->sizeY;
-#ifdef TARGET_PC
-    // Hu3DShadowData was copied by GXCopyTex and Aurora doesn't actually copy it there
-    // it just holds a reference to the pointer
-    // TODO PC does this fix cause issues?
-    temp_r31->data = Hu3DShadowData.buf;
-#else
     memcpy(temp_r31->data, Hu3DShadowData.buf, var_r28);
-#endif
     return var_r30;
 }
 

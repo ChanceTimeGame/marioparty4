@@ -71,7 +71,7 @@ static HSFMATERIAL *playerMatCopy[4];
 static s32 (*postTurnHook[4])();
 static s32 (*preTurnHook[4])();
 
-SHARED_SYM s16 boardPlayerMdl[4];
+s16 boardPlayerMdl[4];
 static s16 playerMot[4];
 static s8 itemPrev;
 static s8 moveAwayPlayer[4];

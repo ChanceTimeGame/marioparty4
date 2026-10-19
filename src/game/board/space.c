@@ -23,9 +23,6 @@
 #include "game/board/fortune.h"
 #include "game/board/warp.h"
 
-#if TARGET_PC
-#include <port/byteswap.h>
-#endif
 
 s32 BoardBlockExec(s32 player, s32 space); // wrong
 extern void BoardMushroomExec(s32 player, s32 space); // wrong
@@ -950,47 +947,23 @@ s32 BoardSpaceRead(s32 layer, s32 data_num)
     s32 star_idx;
     u8 *data_base;
     data_base = data = HuDataSelHeapReadNum(data_num, MEMORY_DEFAULT_NUM, HEAP_DATA);
-#if TARGET_PC
-    byteswap_u32((u32 *)data);
-#endif
     spaceCnt[layer] = *(u32 *)data;
     data += sizeof(u32);
     space = &spaceData[layer][0];
     for (i = 0; i < spaceCnt[layer]; i++, space++) {
-#if TARGET_PC
-        byteswap_vec((Vec *)data);
-#endif
         memcpy(&space->pos, data, sizeof(Vec));
         data += sizeof(Vec);
-#if TARGET_PC
-        byteswap_vec((Vec *)data);
-#endif
         memcpy(&space->rot, data, sizeof(Vec));
         data += sizeof(Vec);
-#if TARGET_PC
-        byteswap_vec((Vec *)data);
-#endif
         memcpy(&space->scale, data, sizeof(Vec));
         data += sizeof(Vec);
-#if TARGET_PC
-        byteswap_u32((u32 *)data);
-#endif
         space->flag = *(u32 *)data;
         data += sizeof(u32);
-#if TARGET_PC
-        byteswap_u16((u16 *)data);
-#endif
         space->type = *(u16 *)data;
         data += sizeof(u16);
-#if TARGET_PC
-        byteswap_u16((u16 *)data);
-#endif
         space->link_cnt = *(u16 *)data;
         data += sizeof(u16);
         for (j = 0; j < space->link_cnt; j++) {
-#if TARGET_PC
-            byteswap_u16((u16 *)data);
-#endif
             space->link[j] = (*(u16 *)data) + 1;
             data += sizeof(u16);
         }
@@ -1043,26 +1016,11 @@ void BoardSpaceInit(s32 data_num)
         ANIMDATA *data;
         void *data_base;
         s32 size;
-#ifdef BYTESWAPPING
-        ANIMDATA anim;
-        ANIMBMP bmp_pc;
-#endif
         data = data_base = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_BOARD, 29), MEMORY_DEFAULT_NUM, HEAP_DATA);
-#ifdef BYTESWAPPING
-        byteswap_animdata(data_base, &anim);
-        data = &anim;
-#endif
-        data->bmp = (void *)((uintptr_t)data_base + (uintptr_t)data->bmp);
-        // ignored, we don't need to byteswap these
-        data->pat = (void *)((uintptr_t)data_base + (uintptr_t)data->pat);
-        data->bank = (void *)((uintptr_t)data_base + (uintptr_t)data->bank);
-#ifdef BYTESWAPPING
-        byteswap_animbmpdata((AnimBmpData32b*)data->bmp, &bmp_pc);
-        data->bmp = &bmp_pc;
-        bmp = &bmp_pc;
-#else
+        data->bmp = (void *)((u32)data_base + (u32)data->bmp);
+        data->pat = (void *)((u32)data_base + (u32)data->pat);
+        data->bank = (void *)((u32)data_base + (u32)data->bank);
         bmp = data->bmp;
-#endif
         size = bmp->sizeX;
         spaceHiliteTexFmt = -1;
         switch (bmp->dataFmt) {
@@ -1079,7 +1037,7 @@ void BoardSpaceInit(s32 data_num)
                 break;
         }
         spaceHiliteTexData = HuMemDirectMallocNum(HEAP_SYSTEM, bmp->dataSize, MEMORY_DEFAULT_NUM);
-        bmp->data = (void *)((uintptr_t)bmp->data + (uintptr_t)data_base);
+        bmp->data = (void *)((u32)bmp->data + (u32)data_base);
         memcpy(spaceHiliteTexData, bmp->data, bmp->dataSize);
         HuDataClose(data_base);
         GXInitTexObj(&spaceHiliteTex, spaceHiliteTexData, size, size, spaceHiliteTexFmt, GX_CLAMP, GX_CLAMP, GX_FALSE);
@@ -1090,26 +1048,12 @@ void BoardSpaceInit(s32 data_num)
         ANIMDATA *data;
         void *data_base;
         s32 size;
-#ifdef BYTESWAPPING
-        ANIMDATA anim;
-        ANIMBMP bmp_pc;
-#endif
         data = data_base = HuDataSelHeapReadNum(DATA_MAKE_NUM(DATADIR_BOARD, 28), MEMORY_DEFAULT_NUM, HEAP_DATA);
-#ifdef BYTESWAPPING
-        byteswap_animdata(data_base, &anim);
-        data = &anim;
-#endif
-        data->bmp = (void *)((uintptr_t)data_base + (uintptr_t)data->bmp);
+        data->bmp = (void *)((u32)data_base + (u32)data->bmp);
         // ignored
-        data->pat = (void *)((uintptr_t)data_base + (uintptr_t)data->pat);
-        data->bank = (void *)((uintptr_t)data_base + (uintptr_t)data->bank);
-#ifdef BYTESWAPPING
-        byteswap_animbmpdata((AnimBmpData32b*)data->bmp, &bmp_pc);
-        data->bmp = &bmp_pc;
-        bmp = &bmp_pc;
-#else
+        data->pat = (void *)((u32)data_base + (u32)data->pat);
+        data->bank = (void *)((u32)data_base + (u32)data->bank);
         bmp = data->bmp;
-#endif
         size = bmp->sizeX;
         spaceTexFmt = -1;
         switch (bmp->dataFmt) {
@@ -1126,7 +1070,7 @@ void BoardSpaceInit(s32 data_num)
                 break;
         }
         spaceTexData = HuMemDirectMallocNum(HEAP_SYSTEM, bmp->dataSize, MEMORY_DEFAULT_NUM);
-        bmp->data = (void *)((uintptr_t)bmp->data + (uintptr_t)data_base);
+        bmp->data = (void *)((u32)bmp->data + (u32)data_base);
         memcpy(spaceTexData, bmp->data, bmp->dataSize);
         HuDataClose(data_base);
         GXInitTexObj(&spaceTex, spaceTexData, size, size, spaceTexFmt, GX_CLAMP, GX_CLAMP, GX_FALSE);
@@ -1175,8 +1119,4 @@ void BoardSpaceDestroy(void)
         HuMemDirectFree(spaceTexData);
         spaceTexData = NULL;
     }
-#ifdef TARGET_PC
-    GXDestroyTexObj(&spaceHiliteTex);
-    GXDestroyTexObj(&spaceTex);
-#endif
 }

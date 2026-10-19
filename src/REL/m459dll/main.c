@@ -1962,9 +1962,9 @@ void fn_1_5E3C(M459DllBss18Struct *arg0)
 void fn_1_5EAC(void)
 {
     M459DllBss7CStruct *var_r31;
-    intptr_t var_r30;
+    s32 var_r30;
 
-    var_r30 = (intptr_t)HuPrcCurrentGet()->user_data;
+    var_r30 = (s32)HuPrcCurrentGet()->user_data;
     var_r31 = &lbl_1_bss_7C[var_r30];
     var_r31->unk_00 = var_r30;
     var_r31->unk_04 = 0;

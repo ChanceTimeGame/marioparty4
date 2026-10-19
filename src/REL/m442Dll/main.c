@@ -537,12 +537,6 @@ void fn_1_E88(omObjData *object)
     Hu3DModelAttrSet(object->model[0], HU3D_MOTATTR_LOOP);
     Hu3DMotionOverlaySet(object->model[0], object->motion[7]);
     CharMotionVoiceOnSet(var_r30->unk_10, object->motion[5], 0);
-#ifdef TARGET_PC
-    // TODO PC is this solution good enough? we should check the values in the emulator
-    if (var_r30->unk_02 > 3) {
-        var_r30->unk_02 = 3;
-    }
-#endif
     object->trans.x = lbl_1_data_120[var_r30->unk_02].x;
     object->trans.y = lbl_1_data_120[var_r30->unk_02].y;
     object->trans.z = lbl_1_data_120[var_r30->unk_02].z;
@@ -1640,9 +1634,6 @@ void fn_1_54C8(HU3DMODEL *model, Mtx mtx)
     GXSetNumIndStages(0);
     GXSetTevDirect(GX_TEVSTAGE0);
     GXSetTevDirect(GX_TEVSTAGE1);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&spC);
-#endif
 }
 
 s16 fn_1_5918(Vec *arg0)

@@ -38,7 +38,7 @@ void WipeCreate(s16 mode, s16 type, s16 duration);
 void WipeColorSet(u8 r, u8 g, u8 b);
 u8 WipeStatGet(void);
 
-SHARED_SYM extern WipeState wipeData;
+extern WipeState wipeData;
 extern BOOL wipeFadeInF;
 
 #endif

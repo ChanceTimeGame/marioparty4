@@ -5,15 +5,6 @@
 #include "msm/msmse.h"
 #include "msm/msmstream.h"
 
-#ifdef TARGET_PC
-#include <stdlib.h>
-
-#include "port/audiostats.h"
-#endif
-#ifdef BYTESWAPPING
-#include "port/audiocheck.h"
-#include "port/byteswap.h"
-#endif
 
 static MSM_SYS sys;
 
@@ -106,41 +97,10 @@ static s32 msmSysSetAuxParam(s32 auxA, s32 auxB)
             return TRUE;
         }
     }
-#ifdef TARGET_PC
-    {
-        void *auxUser[2] = { &sys.aux[0], &sys.aux[1] };
-
-        partyboard_audio_stats_wrap_aux(0, &auxcb[0], &auxUser[0]);
-        partyboard_audio_stats_wrap_aux(1, &auxcb[1], &auxUser[1]);
-        sndSetAuxProcessingCallbacks(0, auxcb[0], auxUser[0], 0xFF, 0, auxcb[1], auxUser[1], 0xFF, 0);
-    }
-#else
     sndSetAuxProcessingCallbacks(0, auxcb[0], &sys.aux[0], 0xFF, 0, auxcb[1], &sys.aux[1], 0xFF, 0);
-#endif
     return FALSE;
 }
 
-#ifdef BYTESWAPPING
-// projOfs/sdirOfs/poolOfs come out of the file and are handed to musyx as
-// pointers, which then walks them. A bad one is not survivable, so it is worth
-// stating here that they have to land inside the buffer that was read, and
-// then to let musyx's own validator walk what they point at, bounded by it.
-static BOOL msmSysCheckGrpHead(s32 grpId, s32 dataSize, MSM_GRP_HEAD *head, void *samples,
-                                s32 sampSize)
-{
-    return PB_AUDIO_CHECK(PB_AUDIO_IN_BOUNDS(head->projOfs, 0, dataSize),
-                          "group %d: projOfs 0x%X outside %d byte buffer", grpId, head->projOfs,
-                          dataSize) &&
-           PB_AUDIO_CHECK(PB_AUDIO_IN_BOUNDS(head->sdirOfs, 0, dataSize),
-                          "group %d: sdirOfs 0x%X outside %d byte buffer", grpId, head->sdirOfs,
-                          dataSize) &&
-           PB_AUDIO_CHECK(PB_AUDIO_IN_BOUNDS(head->poolOfs, 0, dataSize),
-                          "group %d: poolOfs 0x%X outside %d byte buffer", grpId, head->poolOfs,
-                          dataSize) &&
-           partyboard_audio_check_group(grpId, head, dataSize, head->projOfs, head->poolOfs,
-                                        head->sdirOfs, samples, sampSize);
-}
-#endif
 
 static s32 msmSysLoadBaseGroup(void *buf)
 {
@@ -163,16 +123,8 @@ static s32 msmSysLoadBaseGroup(void *buf)
             msmFioClose(&file);
             return MSM_ERR_READFAIL;
         }
-#ifdef BYTESWAPPING
-        byteswap_msmgrphead(grpData);
-        if (!msmSysCheckGrpHead(sys.info->baseGrp[i], grpInfo->dataSize, grpData, buf,
-                                grpInfo->sampSize)) {
-            msmFioClose(&file);
-            return MSM_ERR_GRP_FAILPUSH;
-        }
-#endif
-        if (!sndPushGroup((void*) (grpData->projOfs + (uintptr_t) grpData), grpInfo->gid, buf,
-            (void*) (grpData->sdirOfs + (uintptr_t) grpData), (void*) (grpData->poolOfs + (uintptr_t) grpData)))
+        if (!sndPushGroup((void*) (grpData->projOfs + (u32) grpData), grpInfo->gid, buf,
+            (void*) (grpData->sdirOfs + (u32) grpData), (void*) (grpData->poolOfs + (u32) grpData)))
         {
             msmFioClose(&file);
             return MSM_ERR_GRP_FAILPUSH;
@@ -239,9 +191,6 @@ s32 msmSysGroupInit(DVDFileInfo *file)
     if (msmFioRead(file, sys.grpInfo, sys.header->grpInfoSize, sys.header->grpInfoOfs) < 0) {
         return MSM_ERR_READFAIL;
     }
-#ifdef BYTESWAPPING
-    byteswap_msmgrpinfo(sys.grpInfo, sys.header->grpInfoSize / (s32)sizeof(MSM_GRP_INFO));
-#endif
     if ((sys.grpBufA = msmMemAlloc(sys.info->grpBufSizeA * sys.grpStackAMax)) == NULL) {
         return MSM_ERR_OUTOFMEM;
     }
@@ -262,13 +211,13 @@ s32 msmSysGroupInit(DVDFileInfo *file)
         stack = &sys.grpStackA[i];
         stack->grpId = stack->baseGrpF = 0;
         stack->num = 0;
-        stack->buf = (void*) ((uintptr_t) sys.grpBufA + sys.info->grpBufSizeA * i);
+        stack->buf = (void*) ((u32) sys.grpBufA + sys.info->grpBufSizeA * i);
     }
     for (i = 0; i < sys.grpStackBMax; i++) {
         stack = &sys.grpStackB[i];
         stack->grpId = stack->baseGrpF = 0;
         stack->num = 0;
-        stack->buf = (void*) ((uintptr_t) sys.grpBufB + sys.info->grpBufSizeB * i);
+        stack->buf = (void*) ((u32) sys.grpBufB + sys.info->grpBufSizeB * i);
     }
     sys.sampSize = 0;
     for (i = 0; i < sys.baseGrpNum; i++) {
@@ -576,14 +525,8 @@ static s32 msmSysPushGroup(DVDFileInfo *file, void *buf, MSM_GRP_STACK *grp, s32
         return MSM_ERR_READFAIL;
     }
     grpBuf = grp->buf;
-#ifdef BYTESWAPPING
-    byteswap_msmgrphead(grpBuf);
-    if (!msmSysCheckGrpHead(grpId, grpInfo->dataSize, grpBuf, buf, grpInfo->sampSize)) {
-        return MSM_ERR_GRP_FAILPUSH;
-    }
-#endif
-    if (!sndPushGroup((void*) (grpBuf->projOfs + (uintptr_t) grpBuf), grpInfo->gid, buf,
-        (void*) (grpBuf->sdirOfs + (uintptr_t) grpBuf), (void*) (grpBuf->poolOfs + (uintptr_t) grpBuf)))
+    if (!sndPushGroup((void*) (grpBuf->projOfs + (u32) grpBuf), grpInfo->gid, buf,
+        (void*) (grpBuf->sdirOfs + (u32) grpBuf), (void*) (grpBuf->poolOfs + (u32) grpBuf)))
     {
         return MSM_ERR_GRP_FAILPUSH;
     }
@@ -839,14 +782,7 @@ s32 msmSysInit(MSM_INIT *init, MSM_ARAM *aram)
     s32 result;
     void *temp;
 
-#ifdef TARGET_PC
-    // The PC musyx keeps through these hooks what GameCube kept in ARAM -- every
-    // uploaded sample -- plus host-order copies of each group it decodes. MSM's
-    // heap is sized for main RAM alone, so musyx allocates from the host.
-    SND_HOOKS sndHooks = { malloc, free };
-#else
     SND_HOOKS sndHooks = { msmMemAlloc, msmMemFree };
-#endif
     DVDFileInfo sp10;
     if (sndIsInstalled() == 1) {
         return MSM_ERR_INSTALLED;
@@ -870,9 +806,6 @@ s32 msmSysInit(MSM_INIT *init, MSM_ARAM *aram)
         msmFioClose(&sp10);
         return MSM_ERR_READFAIL;
     }
-#ifdef BYTESWAPPING
-    byteswap_msmheader(sys.header);
-#endif
     if (sys.header->version != MSM_FILE_VERSION) {
         msmFioClose(&sp10);
         return MSM_ERR_INVALIDFILE;
@@ -885,9 +818,6 @@ s32 msmSysInit(MSM_INIT *init, MSM_ARAM *aram)
         msmFioClose(&sp10);
         return MSM_ERR_READFAIL;
     }
-#ifdef BYTESWAPPING
-    byteswap_msminfo(sys.info);
-#endif
     if (aram != NULL) {
         if (aram->skipARInit == 0) {
             ARInit(aram->stackIndex, aram->aramEnd);
@@ -938,10 +868,6 @@ s32 msmSysInit(MSM_INIT *init, MSM_ARAM *aram)
                 result = MSM_ERR_READFAIL;
             }
             else {
-#ifdef BYTESWAPPING
-                byteswap_msmauxparam(sys.auxParam,
-                    sys.header->auxParamSize / (s32)sizeof(MSM_AUXPARAM));
-#endif
                 result = 0;
             }
         }
@@ -987,36 +913,3 @@ s32 msmSysInit(MSM_INIT *init, MSM_ARAM *aram)
     return 0;
 }
 
-#ifdef TARGET_PC
-// Frees the aux effects msmSysInit prepared (msmSysSetAux's shutdown half) before sndQuit, so a
-// host that unloads the module does not keep their delay lines (docs/SINGLE_PROCESS_PLAN.md).
-void msmSysShutdownAux(void)
-{
-    s32 i;
-
-    if (sndIsInstalled() != 1) {
-        return;
-    }
-    sndSetAuxProcessingCallbacks(0, NULL, NULL, 0, 0, NULL, NULL, 0, 0);
-    for (i = 1; i >= 0; i--) {
-        if (sys.auxParamNo[i] < 0) {
-            continue;
-        }
-        switch (sys.auxParam[sys.auxParamNo[i]].type) {
-            case 0:
-                sndAuxCallbackShutdownReverbHI(&sys.aux[i].revHi);
-                break;
-            case 1:
-                sndAuxCallbackShutdownReverbSTD(&sys.aux[i].revStd);
-                break;
-            case 2:
-                sndAuxCallbackShutdownChorus(&sys.aux[i].chorus);
-                break;
-            case 3:
-                sndAuxCallbackShutdownDelay(&sys.aux[i].delay);
-                break;
-        }
-        sys.auxParamNo[i] = -1;
-    }
-}
-#endif

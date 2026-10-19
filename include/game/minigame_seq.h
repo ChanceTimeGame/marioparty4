@@ -117,6 +117,6 @@ s32 MGSeqUpdateRecord(SeqWork *work);
 s32 MGSeqInitFlip(SeqWork *work, va_list params);
 s32 MGSeqUpdateFlip(SeqWork *work);
 
-SHARED_SYM extern OMOVL mgSeqOvlPrev;
+extern OMOVL mgSeqOvlPrev;
 
 #endif

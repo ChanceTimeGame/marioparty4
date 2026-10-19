@@ -17,7 +17,7 @@
 #include "version.h"
 
 extern s32 rand8(void);
-SHARED_SYM extern HU3DLIGHT Hu3DLocalLight[0x20];
+extern HU3DLIGHT Hu3DLocalLight[0x20];
 
 #define FABS(value) ((value < 0) ? -(value) : (value))
 
@@ -1019,9 +1019,6 @@ void fn_1_618C(HU3DMODEL *arg0, Mtx arg1)
     GXInitTexObj(&sp14, var_r31->unk30, 640, 480, GX_TF_RGB5A3, GX_CLAMP, GX_CLAMP, 0);
     GXInitTexObjLOD(&sp14, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0, 0, GX_ANISO_1);
     GXLoadTexObj(&sp14, GX_TEXMAP0);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&sp14);
-#endif
     GXInitTexObj(&sp14, var_r31->unk28, 640, 480, GX_TF_RGB5A3, GX_CLAMP, GX_CLAMP, 0);
     GXInitTexObjLOD(&sp14, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, 0, 0, GX_ANISO_1);
     GXLoadTexObj(&sp14, GX_TEXMAP1);
@@ -1075,9 +1072,6 @@ void fn_1_618C(HU3DMODEL *arg0, Mtx arg1)
     GXSetNumIndStages(0);
     GXSetTevDirect(GX_TEVSTAGE0);
     GXSetTevDirect(GX_TEVSTAGE1);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&sp14);
-#endif
 }
 
 s32 lbl_1_data_FC[0xC] = {
@@ -2039,11 +2033,7 @@ void fn_1_A148(HU3DMODEL *model, Mtx matrix)
         GXSetTexCopySrc(320, 0, 320, 480);
         GXSetTexCopyDst(320, 480, GX_TF_RGB5A3, 0);
     }
-#ifdef TARGET_PC
-    GXCopyTex(var_r31->bmpData, 0); // TODO PC why do we need to skip the clear?
-#else
     GXCopyTex(var_r31->bmpData, 1);
-#endif
     DCFlushRange(var_r31->bmpData, var_r31->unk8);
 }
 
@@ -2449,9 +2439,6 @@ void fn_1_B3CC(HU3DMODEL *model, Mtx matrix)
     GXSetNumIndStages(0);
     GXSetTevDirect(GX_TEVSTAGE0);
     GXSetTevDirect(GX_TEVSTAGE1);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&sp44);
-#endif
 }
 
 void fn_1_BD2C(HU3DMODEL *model, Mtx matrix)

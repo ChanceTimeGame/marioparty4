@@ -1,5 +1,5 @@
 #include "version.h"
-#if VERSION_PAL || defined(TARGET_PC)
+#if VERSION_PAL
 #include "dolphin.h"
 #include "game/card.h"
 #include "game/saveload.h"
@@ -29,7 +29,7 @@ s32 flagFileTbl[] = {
     TITLE_FLAG_GE_ANM
 };
 
-SHARED_SYM extern int SystemInitF;
+extern int SystemInitF;
 
 extern Process *objman;
 extern Vec debugCamRot[2];

@@ -169,7 +169,7 @@ static void fn_1_E88(void)
         var_r30 = (var_r28 << 16);
         var_r25 = 0;
         while (1) {
-            if ((intptr_t)MessData_MesPtrGet(messDataPtr, var_r30 + var_r25) == 0) {
+            if ((s32)MessData_MesPtrGet(messDataPtr, var_r30 + var_r25) == 0) {
                 break;
             }
             sp10[var_r28]++;
@@ -191,7 +191,7 @@ static void fn_1_E88(void)
 #else
     MAKE_MESSID_PTR("\x1F\x01_\x1F\x02");
     fn_1_1174();
-    HU_WIN_MES_SET_PTR(lbl_1_bss_0, (uintptr_t)lbl_1_data_438[0]);
+    HU_WIN_MES_SET_PTR(lbl_1_bss_0, (u32)lbl_1_data_438[0]);
 #endif
     var_r31 = 0;
     var_r30 = 0;

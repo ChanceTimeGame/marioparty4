@@ -8,7 +8,7 @@
 
 #include <string.h>
 
-SHARED_SYM s32 boardTutorialData[4]; // maybe a single s32 + padding?
+s32 boardTutorialData[4]; // maybe a single s32 + padding?
 static void (*tutorialHook)(s16, s32);
 s8 boardTutorialDirInputX;
 s8 boardTutorialDirInputY;
@@ -18,7 +18,7 @@ s8 boardTutorialBlockItem;
 s8 boardTutorialBlockF;
 s8 boardTutorialUseItem;
 static s16 hostMdl;
-SHARED_SYM s8 boardTutorialF;
+s8 boardTutorialF;
 static Process *tutorialProcess;
 static void *playerCfgCopy;
 static void *playerCopy;

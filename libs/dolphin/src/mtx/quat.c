@@ -30,15 +30,6 @@ void PSQUATAdd(register const Quaternion *p, register const Quaternion *q, regis
 }
 #endif
 
-#ifdef TARGET_PC
-void C_QUATMultiply(const Quaternion *a, const Quaternion *b, Quaternion *ab)
-{
-    ab->x = a->w * b->x + a->x * b->w + a->y * b->z - a->z * b->y;
-    ab->y = a->w * b->y - a->x * b->z + a->y * b->w + a->z * b->x;
-    ab->z = a->w * b->z + a->x * b->y - a->y * b->x + a->z * b->w;
-    ab->w = a->w * b->w - a->x * b->x - a->y * b->y - a->z * b->z;
-}
-#endif
 
 #ifdef GEKKO
 void PSQUATMultiply(register const Quaternion *a, register const Quaternion *b, register Quaternion *ab)
@@ -70,22 +61,6 @@ void PSQUATMultiply(register const Quaternion *a, register const Quaternion *b, 
 }
 #endif
 
-#ifdef TARGET_PC
-void C_QUATNormalize(const Quaternion *src, Quaternion *unit)
-{
-    float len = sqrtf(src->x * src->x + src->y * src->y + src->z * src->z + src->w * src->w);
-    if (len > 0.0f) {
-        float inv_len = 1.0f / len;
-        unit->x = src->x * inv_len;
-        unit->y = src->y * inv_len;
-        unit->z = src->z * inv_len;
-        unit->w = src->w * inv_len;
-    } else {
-        unit->x = unit->y = unit->z = 0.0f;
-        unit->w = 1.0f;
-    }
-}
-#endif
 
 #ifdef GEKKO
 void PSQUATNormalize(const register Quaternion *src, register Quaternion *unit)
@@ -129,23 +104,6 @@ void PSQUATNormalize(const register Quaternion *src, register Quaternion *unit)
 }
 #endif
 
-#ifdef TARGET_PC
-void C_QUATInverse(const Quaternion *src, Quaternion *inv)
-{
-    float len_squared = src->x * src->x + src->y * src->y + src->z * src->z + src->w * src->w;
-
-    if (len_squared > 0.0f) {
-        float inv_len_squared = 1.0f / len_squared;
-        inv->x = -src->x * inv_len_squared;
-        inv->y = -src->y * inv_len_squared;
-        inv->z = -src->z * inv_len_squared;
-        inv->w = src->w * inv_len_squared;
-    } else {
-        inv->x = inv->y = inv->z = 0.0f;
-        inv->w = 1.0f;
-    }
-}
-#endif
 
 #ifdef GEKKO
 void PSQUATInverse(const register Quaternion *src, register Quaternion *inv)

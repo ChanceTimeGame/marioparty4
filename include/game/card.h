@@ -4,7 +4,7 @@
 #include "dolphin.h"
 #include "version.h"
 
-SHARED_SYM extern u8 UnMountCnt;
+extern u8 UnMountCnt;
 
 void HuCardInit(void);
 s32 HuCardCheck(void);

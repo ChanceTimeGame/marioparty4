@@ -8,22 +8,13 @@
 
 #define FAKE_RETADDR 0xA5A5A5A5
 
-#ifdef TARGET_PC
-// Host-only fiber headroom on top of the doubled GameCube request (see HuPrcCreate).
-#define PRC_HOST_STACK_EXTRA 0x20000
-#endif
 
 #define EXEC_NORMAL 0
 #define EXEC_SLEEP 1
 #define EXEC_CHILDWATCH 2
 #define EXEC_KILLED 3
 
-#ifdef TARGET_PC
-static cothread_t processthread;
-static u8 thread_arg;
-#else
 static jmp_buf processjmpbuf;
-#endif
 static Process *processtop;
 static Process *processcur;
 static u16 processcnt;
@@ -81,20 +72,7 @@ Process *HuPrcCreate(void (*func)(void), u16 prio, u32 stack_size, s32 extra_siz
     if (stack_size == 0) {
         stack_size = 2048;
     }
-#ifdef TARGET_PC
-    // Doubling alone is not enough: a process also runs host code the GameCube never ran on
-    // its stack and that does not scale with the request (the CRT's vprintf behind OSReport,
-    // Aurora's C++, nod). Aurora's memory card keeps 8 KiB directory and allocation-table
-    // blocks as stack objects, so resultDll's save after each board minigame (SaveExec ->
-    // SLSave -> CARDCreate/CARDWrite) overran its process stack. libco mallocs the stack with
-    // no guard page, so that corrupted the CRT heap: an access violation in memmove at the top
-    // of the fiber block, or C0000374 in co_delete under HuPrcCall (2026-10-11, after m419).
-    // Same constant as MP5 (games/mp5/src/game/process.c).
-    stack_size = stack_size * 2 + PRC_HOST_STACK_EXTRA;
-    alloc_size = HuMemMemoryAllocSizeGet(sizeof(Process)) + HuMemMemoryAllocSizeGet(extra_size);
-#else
     alloc_size = HuMemMemoryAllocSizeGet(sizeof(Process)) + HuMemMemoryAllocSizeGet(stack_size) + HuMemMemoryAllocSizeGet(extra_size);
-#endif
     if (!(heap = HuMemDirectMalloc(HEAP_SYSTEM, alloc_size))) {
         OSReport("process> malloc error size %d\n", alloc_size);
         return NULL;
@@ -106,14 +84,10 @@ Process *HuPrcCreate(void (*func)(void), u16 prio, u32 stack_size, s32 extra_siz
     process->stat = 0;
     process->prio = prio;
     process->sleep_time = 0;
-#ifdef TARGET_PC
-    process->thread = co_create(stack_size, func);
-#else
-    process->base_sp = ((uintptr_t)HuMemMemoryAlloc(heap, stack_size, FAKE_RETADDR)) + stack_size - 8;
+    process->base_sp = ((u32)HuMemMemoryAlloc(heap, stack_size, FAKE_RETADDR)) + stack_size - 8;
     gcsetjmp(&process->jump);
     process->jump.lr = (u32)func;
     process->jump.sp = process->base_sp;
-#endif
     process->dtor = NULL;
     process->user_data = NULL;
     LinkProcess(&processtop, process);
@@ -164,15 +138,10 @@ void HuPrcChildWatch()
     if (curr->child) {
         curr->exec = EXEC_CHILDWATCH;
 
-#ifdef TARGET_PC
-        thread_arg = 1;
-        co_switch(processthread);
-#else
         if (gcsetjmp(&curr->jump) == 0)
         {
             gclongjmp(&processjmpbuf, 1);
         }
-#endif
     }
 }
 
@@ -223,12 +192,7 @@ static void gcTerminateProcess(Process *process)
     }
     UnlinkProcess(&processtop, process);
     processcnt--;
-#ifdef TARGET_PC
-    thread_arg = 2;
-    co_switch(processthread);
-#else
     gclongjmp(&processjmpbuf, 2);
-#endif
 }
 
 void HuPrcEnd()
@@ -246,14 +210,9 @@ void HuPrcSleep(s32 time)
         process->exec = EXEC_SLEEP;
         process->sleep_time = time;
     }
-#ifdef TARGET_PC
-    thread_arg = 1;
-    co_switch(processthread);
-#else
     if (gcsetjmp(&process->jump) == 0) {
         gclongjmp(&processjmpbuf, 1);
     }
-#endif
 }
 
 void HuPrcVSleep()
@@ -282,20 +241,10 @@ void HuPrcCall(s32 tick)
     Process *process;
     s32 ret;
     processcur = processtop;
-#ifdef TARGET_PC
-    thread_arg = ret = 0;
-    processthread = co_active();
-    while (1) {
-        ret = thread_arg;
-        switch (ret) {
-            case 2:
-                co_delete(processcur->thread);
-#else
     ret = gcsetjmp(&processjmpbuf);
     while (1) {
         switch (ret) {
             case 2:
-#endif
                 HuMemDirectFree(processcur->heap);
             case 1:
                 #ifdef NON_MATCHING
@@ -309,11 +258,7 @@ void HuPrcCall(s32 tick)
 #else
                 // memory_block->magic
                 if (((u8 *)(processcur->heap))[4] != 165) {
-#ifdef TARGET_PC
-                    printf("stack overlap error.(process pointer %p)\n", processcur);
-#else
                     printf("stack overlap error.(process pointer %x)\n", processcur);
-#endif
                     while (1)
                         ;
                 }
@@ -332,9 +277,6 @@ void HuPrcCall(s32 tick)
         procfunc = process->jump.lr;
 #endif
         if ((process->stat & (PROCESS_STAT_PAUSE | PROCESS_STAT_UPAUSE)) && process->exec != EXEC_KILLED) {
-#ifdef TARGET_PC
-            thread_arg = 1;
-#endif
             ret = 1;
             continue;
         }
@@ -347,41 +289,23 @@ void HuPrcCall(s32 tick)
                         process->exec = EXEC_NORMAL;
                     }
                 }
-#ifdef TARGET_PC
-                thread_arg = 1;
-#endif
                 ret = 1;
                 break;
 
             case EXEC_CHILDWATCH:
                 if (process->child) {
-#ifdef TARGET_PC
-                    thread_arg = 1;
-#endif
                     ret = 1;
                 }
                 else {
                     process->exec = EXEC_NORMAL;
-#ifdef TARGET_PC
-                    thread_arg = 0;
-#endif
                     ret = 0;
                 }
                 break;
 
             case EXEC_KILLED:
-#ifdef TARGET_PC
-                HuPrcEnd();
-                break;
-#else
                 process->jump.lr = (u32)HuPrcEnd;
-#endif
             case EXEC_NORMAL:
-#ifdef TARGET_PC
-                co_switch(process->thread);
-#else
                 gclongjmp(&process->jump, 1);
-#endif
                 break;
         }
     }
@@ -454,21 +378,3 @@ void HuPrcAllUPause(s32 flag)
     }
 }
 
-#ifdef TARGET_PC
-// Deletes every process's fiber once the game loop has returned (none is running then). Each
-// fiber stack is a host malloc that would outlive the module the host unloads next
-// (docs/SINGLE_PROCESS_PLAN.md); the Process blocks themselves are in the HuMem heaps.
-void HuPrcFreeAll(void)
-{
-    Process *process = processtop;
-    while (process != NULL) {
-        if (process->thread != NULL) {
-            co_delete(process->thread);
-            process->thread = NULL;
-        }
-        process = process->next;
-    }
-    processtop = NULL;
-    processcnt = 0;
-}
-#endif

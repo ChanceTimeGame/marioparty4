@@ -91,13 +91,7 @@ typedef struct AnimData_s {
 /* 0x08 */ ANIMBANK *bank;
 /* 0x0C */ ANIMPAT *pat;
 /* 0x10 */ ANIMBMP *bmp;
-#ifdef BYTESWAPPING
-    u32 valid;
-#endif
 } ANIMDATA; //sizeof 0x14
 
-#ifdef BYTESWAPPING
-#define ANIM_DATA_ALLOCATION_VALID 0xD3D3D3D3
-#endif
 
 #endif

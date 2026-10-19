@@ -223,7 +223,7 @@ typedef struct HsfMaterial_s {
     float unk2C;
     u32 flags;
     u32 attrNum;
-    intptr_t *attr;
+    s32 *attr;
 } HSFMATERIAL;
 
 typedef struct HsfBuffer_s {
@@ -443,9 +443,6 @@ typedef struct HsfTrack_s {
         float value;
         void *data;
     };
-#ifdef BYTESWAPPING
-    void *dataTop;
-#endif
 } HSFTRACK;
 
 typedef struct HsfMotion_s {
@@ -492,9 +489,6 @@ typedef struct HsfData_s {
     HSFOBJECT *object;
     HSFMAPATTR *mapAttr;
     HSFMATRIX *matrix;
-#ifdef BYTESWAPPING
-    void **symbol;
-#endif
     s16 sceneNum;
     s16 attributeNum;
     s16 materialNum;

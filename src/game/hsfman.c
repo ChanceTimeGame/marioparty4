@@ -14,9 +14,6 @@
 
 #include "ext_math.h"
 
-#ifdef TARGET_PC
-#include <assert.h>
-#endif
 
 #ifndef __MWERKS__
 #include <string.h>
@@ -24,39 +21,36 @@
 
 #define SHADOW_HEAP_SIZE 0x9000
 
-SHARED_SYM HU3DMODEL Hu3DData[HU3D_MODEL_MAX];
-SHARED_SYM HU3DCAMERA Hu3DCamera[HU3D_CAM_MAX];
+HU3DMODEL Hu3DData[HU3D_MODEL_MAX];
+HU3DCAMERA Hu3DCamera[HU3D_CAM_MAX];
 static s16 layerNum[8];
 static void (*layerHook[8])(s16);
 ANIMDATA *reflectAnim[5];
-SHARED_SYM ANIMDATA *hiliteAnim[4];
+ANIMDATA *hiliteAnim[4];
 HU3DPROJECTION Hu3DProjection[4];
-SHARED_SYM HU3DSHADOW Hu3DShadowData;
+HU3DSHADOW Hu3DShadowData;
 HSFSCENE FogData;
-SHARED_SYM Mtx Hu3DCameraMtx;
-SHARED_SYM Mtx Hu3DCameraMtxXPose;
-SHARED_SYM HU3DLIGHT Hu3DGlobalLight[0x8];
-SHARED_SYM HU3DLIGHT Hu3DLocalLight[0x20];
+Mtx Hu3DCameraMtx;
+Mtx Hu3DCameraMtxXPose;
+HU3DLIGHT Hu3DGlobalLight[0x8];
+HU3DLIGHT Hu3DLocalLight[0x20];
 Mtx lbl_8018D39C;
 
-SHARED_SYM GXColor BGColor;
+GXColor BGColor;
 s16 reflectMapNo;
 ANIMDATA *toonAnim;
-SHARED_SYM s16 Hu3DShadowCamBit;
-SHARED_SYM s32 Hu3DShadowF;
-SHARED_SYM s32 shadowModelDrawF;
+s16 Hu3DShadowCamBit;
+s32 Hu3DShadowF;
+s32 shadowModelDrawF;
 s16 Hu3DProjectionNum;
-SHARED_SYM s16 Hu3DCameraNo;
+s16 Hu3DCameraNo;
 s16 Hu3DCameraBit;
-uintptr_t Hu3DMallocNo;
+u32 Hu3DMallocNo;
 s16 Hu3DPauseF;
 u16 Hu3DCameraExistF;
 static u16 NoSyncF;
 s32 modelKillAllF;
 
-#ifdef TARGET_PC
-#include "port/dolassets.h"
-#else
 #include "refMapData0.inc"
 #include "refMapData1.inc"
 #include "refMapData2.inc"
@@ -68,7 +62,6 @@ s32 modelKillAllF;
 #include "hiliteData2.inc"
 #include "hiliteData3.inc"
 #include "hiliteData4.inc"
-#endif
 
 void Hu3DInit(void) {
     HU3DMODEL* data;
@@ -91,7 +84,7 @@ void Hu3DInit(void) {
         layerNum[i] = 0;
         layerHook[i] = 0;
     }
-#if defined(__MWERKS__) || defined(BYTESWAPPING)
+#if defined(__MWERKS__)
     reflectAnim[0] = HuSprAnimRead(refMapData0);
     reflectAnim[1] = HuSprAnimRead(refMapData1);
     reflectAnim[2] = HuSprAnimRead(refMapData2);
@@ -335,18 +328,11 @@ void Hu3DAllKill(void) {
     Hu3DLightAllKill();
     Hu3DAnimAllKill();
     // TODO PC
-#ifndef BYTESWAPPING
     // this causes anim to be reallocated, so we lose the old allocation, but the game expects this to be executed, so hmm
     if(reflectAnim[0] != (ANIMDATA *)refMapData0) {
         HuMemDirectFree(reflectAnim[0]);
     }
-#ifdef TARGET_PC
-    void *dvd_data = HuDvdDataRead(DATADIR_PREFIX"/refMapData0.anm");
-    reflectAnim[0] = HuSprAnimRead(dvd_data);
-#else
     reflectAnim[0] = HuSprAnimRead(refMapData0);
-#endif
-#endif
     if(Hu3DShadowData.buf) {
         HuMemDirectFree(Hu3DShadowData.buf);
         Hu3DShadowCamBit = 0;
@@ -403,7 +389,7 @@ s16 Hu3DModelCreate(void *arg0) {
         return -1;
     }
     var_r31->hsf = LoadHSF(arg0);
-    var_r31->mallocNo = Hu3DMallocNo = (uintptr_t)var_r31->hsf;
+    var_r31->mallocNo = Hu3DMallocNo = (u32)var_r31->hsf;
     var_r31->attr = HU3D_ATTR_NONE;
     var_r31->motAttr = HU3D_ATTR_NONE;
     var_r31->projBit = 0;
@@ -479,10 +465,10 @@ s16 Hu3DModelLink(s16 arg0) {
     }
     var_r31->hsfLink = temp_r30->hsf;
     var_r31->hsf = HuMemDirectMallocNum(HEAP_DATA, sizeof(HSFDATA), var_r31->mallocNoLink);
-    var_r31->mallocNoLink = (uintptr_t)var_r31->hsf;
+    var_r31->mallocNoLink = (u32)var_r31->hsf;
     *var_r31->hsf = *temp_r30->hsf;
     temp_r3_2 = Hu3DObjDuplicate(var_r31->hsf, var_r31->mallocNoLink);
-    var_r31->hsf->root = (HSFOBJECT*)((uintptr_t)temp_r3_2 + ((uintptr_t)var_r31->hsf->root - (uintptr_t)var_r31->hsf->object));
+    var_r31->hsf->root = (HSFOBJECT*)((u32)temp_r3_2 + ((u32)var_r31->hsf->root - (u32)var_r31->hsf->object));
     var_r31->hsf->object = temp_r3_2;
     var_r31->mallocNo = temp_r30->mallocNo;
     var_r31->attr = temp_r30->attr;
@@ -611,9 +597,6 @@ void Hu3DModelKill(s16 arg0) {
         }
         Hu3DAnimModelKill(arg0);
         if (temp_r31->linkMdlId != -1) {
-#ifdef TARGET_PC
-            KillHSF(temp_r31->hsf);
-#endif
             HuMemDirectFree(temp_r31->hsf);
             HuMemDirectFreeNum(HEAP_DATA, temp_r31->mallocNoLink);
             var_r28 = temp_r31->hsfLink;
@@ -1898,21 +1881,11 @@ void lightSet(HU3DLIGHT* lightP, s16 lightBit, Mtx *cameraMtx, Mtx *cameraMtxXPo
 }
 
 void Hu3DReflectMapSet(ANIMDATA* arg0) {
-#ifndef BYTESWAPPING
 // TODO PC this causes anim to be reallocated, so we lose the old allocation
     if (reflectAnim[0] != (ANIMDATA*) refMapData0) {
         HuMemDirectFree(reflectAnim[0]);
     }
-#ifdef TARGET_PC
-    void *dvd_data = HuDvdDataRead(DATADIR_PREFIX"/refMapData0.anm");
-    reflectAnim[0] = HuSprAnimRead(dvd_data);
-#else
     reflectAnim[0] = HuSprAnimRead(arg0);
-#endif
-#else
-    assert(0 == 1);
-    OSReport("PC TODO: Hu3DReflectMapSet ran which tries to reallocate an anim\n");
-#endif
     reflectMapNo = 0;
 }
 
@@ -2199,7 +2172,7 @@ void Hu3DMipMapSet(char* arg0, s16 arg1, char *arg2, f32 arg8) {
 
     for (i = 0; i < temp_r3->bmpNum; i++, var_r30++) {
         memcpy(var_r23, var_r30->data, var_r30->dataSize);
-        var_r23 = (void*) ((intptr_t) var_r23 + var_r30->dataSize);
+        var_r23 = (void*) ((s32) var_r23 + var_r30->dataSize);
     }
     DCFlushRange(temp_r22, var_r24);
 }

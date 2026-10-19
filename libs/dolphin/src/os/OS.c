@@ -19,11 +19,7 @@ extern char _db_stack_end[];
 
 extern char *__OSResetSWInterruptHandler[];
 
-#ifdef TARGET_PC
-vu16 __OSDeviceCode;
-#else
 vu16 __OSDeviceCode : (OS_BASE_CACHED | 0x30E6);
-#endif
 static DVDDriveInfo DriveInfo ATTRIBUTE_ALIGN(32);
 static DVDCommandBlock DriveBlock;
 

@@ -269,7 +269,7 @@ void fn_1_DB8(omObjData *object);
 void fn_1_E18(omObjData *object);
 void fn_1_EB8(void);
 
-SHARED_SYM extern u32 GlobalCounter;
+extern u32 GlobalCounter;
 
 Vec lbl_1_data_0[4] = {
     { -600.0f, 0.0f, -285.0f },
@@ -2332,7 +2332,7 @@ s32 fn_1_6248(Vec *arg0)
     var_r31 = lbl_1_bss_70->data;
     if (!var_r31) {
 #ifdef NON_MATCHING
-        return (s32)(uintptr_t)arg0;
+        return (s32)(u32)arg0;
 #else
         return;
 #endif
@@ -2509,7 +2509,7 @@ s32 fn_1_6888(Vec *arg0)
 
     if (!lbl_1_bss_6C) {
 #ifdef NON_MATCHING
-        return (s32)(uintptr_t)arg0;
+        return (s32)(u32)arg0;
 #else
         return;
 #endif
@@ -2517,7 +2517,7 @@ s32 fn_1_6888(Vec *arg0)
     var_r31 = lbl_1_bss_6C->data;
     if (!var_r31) {
 #ifdef NON_MATCHING
-        return (s32)(uintptr_t)arg0;
+        return (s32)(u32)arg0;
 #else
         return;
 #endif

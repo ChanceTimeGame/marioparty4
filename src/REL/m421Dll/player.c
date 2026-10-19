@@ -1832,7 +1832,4 @@ void fn_1_ABDC(HU3DMODEL *model, Mtx matrix)
         }
         GXEnd();
     }
-#ifdef TARGET_PC
-    GXDestroyTexObj(&sp8);
-#endif
 }

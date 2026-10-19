@@ -1,9 +1,6 @@
 #include "game/object.h"
 #include "game/dvd.h"
 #include "game/memory.h"
-#ifdef TARGET_PC
-#include "port/host.h"
-#endif
 
 #ifndef __MWERKS__
 #include <string.h>
@@ -13,16 +10,10 @@
 #include <dlfcn.h>
 #endif
 
-#ifdef TARGET_PC
-#include <stdio.h>
-#endif
 
 typedef s32 (*DLLProlog)(void);
 typedef void (*DLLEpilog)(void);
 
-#ifdef TARGET_PC
-typedef void (*DLLObjectSetup)(void);
-#endif
 
 omDllData *omDLLinfoTbl[OM_DLL_MAX];
 
@@ -47,17 +38,9 @@ s32 omDLLStart(s16 overlay, s16 flag)
 {
 	s32 dllno;
 	OSReport("DLLStart %d %d\n", overlay, flag);
-#ifdef TARGET_PC
-	/* Flushed state beacon for scripted runs (mp4sweep.ps1): survives a crash, unlike OSReport. */
-	fprintf(stderr, "PB_OVL %d %s\n", overlay, omDLLFileList && omDLLFileList[overlay].name ? omDLLFileList[overlay].name : "?");
-	fflush(stderr);
-#endif
 	dllno = omDLLSearch(overlay);
 	if(dllno >= 0 && !flag) {
 		omDllData *dll = omDLLinfoTbl[dllno];
-#ifdef TARGET_PC
-		OSReport("objdll>Already Loaded %s\n", dll->name);
-#else
 		OSReport("objdll>Already Loaded %s(%08x %08x)\n", dll->name, dll->module, dll->bss);
 		
 		omDLLInfoDump(&dll->module->info);
@@ -65,7 +48,6 @@ s32 omDLLStart(s16 overlay, s16 flag)
 		memset(dll->bss, 0, dll->module->bssSize);
 		HuMemDCFlushAll();
 		dll->ret = ((DLLProlog)dll->module->prolog)();
-#endif
 		OSReport("objdll> %s prolog end\n", dll->name);
 		return dllno;
 	} else {
@@ -117,81 +99,6 @@ void omDLLEnd(s16 dllno, s16 flag)
 	OSReport("objdll>End DLL finish\n");
 }
 
-#ifdef TARGET_PC
-#include <stdio.h>
-#include <stdlib.h>
-
-// A missing overlay is not survivable, and must not be allowed to look like it
-// is. Before this, a failed load logged one line and carried straight on into
-// objectSetup() -- an unchecked call through a null pointer -- so the symptom
-// was a bare access violation with nothing saying which overlay was wanted.
-//
-// Stop, and say enough to tell the two causes apart. A library that is simply
-// absent means the overlay was never built and there is nothing to fix in the
-// code; a library that exists but will not load is a genuine link problem --
-// usually an unresolved import, which for this tree means a symbol that needs
-// adding to the game's dol.def (see "Symbol export gotchas" in CLAUDE.md).
-//
-// Kept identical in both titles; see games/mp5/src/game/objdll.c.
-static void omDLLLinkFailed(const char *name, s16 overlay, const char *osError)
-{
-	char path[1024];
-	FILE *probe = fopen(port_module_file(name, path, sizeof(path)), "rb");
-	const BOOL present = (probe != NULL);
-	if(probe != NULL) {
-		fclose(probe);
-	}
-	// stderr, not OSReport: OSReport goes through aurora::Module, which has
-	// silently emitted nothing from some call sites, and this is the one
-	// message that must never be the one that goes missing.
-	fprintf(stderr,
-		"\n"
-		"================================================================\n"
-		" CHANCE TIME: cannot load overlay %d (%s)\n"
-		"\n",
-		(int)overlay, name);
-	if(!present) {
-		fprintf(stderr,
-			" There is no %s next to the executable.\n"
-			" That overlay is not built -- check PB_REL_FILES in the game's\n"
-			" game.cmake.\n",
-			name);
-	} else {
-		fprintf(stderr,
-			" %s exists but the OS refused to load it:\n"
-			"   %s\n"
-			" That is a real link failure rather than a missing overlay --\n"
-			" most often an unresolved import, which here usually means a\n"
-			" symbol that needs adding to the game's dol.def.\n",
-			name, (osError != NULL) ? osError : "(no error text)");
-	}
-	fprintf(stderr,
-		"\n"
-		" Stopping here on purpose. Continuing would run the game with an\n"
-		" overlay whose ObjectSetup never executed, and every later failure\n"
-		" would point somewhere unrelated.\n"
-		"================================================================\n");
-	fflush(stderr);
-	OSReport("objdll>FATAL: overlay %d (%s) could not be loaded\n", (int)overlay, name);
-	fflush(stdout);
-	// Inside a Chance Time host: the game stops and the players go back to the
-	// picker, which shows this (port/host.h). The calling process is parked for
-	// good; the game loop ends at its next frame and frees it with the rest.
-	if(HuPrcCurrentGet() != NULL) {
-		char text[256];
-		snprintf(text, sizeof(text), "Part of this game is missing from the Chance Time install (%s).", name);
-		if(port_report_error(text)) {
-			for(;;) {
-				HuPrcVSleep();
-			}
-		}
-	}
-	// _Exit rather than exit: this runs on a libco fiber, and atexit handlers
-	// tearing down Dawn and SDL from a fiber stack would turn a clear stop into
-	// a confusing crash after it. Both streams are flushed above.
-	_Exit(1);
-}
-#endif
 
 omDllData *omDLLLink(omDllData **dll_ptr, s16 overlay, s16 flag)
 {
@@ -201,20 +108,7 @@ omDllData *omDLLLink(omDllData **dll_ptr, s16 overlay, s16 flag)
 	dll = HuMemDirectMalloc(HEAP_SYSTEM, sizeof(omDllData));
 	*dll_ptr = dll;
 	dll->name = dllFile->name;
-#ifdef _WIN32
-    {
-		// By full path from dol.dll's folder: a host process runs from elsewhere (SINGLE_PROCESS_PLAN).
-		char path[1024];
-		dll->hModule = LoadLibraryExA(port_module_file(dllFile->name, path, sizeof(path)), NULL,
-			LOAD_WITH_ALTERED_SEARCH_PATH);
-	}
-	if (dll->hModule == NULL) {
-		char winErr[64];
-		snprintf(winErr, sizeof(winErr), "LoadLibrary failed, GetLastError() = %lu",
-			(unsigned long)GetLastError());
-		omDLLLinkFailed(dllFile->name, overlay, winErr);
-	}
-#elif defined(__linux__)
+#if   defined(__linux__)
 	{
 		// RPATH has to be set properly in CMake
 		char path[1024];
@@ -237,15 +131,7 @@ omDllData *omDLLLink(omDllData **dll_ptr, s16 overlay, s16 flag)
 #endif
 	if(flag == 1) {
 		OSReport("objdll> %s prolog start\n", dllFile->name);
-#ifdef _WIN32
-		{
-		DLLObjectSetup objectSetup = (DLLObjectSetup)GetProcAddress(dll->hModule, "ObjectSetup");
-		if(objectSetup == NULL) {
-			omDLLLinkFailed(dllFile->name, overlay, "loaded, but exports no ObjectSetup symbol");
-		}
-		objectSetup();
-		}
-#elif defined(__linux__)
+#if   defined(__linux__)
 		{
 		DLLObjectSetup objectSetup = (DLLObjectSetup)dlsym(dll->handle, "ObjectSetup");
 		if(objectSetup == NULL) {
@@ -264,9 +150,7 @@ omDllData *omDLLLink(omDllData **dll_ptr, s16 overlay, s16 flag)
 void omDLLUnlink(omDllData *dll_ptr, s16 flag)
 {
 	OSReport("odjdll>Unlink DLL:%s\n", dll_ptr->name);
-#ifdef _WIN32
-    FreeLibrary(dll_ptr->hModule);
-#elif defined(__linux__)
+#if   defined(__linux__)
 	dlclose(dll_ptr->handle);
 #else
 	if(flag == 1) {
@@ -327,23 +211,3 @@ void omDLLHeaderDump(OSModuleHeader *module)
 	OSReport("================================\n");
 }
 
-#ifdef TARGET_PC
-// Unloads every overlay still loaded, stayed ones included, when the game loop has returned: each
-// holds a reference on dol.dll, which the host unloads next (docs/SINGLE_PROCESS_PLAN.md). No
-// epilogs: like a console reset, the whole image goes. The slots are cleared; their HuMem
-// blocks go with the heaps.
-void omDLLFreeAll(void)
-{
-	s32 i;
-	for(i = 0; i < OM_DLL_MAX; i++) {
-		if(omDLLinfoTbl[i] != NULL) {
-#ifdef _WIN32
-			FreeLibrary(omDLLinfoTbl[i]->hModule);
-#elif defined(__linux__)
-			dlclose(omDLLinfoTbl[i]->handle);
-#endif
-			omDLLinfoTbl[i] = NULL;
-		}
-	}
-}
-#endif

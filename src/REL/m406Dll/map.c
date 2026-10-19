@@ -231,7 +231,7 @@ void fn_1_D488(float arg8, Vec *arg0, Vec *arg1, Vec *arg2);
 void fn_1_D518(Mtx arg0, Vec *arg1);
 float fn_1_D5CC(Vec *arg0, Vec *arg1, float arg8, float arg9);
 
-SHARED_SYM extern u32 GlobalCounter;
+extern u32 GlobalCounter;
 
 Vec lbl_1_data_F0[0x46] = {
     { -495.876f, 50.005f, -0.0f },
@@ -468,7 +468,7 @@ UnkM406Struct5 lbl_1_bss_48;
 Vec lbl_1_bss_3C;
 s32 lbl_1_bss_30[3];
 
-SHARED_SYM extern HU3DLIGHT Hu3DLocalLight[0x20];
+extern HU3DLIGHT Hu3DLocalLight[0x20];
 
 omObjData *fn_1_2308(Process *arg0)
 {

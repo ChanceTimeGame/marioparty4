@@ -15,16 +15,7 @@
 
 #include "ext_math.h"
 #include <string.h>
-#ifdef TARGET_PC
-#include "port/game_settings.h"
-#include <stdio.h>
-#endif
 
-#ifdef TARGET_PC
-// game.devForceMinigame / game.devMinigameSweep: see DevForcedMG below.
-static s32 devForceIdx = -1;  // this setup's forced entry, CenterStatus -> ExecMGSetup
-static s32 devSweepNum = -1;  // the sweep's next minigame number
-#endif
 
 // structs
 typedef struct structActiveMG {
@@ -272,17 +263,6 @@ static void ExecMGSetup(void) {
     HuDataDirClose(DATADIR_BGUEST);
     HuDataDirClose(sp60[GWBoardGet()]);
     HuPrcSleep(2);
-#ifdef TARGET_PC
-    if (devForceIdx >= 0) {
-        /* Flushed beacon for mp4sweep.ps1 (OSReport is lost in a crash). */
-        fprintf(stderr, "PB_MGSWEEP play m%d type %d turn %d/%d (roulette had m%d)\n",
-                (int)(devForceIdx + 401), (int)mgInfoTbl[devForceIdx].type, (int)GWSystem.turn,
-                (int)GWSystem.max_turn, (int)(mgNext + 401));
-        fflush(stderr);
-        mgNext = devForceIdx;
-        devForceIdx = -1;
-    }
-#endif
     if (_CheckFlag(FLAG_ID_MAKE(0, 11)) != 0) {
         var_r23 = 0x140000;
     } else {
@@ -317,67 +297,6 @@ static void ExecMGSetup(void) {
     HuPrcEnd();
 }
 
-#ifdef TARGET_PC
-// game.devForceMinigame / game.devMinigameSweep (include/port/game_settings.h).
-// mgInfoTbl is indexed by minigame number - 401 (mgNext + 0x191 elsewhere).
-// Bowser (type 3) and Battle (type 4) minigames are accepted too and played with the 4P
-// layout: that exercises the overlay and its teardown, not their board events (Bowser's
-// pick, the Battle space's coin stakes), so it is not evidence for those events.
-
-// Bowser/Battle minigames and the others are separate sweeps: a sweep keeps to the class
-// (type 0-2, or 3-4) of the minigame it started from.
-static s32 DevSweepIdx(s32 num, s32 bowserBattle) {
-    s32 i;
-    for (i = 0; mgInfoTbl[i].ovl != 0xFFFF; i++) {
-        if (i == num - 401) {
-            if (mgInfoTbl[i].type > 4 || (mgInfoTbl[i].type >= 3) != bowserBattle) {
-                return -1;
-            }
-            return i;
-        }
-    }
-    return -2; // past the table
-}
-
-static s32 DevForcedMG(void) {
-    s32 num = partyboard_settings_dev_force_minigame();
-    s32 idx;
-    s32 bowserBattle;
-    if (num < 0) {
-        return -1;
-    }
-    bowserBattle = DevSweepIdx(num, 1) >= 0;
-    if (partyboard_settings_dev_minigame_sweep()) {
-        if (devSweepNum < 0) {
-            devSweepNum = num;
-        }
-        while ((idx = DevSweepIdx(devSweepNum, bowserBattle)) == -1) {
-            devSweepNum++;
-        }
-        if (idx < 0) {
-            OSReport("mg_setup.c: game.devMinigameSweep: past the table, board picks normally\n");
-            return -1;
-        }
-        devSweepNum++;
-        return idx;
-    }
-    idx = DevSweepIdx(num, bowserBattle);
-    if (idx < 0) {
-        OSReport("mg_setup.c: game.devForceMinigame=%d is not a 4P/1vs3/2vs2/Bowser/Battle minigame, ignoring\n", (int)num);
-    }
-    return idx;
-}
-
-// No colour roll produced a forced type: give it a legal layout for SetupStatusLayout
-// (colour 2 marks the solo player of a 1vs3 and one pair of a 2vs2), rotated by turn.
-static void DevForceColors(s32 type) {
-    s32 i, first = GWSystem.turn % 4;
-    for (i = 0; i < 4; i++) {
-        s32 k = (i - first + 4) % 4;
-        GWPlayer[i].color = (type == 1 && k == 0) || (type == 2 && k < 2) ? 2 : 1;
-    }
-}
-#endif
 
 static void DetermineMGList(bitcopy* arg0) {
     MgInfo* var_r31;
@@ -802,18 +721,6 @@ static void CenterStatus(bitcopy* arg0, omObjData* arg1) {
     } else {
         mgType = GetMGType();
     }
-#ifdef TARGET_PC
-    devForceIdx = DevForcedMG();
-    if (devForceIdx >= 0 && (s32) GWSystem.team == 0) {
-        OSReport("mg_setup.c: game.devForceMinigame: type %d -> %d for m%d\n", (int)mgType,
-                 (int)mgInfoTbl[devForceIdx].type, (int)(devForceIdx + 401));
-        mgType = mgInfoTbl[devForceIdx].type <= 2 ? mgInfoTbl[devForceIdx].type : 0;
-        DevForceColors(mgType);
-    } else if (devForceIdx >= 0) {
-        OSReport("mg_setup.c: game.devForceMinigame: team mode, not forced\n");
-        devForceIdx = -1;
-    }
-#endif
     if (mgType == 0) {
         arg0->field01_bit0 = 4;
     } else {

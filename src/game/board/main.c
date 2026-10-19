@@ -1,7 +1,4 @@
 #include "game/board/main.h"
-#ifdef TARGET_PC
-#include "port/game_settings.h"
-#endif
 #include "ext_math.h"
 #include "game/board/battle.h"
 #include "game/board/lottery.h"
@@ -48,11 +45,11 @@ u32 boardRandSeed;
 static omObjData *last5GfxObj;
 static omObjData *confettiObj;
 static omObjData *filterObj;
-SHARED_SYM BoardTurnStartHook boardTurnStartFunc;
-SHARED_SYM BoardBowserHook boardBowserHook;
-SHARED_SYM void (*boardStarShowNextHook)(void);
-SHARED_SYM void (*boardStarGiveHook)(void);
-SHARED_SYM BoardFunc boardTurnFunc;
+BoardTurnStartHook boardTurnStartFunc;
+BoardBowserHook boardBowserHook;
+void (*boardStarShowNextHook)(void);
+void (*boardStarGiveHook)(void);
+BoardFunc boardTurnFunc;
 BoardLightHook boardLightResetHook;
 BoardLightHook boardLightSetHook;
 static BoardFunc destroyFunc;
@@ -112,23 +109,6 @@ void BoardObjectSetup(BoardFunc create, BoardFunc destroy)
         _ClearFlag(FLAG_ID_MAKE(0, 8));
         _ClearFlag(FLAG_ID_MAKE(0, 10));
         BoardMGSetupPlayClear();
-#ifdef TARGET_PC
-        // A new game's first board entry. Not in BoardSaveInit: mentDll calls that before its
-        // last setup message, which still waits for player 1.
-        // game.devAllCom (include/port/game_settings.h): every player a CPU, so a scripted
-        // party plays itself after the setup menus.
-        if(partyboard_settings_dev_all_com()) {
-            s32 i;
-            for(i=0; i<4; i++) {
-                GWPlayer[i].com = GWPlayerCfg[i].iscom = 1;
-            }
-            OSReport("board/main.c: game.devAllCom: all four players are CPUs\n");
-        }
-        {
-            extern s32 pbDevAutoMenuDone; // game/pad.c: game.devAutoMenu stops here
-            pbDevAutoMenuDone = 1;
-        }
-#endif
     }
 
     nextOvl = DLL_NONE;
@@ -399,13 +379,6 @@ void BoardPartyConfigSet(s32 team, s32 bonus_star, s32 mg_list, s32 max_turn, s3
     GWSystem.bonus_star = bonus_star;
     GWMGListSet(mg_list);
     GWSystem.max_turn = max_turn;
-#ifdef TARGET_PC
-    if(partyboard_settings_dev_force_turn_max() > 0) { // game.devForceTurnMax
-        OSReport("board/main.c: game.devForceTurnMax=%d overrides turn count %d\n",
-                 partyboard_settings_dev_force_turn_max(), max_turn);
-        GWSystem.max_turn = partyboard_settings_dev_force_turn_max();
-    }
-#endif
     memset(GWPlayer, 0, 4*sizeof(PlayerState));
     GWPlayer[0].handicap = p1_handicap;
     GWPlayer[1].handicap = p2_handicap;

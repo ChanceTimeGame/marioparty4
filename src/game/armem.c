@@ -1,9 +1,6 @@
 #include "game/armem.h"
 #include "game/data.h"
 
-#ifdef BYTESWAPPING
-#include <port/byteswap.h>
-#endif
 
 #define ARMEM_BLOCK_MAX 64
 
@@ -23,9 +20,9 @@ typedef struct ARQueReq_s {
     /* 0x24 */ void *dst;
 } ARQUEREQ; // Size 0x28
 
-static void ArqCallBack(uintptr_t pointerToARQRequest);
-static void ArqCallBackAM(uintptr_t pointerToARQRequest);
-static void ArqCallBackAMFileRead(uintptr_t pointerToARQRequest);
+static void ArqCallBack(u32 pointerToARQRequest);
+static void ArqCallBackAM(u32 pointerToARQRequest);
+static void ArqCallBackAMFileRead(u32 pointerToARQRequest);
 
 static s32 ATTRIBUTE_ALIGN(32) preLoadBuf[16];
 static ARQUEREQ ARQueBuf[16];
@@ -203,7 +200,7 @@ void HuAMemDump(void) {
     OSReport("================================\n");
 }
 
-uintptr_t HuAR_DVDtoARAM(u32 dir) {
+u32 HuAR_DVDtoARAM(u32 dir) {
     HUDATASTAT *stat;
     ARMEM_BLOCK *block;
     AMEM_PTR aMemP;
@@ -221,14 +218,14 @@ uintptr_t HuAR_DVDtoARAM(u32 dir) {
     block = HuARInfoGet(aMemP);
     block->dir = (dir >> 16);
     arqCnt++;
-    ARQPostRequest(&arqReq, 0x1234, 0, 0, (uintptr_t) stat->dirP, aMemP, DirDataSize, ArqCallBack);
+    ARQPostRequest(&arqReq, 0x1234, 0, 0, (u32) stat->dirP, aMemP, DirDataSize, ArqCallBack);
     OSReport("ARAM Trans %x\n", aMemP);
     while (HuARDMACheck());
     HuDataDirClose(dir);
     return aMemP;
 }
 
-static void ArqCallBack(uintptr_t pointerToARQRequest) {
+static void ArqCallBack(u32 pointerToARQRequest) {
     arqCnt--;
     (void)pointerToARQRequest; // required to match (return?)
 }
@@ -257,7 +254,7 @@ AMEM_PTR HuAR_MRAMtoARAM2(void *dirPtr) {
     block = HuARInfoGet(aMemP);
     block->dir = status->dirId;
     arqCnt++;
-    ARQPostRequest(&arqReq, 0x1234, 0, 0, (uintptr_t)dirPtr, aMemP, size, ArqCallBack);
+    ARQPostRequest(&arqReq, 0x1234, 0, 0, (u32)dirPtr, aMemP, size, ArqCallBack);
     return aMemP;
 }
 
@@ -277,7 +274,7 @@ void *HuAR_ARAMtoMRAMNum(AMEM_PTR aMemP, s32 num) {
 #ifdef NON_MATCHING
     ret = HuDataReadChk(block->dir << 16);
     if (ret >= 0) {
-        return (void *)(uintptr_t)ret;
+        return (void *)(u32)ret;
     }
 #else
     if (HuDataReadChk(block->dir << 16) >= 0) {
@@ -294,13 +291,13 @@ void *HuAR_ARAMtoMRAMNum(AMEM_PTR aMemP, s32 num) {
     ARQueBuf[arqIdx].dst = dst;
     arqCnt++;
     PPCSync();
-    ARQPostRequest(&ARQueBuf[arqIdx].req, 0x1234, 1, 0, aMemP, (uintptr_t) dst, size, ArqCallBackAM);
+    ARQPostRequest(&ARQueBuf[arqIdx].req, 0x1234, 1, 0, aMemP, (u32) dst, size, ArqCallBackAM);
     arqIdx++;
     arqIdx &= 0xF;
     return dst;
 }
 
-static void ArqCallBackAM(uintptr_t pointerToARQRequest) {
+static void ArqCallBackAM(u32 pointerToARQRequest) {
     ARQUEREQ *req_ptr = (ARQUEREQ*) pointerToARQRequest;
 
     arqCnt--;
@@ -340,11 +337,7 @@ void HuARDirFree(u32 dir) {
     }
 }
 
-#ifdef BYTESWAPPING
-#define DIR_DATA (dirBuf_pc)
-#else
 #define DIR_DATA (dirBuf)
-#endif
 
 void *HuAR_ARAMtoMRAMFileRead(u32 dir, u32 num, HeapID heap) {
     s32 *dirBuf;
@@ -354,10 +347,6 @@ void *HuAR_ARAMtoMRAMFileRead(u32 dir, u32 num, HeapID heap) {
     s32 count;
     u32 size;
     AMEM_PTR aMemP;
-#ifdef BYTESWAPPING
-    s32 dirBuf_pc[2];
-    s32 i;
-#endif
 
     if ((aMemP = HuARDirCheck(dir)) == 0) {
         OSReport("Error: data none on ARAM %0x\n", dir);
@@ -367,17 +356,11 @@ void *HuAR_ARAMtoMRAMFileRead(u32 dir, u32 num, HeapID heap) {
     DCInvalidateRange(&preLoadBuf, sizeof(preLoadBuf));
     srcAMemP = aMemP + (u32)((((dir & 0xFFFF) + 1) * 4) & 0xFFFFFFFE0);
     arqCnt++;
-    ARQPostRequest(&ARQueBuf[arqIdx].req, 0x1234, 1, 0, srcAMemP, (uintptr_t) &preLoadBuf, sizeof(preLoadBuf), ArqCallBackAMFileRead);
+    ARQPostRequest(&ARQueBuf[arqIdx].req, 0x1234, 1, 0, srcAMemP, (u32) &preLoadBuf, sizeof(preLoadBuf), ArqCallBackAMFileRead);
     arqIdx++;
     arqIdx &= 0xF;
     while (HuARDMACheck());
     dirBuf = &preLoadBuf[(dir + 1) & 7];
-#ifdef BYTESWAPPING
-    for (i = 0; i < 2; i++) {
-        dirBuf_pc[i] = dirBuf[i];
-        byteswap_s32(&dirBuf_pc[i]);
-    }
-#endif
     count = DIR_DATA[0];
     srcAMemP = aMemP + (u32)(count & 0xFFFFFFFE0);
     if (DIR_DATA[1] - count < 0) {
@@ -392,17 +375,11 @@ void *HuAR_ARAMtoMRAMFileRead(u32 dir, u32 num, HeapID heap) {
     DCFlushRangeNoSync(dvdBuf, size);
     arqCnt++;
     PPCSync();
-    ARQPostRequest(&ARQueBuf[arqIdx].req, 0x1234, 1, 0, srcAMemP, (uintptr_t) dvdBuf, (u32) size, ArqCallBackAMFileRead);
+    ARQPostRequest(&ARQueBuf[arqIdx].req, 0x1234, 1, 0, srcAMemP, (u32) dvdBuf, (u32) size, ArqCallBackAMFileRead);
     arqIdx++;
     arqIdx &= 0xF;
     while (HuARDMACheck());
     dirBuf = (s32*) ((u8*) dvdBuf + (count & 0x1F));
-#ifdef BYTESWAPPING
-    for (i = 0; i < 2; i++) {
-        dirBuf_pc[i] = dirBuf[i];
-        byteswap_s32(&dirBuf_pc[i]);
-    }
-#endif
     dst = HuMemDirectMallocNum(heap, (DIR_DATA[0] + 1) & ~1, num);
     if (!dst) {
         return 0;
@@ -414,7 +391,7 @@ void *HuAR_ARAMtoMRAMFileRead(u32 dir, u32 num, HeapID heap) {
 
 #undef DIR_DATA
 
-static void ArqCallBackAMFileRead(uintptr_t pointerToARQRequest) {
+static void ArqCallBackAMFileRead(u32 pointerToARQRequest) {
     arqCnt--;
     (void)pointerToARQRequest; // required to match (return?)
 }

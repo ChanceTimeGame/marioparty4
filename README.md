@@ -1,15 +1,12 @@
-# Mario Party 4 decompilation (Chance Time)
+# Mario Party 4 decompilation
 
-The Mario Party 4 decompilation as the [Chance Time](https://github.com/ChanceTimeGame) PC port
-builds it. It started as [mariopartyrd/marioparty4](https://github.com/mariopartyrd/marioparty4),
-by way of the [mariopartyrd/partyboard](https://github.com/mariopartyrd/partyboard) port, and
-carries the port's host changes (`TARGET_PC`, 64-bit and byte-order fixes) while still building
-a byte-identical game: every unit matches, and the DOL and every REL pass the SHA-1 check for
-`GMPE01_01` (USA revision 1).
+A matching decompilation of Mario Party 4. It builds a byte-identical game: every unit matches,
+and the DOL and every REL pass the SHA-1 check for `GMPE01_01` (USA revision 1).
 
-Chance Time keeps its working copy of this tree in its own repository (`games/mp4/`); this
-repository is a snapshot of it, refreshed from there. Its names and labels follow the port's
-fork point and not later upstream relabelling.
+It started as [mariopartyrd/marioparty4](https://github.com/mariopartyrd/marioparty4), by way of
+the [mariopartyrd/partyboard](https://github.com/mariopartyrd/partyboard) port; its names and labels
+follow that fork point, not later upstream relabelling. It contains decompiled code only: the
+changes the [Chance Time](https://github.com/ChanceTimeGame) PC port needs are kept out of it.
 
 This repository contains no game data. To build, place your own extracted disc in
 `orig/GMPE01_01/` (`sys/` and `files/`), then:

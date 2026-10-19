@@ -6,9 +6,6 @@
 #include "game/init.h"
 #include "game/sprite.h"
 
-#ifdef TARGET_PC
-#include <assert.h>
-#endif
 
 static void *bmpNoCC[8];
 static short HuSprLayerDrawNo[8];
@@ -294,18 +291,12 @@ void HuSprTexLoad(ANIMDATA *anim, short bmp, short slot, GXTexWrapMode wrap_s, G
         case ANIM_BMP_C8:
             GXInitTlutObj(&tlut_obj, bmp_ptr->palData, GX_TL_RGB5A3, bmp_ptr->palNum);
             GXLoadTlut(&tlut_obj, slot);
-#ifdef TARGET_PC
-            GXDestroyTlutObj(&tlut_obj);
-#endif
             GXInitTexObjCI(&tex_obj,bmp_ptr->data, sizeX, sizeY, GX_TF_C8, wrap_s, wrap_t, GX_FALSE, slot);
             break;
             
         case ANIM_BMP_C4:
             GXInitTlutObj(&tlut_obj, bmp_ptr->palData, GX_TL_RGB5A3, bmp_ptr->palNum);
             GXLoadTlut(&tlut_obj, slot);
-#ifdef TARGET_PC
-            GXDestroyTlutObj(&tlut_obj);
-#endif
             GXInitTexObjCI(&tex_obj,bmp_ptr->data, sizeX, sizeY, GX_TF_C4, wrap_s, wrap_t, GX_FALSE, slot);
             break;
             
@@ -338,14 +329,10 @@ void HuSprTexLoad(ANIMDATA *anim, short bmp, short slot, GXTexWrapMode wrap_s, G
     }
     GXInitTexObjLOD(&tex_obj, filter, filter, 0, 0, 0, GX_FALSE, GX_FALSE, GX_ANISO_1);
     GXLoadTexObj(&tex_obj, slot);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&tex_obj);
-#endif
 }
 #endif
 
 #ifdef OPTIMIZED_TEXTURE_LOADING
-// HuSprTexLoad keeps one GXTexObj per bitmap and slot, and Aurora uploads a
 // texture only when that object's data version changes. Code that edits a
 // bitmap's texels in RAM (on GameCube a DCFlushRange was enough) calls this
 // afterwards so the next draw uploads the edited image.

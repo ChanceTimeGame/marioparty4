@@ -26,7 +26,7 @@ typedef struct tutorial_scene {
     TutorialSceneFunc func;
 } TutorialScene;
 
-SHARED_SYM extern s32 boardTutorialData[4];
+extern s32 boardTutorialData[4];
 
 void HostPosSet(s16);
 void fn_1_1FB0(void);

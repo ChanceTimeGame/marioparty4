@@ -15,9 +15,6 @@
 
 #include <msm/msmsys.h>
 
-#ifdef TARGET_PC
-#include "port/port_version.h"
-#endif
 
 typedef struct camera_view_params {
     Vec rot;
@@ -83,11 +80,6 @@ void fn_1_414(void)
 {
     fn_1_9F4();
     if (omovlevtno) {
-#ifdef TARGET_PC
-        if (omovlevtno == MODESEL_EVENT_SKIP_BOOT) {
-            FileSelectAutoLoadDefault();
-        }
-#endif
         HuAudSeqPlay(43);
     }
     else {
@@ -98,15 +90,6 @@ void fn_1_414(void)
             while (WipeStatGet()) {
                 HuPrcVSleep();
             }
-#ifdef TARGET_PC
-            if (partyboard_version_is_pal()) {
-                if(GwLanguageSave != -1) {
-                    GWGameStat.language = GwLanguageSave;
-                } else if(GwLanguage != -1) {
-                    GWGameStat.language = GwLanguage;
-                }
-            }
-#else
             #if VERSION_PAL
             if(GwLanguageSave != -1) {
                 GWGameStat.language = GwLanguageSave;
@@ -114,7 +97,6 @@ void fn_1_414(void)
                 GWGameStat.language = GwLanguage;
             }
             #endif
-#endif
             omOvlReturnEx(1, 1);
             while (1) {
                 HuPrcVSleep();
@@ -123,17 +105,10 @@ void fn_1_414(void)
         else {
             s16 grpId;
             s16 sprId;
-#ifdef TARGET_PC
-            if (partyboard_version_is_pal()) {
-                HuWinAllKill();
-                HuWinInit(1);
-            }
-#else
             #if VERSION_PAL
             HuWinAllKill();
             HuWinInit(1);
             #endif
-#endif
 #ifdef __MWERKS__
             grpId = HuSprGrpCreate(1);
             sprId = HuTHPSprCreateVol("movie/opmov_s00.thp", 0, 3000, 70.0);

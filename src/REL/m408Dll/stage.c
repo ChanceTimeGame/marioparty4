@@ -1066,7 +1066,7 @@ void fn_1_10484(UnkFn10484 *arg0, HSFFACE *arg1, HSFDRAWDATA *arg2, GXColor *arg
         fn_1_10830(arg0->unk0, temp_r29->bitmap, temp_r29, (s16)temp_r27);
     }
     fn_1_10B60(arg0, temp_r31);
-    temp_r20 = (void *)(arg2->dlOfs + ((uintptr_t)lbl_1_bss_120[0]));
+    temp_r20 = (void *)(arg2->dlOfs + ((u32)lbl_1_bss_120[0]));
     GXCallDisplayList(temp_r20, arg2->dlSize);
 }
 
@@ -1128,10 +1128,6 @@ void fn_1_10830(HU3DMODEL *arg0, HSFBITMAP *arg1, HSFATTRIBUTE *arg2, s16 arg3)
         GXInitTexObjLOD(&sp1C, GX_LINEAR, GX_LINEAR, 0, 0, 0, GX_FALSE, GX_FALSE, GX_ANISO_1);
     }
     GXLoadTexObj(&sp1C, arg3);
-#ifdef TARGET_PC
-    GXDestroyTexObj(&sp1C);
-    GXDestroyTlutObj(&sp10);
-#endif
 }
 
 #define SET_TEVCOLOR_ALPHA(reg, color_var, value)                                                                                                    \
@@ -1140,7 +1136,7 @@ void fn_1_10830(HU3DMODEL *arg0, HSFBITMAP *arg1, HSFATTRIBUTE *arg2, s16 arg3)
         GXSetTevColor(reg, color_var);                                                                                                               \
     }
 
-SHARED_SYM extern u32 texMtxTbl[];
+extern u32 texMtxTbl[];
 
 void fn_1_10B60(UnkFn10484 *arg0, HSFMATERIAL *arg1)
 {

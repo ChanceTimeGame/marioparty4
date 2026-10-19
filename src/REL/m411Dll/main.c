@@ -1492,7 +1492,7 @@ void fn_1_5384(void)
 void fn_1_544C(void)
 {
     UnkBss138InnerStruct00 *temp_r31;
-    intptr_t temp_r30;
+    s32 temp_r30;
 
     temp_r30 = HuPrcCurrentGet()->user_data_u32;
     temp_r31 = &lbl_1_bss_138.unk1C[temp_r30 + 2];

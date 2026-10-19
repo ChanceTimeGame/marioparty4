@@ -32,7 +32,7 @@ enum {
 	BOARD_ITEMS_END
 };
 
-SHARED_SYM extern s16 boardPlayerMdl[4];
+extern s16 boardPlayerMdl[4];
 
 static inline s32 BoardPlayerHandicapGet(s32 player)
 {

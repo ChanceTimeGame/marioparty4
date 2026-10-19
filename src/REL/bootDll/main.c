@@ -19,22 +19,14 @@
 
 #include "data_num/title.h"
 
-#ifdef TARGET_PC
-#include "REL/modeseldll.h"
-#endif
 
 
-#ifdef TARGET_PC
-#include "port/byteswap.h"
-#include "port/port_version.h"
-#include "port/settings.h"
-#endif
 
 #define HU_PAD_BTN_ALL (HuPadBtn[0] | HuPadBtn[1] | HuPadBtn[2] | HuPadBtn[3])
 #define HU_PAD_BTNDOWN_ALL (HuPadBtnDown[0] | HuPadBtnDown[1] | HuPadBtnDown[2] | HuPadBtnDown[3])
 #define HU_PAD_DSTK_ALL (HuPadDStkRep[0] | HuPadDStkRep[1] | HuPadDStkRep[2] | HuPadDStkRep[3])
 
-SHARED_SYM extern int SystemInitF;
+extern int SystemInitF;
 
 static omObjData *debugOutView;
 Process *objman;
@@ -50,7 +42,7 @@ static s16 titleMdlId[3];
 static s16 bootGrpId;
 
 s16 lbl_1_bss_4;
-#if VERSION_PAL || defined(TARGET_PC)
+#if VERSION_PAL
 static BOOL initLanguageF;
 #endif
 s32 debugCamOnF;
@@ -84,7 +76,7 @@ void ObjectSetup(void)
     Hu3DBGColorSet(0, 0, 0);
     history = omOvlHisGet(0);
     omOvlHisChg(0, history->overlay, 1, history->stat);
-    #if VERSION_PAL || defined(TARGET_PC)
+    #if VERSION_PAL
     if(SystemInitF == FALSE) {
         initLanguageF = FALSE;
     } else {
@@ -93,32 +85,11 @@ void ObjectSetup(void)
     #endif
 }
 
- #if VERSION_PAL || defined(TARGET_PC)
+ #if VERSION_PAL
  s32 LanguageBootGet(void);
  BOOL LanguageMenuExec(void);
  #endif
 
-#ifdef TARGET_PC
- static void BootInitForSkippedSequence(void)
- {
-     if (!SystemInitF) {
-         void *group_samp;
-
-         // The normal boot loads the base sound group during the logo screens;
-         // group set 0 references its samples, so musyx aborts without it.
-         group_samp = HuMemDirectMalloc(HEAP_DATA, msmSysGetSampSize(0));
-         msmSysLoadGroup(0, group_samp, 0);
-         HuMemDirectFree(group_samp);
-         CharInit();
-         HuWindowInit();
-         MGSeqInit();
-         HuWinInit(1);
-         HuAudSndGrpSetSet(0);
-         SystemInitF = TRUE;
-     }
-     initLanguageF = TRUE;
- }
-#endif
 
  void BootExec(void)
  {
@@ -129,20 +100,6 @@ void ObjectSetup(void)
      s16 i;
      OSTick tick_prev;
      Process *curr = HuPrcCurrentGet();
-#ifdef TARGET_PC
-     if (partyboard_version_is_pal()) {
-         if(SystemInitF == FALSE) {
-             GwLanguage = LanguageBootGet();
-             if(GwLanguage == -1) {
-                 if(LanguageMenuExec()) {
-                     SystemInitF = TRUE;
-                 }
-             } else {
-                 GWLanguageSet(GwLanguage);
-             }
-         }
-     }
-#else
 
 #if VERSION_NTSC
      if (omovlevtno == 0) {
@@ -160,25 +117,8 @@ void ObjectSetup(void)
          }
      }
 #endif
-#endif
-#ifdef TARGET_PC
-     if (omovlevtno == 0 && partyboard_settings_skipBootSequence()) {
-         for (i = 0; i < 4; i++) {
-             GWPlayerCfg[i].pad_idx = i;
-         }
-         BootInitForSkippedSequence();
-         omOvlCallEx(DLL_modeseldll, 1, MODESEL_EVENT_SKIP_BOOT, 0);
-         for (i = 0; i < 4; i++) {
-             GWPlayerCfg[i].character = -1;
-         }
-         HuPrcEnd();
-         do {
-             HuPrcVSleep();
-         } while (1);
-     }
-#endif
      group = HuSprGrpCreate(2);
-#if defined(__MWERKS__) || defined(BYTESWAPPING)
+#if defined(__MWERKS__)
      data = HuSprAnimRead(NintendoDataDecode());
      sprite_nintendo = HuSprCreate(data, 0, 0);
      HuSprGrpMemberSet(group, 0, sprite_nintendo);
@@ -241,17 +181,6 @@ void ObjectSetup(void)
          }
          else {
              for (i = 0; i < 180; i++) {
-#ifdef TARGET_PC
-                 if (partyboard_version_is_ntsc()) {
-                     if (HuPadBtnDown[0] & (PAD_BUTTON_START | PAD_BUTTON_A)) {
-                         break;
-                     }
-                 } else {
-                     if (initLanguageF && (HuPadBtnDown[0] & (PAD_BUTTON_START | PAD_BUTTON_A))) {
-                         break;
-                     }
-                 }
-#else
                  #if VERSION_NTSC
                  if (HuPadBtnDown[0] & (PAD_BUTTON_START | PAD_BUTTON_A)) {
                      break;
@@ -261,7 +190,6 @@ void ObjectSetup(void)
                      break;
                  }
                  #endif
-#endif
                  HuPrcVSleep();
              }
          }
@@ -289,17 +217,6 @@ void ObjectSetup(void)
          }
          else {
              for (i = 0; i < 180; i++) {
-#ifdef TARGET_PC
-                 if (partyboard_version_is_ntsc()) {
-                     if (HuPadBtnDown[0] & (PAD_BUTTON_START | PAD_BUTTON_A)) {
-                         break;
-                     }
-                 } else {
-                     if (initLanguageF && (HuPadBtnDown[0] & (PAD_BUTTON_START | PAD_BUTTON_A))) {
-                         break;
-                     }
-                 }
-#else
                  #if VERSION_NTSC
                  if (HuPadBtnDown[0] & (PAD_BUTTON_START | PAD_BUTTON_A)) {
                      break;
@@ -309,11 +226,10 @@ void ObjectSetup(void)
                      break;
                  } 
                  #endif
-#endif
                  HuPrcVSleep();
              }
          }
-         #if VERSION_PAL || defined(TARGET_PC)
+         #if VERSION_PAL
          initLanguageF = TRUE;
          #endif
          WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 30);
@@ -436,9 +352,6 @@ void ObjectSetup(void)
      s16 group;
      s16 sprite;
      ANIMDATA *data;
-#ifdef TARGET_PC
-     return;
-#else
      option = 0;
      if (OSGetResetCode() != OS_RESET_RESTART) {
          return;
@@ -454,7 +367,6 @@ void ObjectSetup(void)
          VIConfigure(&GXNtsc480IntDf);
          VIFlush();
      }
-#endif
      group = HuSprGrpCreate(3);
      data = HuSprAnimReadFile(TITLE_PROGRESSIVE_CHOOSE_ANM);
      sprite = HuSprCreate(data, 0, 0);
@@ -640,19 +552,11 @@ void ObjectSetup(void)
      Hu3DModelAttrSet(model, HU3D_MOTATTR_LOOP);
      Hu3DModelCameraInfoSet(model, 1);
      Hu3DModelLightInfoSet(model, 1);
-#ifdef TARGET_PC
-     if (partyboard_version_is_ntsc()) {
-         bootGrpId = HuSprGrpCreate(4);
-     } else {
-         bootGrpId = HuSprGrpCreate(13);
-     }
-#else
      #if VERSION_NTSC
      bootGrpId = HuSprGrpCreate(4);
      #else
      bootGrpId = HuSprGrpCreate(13);
      #endif
-#endif
      sprite_data = HuSprAnimReadFile(TITLE_ANM_VER_ADJUSTED(TITLE_BG_ANM));
      sprite = HuSprCreate(sprite_data, 0, 0);
      HuSprGrpMemberSet(bootGrpId, 0, sprite);
@@ -664,40 +568,6 @@ void ObjectSetup(void)
      HuSprGrpMemberSet(bootGrpId, 1, sprite);
      HuSprAttrSet(bootGrpId, 1, HUSPR_ATTR_DISPOFF);
      HuSprPosSet(bootGrpId, 1, 288, 420);
-#ifdef TARGET_PC
-     if (partyboard_version_is_ntsc()) {
-         sprite_data = HuSprAnimReadFile(TITLE_ANM_VER_ADJUSTED(TITLE_PRESS_START_ANM));
-         sprite = HuSprCreate(sprite_data, 2, 0);
-         HuSprGrpMemberSet(bootGrpId, 2, sprite);
-         HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
-         HuSprPosSet(bootGrpId, 2, 288, 380);
-         sprite_data = HuSprAnimReadFile(TITLE_ANM_VER_ADJUSTED(TITLE_LOGO_ANM));
-         sprite = HuSprCreate(sprite_data, 0, 0);
-         HuSprGrpMemberSet(bootGrpId, 3, sprite);
-         HuSprAttrSet(bootGrpId, 3, HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
-         HuSprPosSet(bootGrpId, 3, 288, 200);
-     } else {
-         sprite_data = HuSprAnimReadFile(TITLE_ANM_VER_ADJUSTED(TITLE_LOGO_ANM));
-         sprite = HuSprCreate(sprite_data, 0, 0);
-         HuSprGrpMemberSet(bootGrpId, 2, sprite);
-         HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
-         HuSprPosSet(bootGrpId, 2, 288, 200);
-         for(i=0; i<5; i++) {
-             sprite_data = HuSprAnimReadFile(TITLE_ANM_VER_ADJUSTED(TITLE_PRESS_START_EN_ANM+i));
-             sprite = HuSprCreate(sprite_data, 3+i, 0);
-             HuSprGrpMemberSet(bootGrpId, 3+i, sprite);
-             HuSprAttrSet(bootGrpId, 3+i, HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
-             HuSprPosSet(bootGrpId, 3+i, 288, 340);
-         }
-         for(i=0; i<5; i++) {
-             sprite_data = HuSprAnimReadFile(TITLE_ANM_VER_ADJUSTED(TITLE_LANGUAGE_EN_ANM+i));
-             sprite = HuSprCreate(sprite_data, 8+i, 0);
-             HuSprGrpMemberSet(bootGrpId, 8+i, sprite);
-             HuSprAttrSet(bootGrpId, 8+i, HUSPR_ATTR_DISPOFF | HUSPR_ATTR_LINEAR);
-             HuSprPosSet(bootGrpId, 8+i, 288, 380);
-         }
-     }
-#else
      #if VERSION_NTSC
      sprite_data = HuSprAnimReadFile(TITLE_PRESS_START_ANM);
      sprite = HuSprCreate(sprite_data, 2, 0);
@@ -730,7 +600,6 @@ void ObjectSetup(void)
          HuSprPosSet(bootGrpId, 8+i, 288, 380);
      }
      #endif
-#endif
  }
 
  BOOL BootTitleExec(void)
@@ -758,43 +627,6 @@ void ObjectSetup(void)
      while (WipeStatGet()) {
          HuPrcVSleep();
      }
-#ifdef TARGET_PC
-    if (partyboard_version_is_ntsc()) {
-        HuSprAttrReset(bootGrpId, 3, HUSPR_ATTR_DISPOFF);
-        for (i = 1; i <= 50; i++) {
-            scale = (cosd(i * 1.8) * 10.0) + 1.0;
-            HuSprScaleSet(bootGrpId, 3, scale, scale);
-            HuSprTPLvlSet(bootGrpId, 3, i / 50.0);
-            HuPrcVSleep();
-        }
-        HuSprAttrReset(bootGrpId, 2, HUSPR_ATTR_DISPOFF);
-    } else {
-        HuSprAttrReset(bootGrpId, 2, HUSPR_ATTR_DISPOFF);
-        for (i = 1; i <= 50; i++) {
-            scale = (cosd(i * 1.8) * 10.0) + 1.0;
-            HuSprScaleSet(bootGrpId, 2, scale, scale);
-            HuSprTPLvlSet(bootGrpId, 2, i / 50.0);
-            HuPrcVSleep();
-        }
-        if(GwLanguage == -1) {
-            pressStartMemberNo = 3;
-            languageMemberNo = 8;
-        } else {
-            pressStartMemberNo = GwLanguage+3-1;
-            languageMemberNo = GwLanguage+8-1;
-        }
-        HuSprAttrReset(bootGrpId, pressStartMemberNo, HUSPR_ATTR_DISPOFF);
-        HuSprAttrReset(bootGrpId, languageMemberNo, HUSPR_ATTR_DISPOFF);
-        for(i=1; i<=20; i++) {
-            scale = sind(i*4.5);
-            HuSprScaleSet(bootGrpId, pressStartMemberNo, scale, scale);
-            HuSprScaleSet(bootGrpId, languageMemberNo, scale*0.7, scale*0.7);
-            HuPrcVSleep();
-        }
-        choice = 0;
-        scale_time = 0;
-    }
-#else
      #if VERSION_NTSC
      HuSprAttrReset(bootGrpId, 3, HUSPR_ATTR_DISPOFF);
      for (i = 1; i <= 50; i++) {
@@ -830,110 +662,13 @@ void ObjectSetup(void)
      choice = 0;
      scale_time = 0;
      #endif
-#endif
 
-#ifdef TARGET_PC
-    temp = 0;
-#endif
 
      #if VERSION_NTSC
      for (i = scale_time = 0; i < 1800; i++) {
      #else
      for (i = temp = 0; i < 1800; i++) { 
      #endif
-#ifdef TARGET_PC
-         if (partyboard_version_is_pal()) {
-             if((choice == 0 && (HuPadDStkRep[0] & PAD_BUTTON_DOWN)) || (choice != 0 && (HuPadDStkRep[0] & PAD_BUTTON_UP))) {
-                 HuAudFXPlay(0);
-                 for(i=1; i<=10; i++) {
-                     scale = ((1-(i/10.0))*(((cosd(scale_time)*0.1)+0.9)-0.7))+0.7;
-                     if(choice == 0) {
-                         HuSprScaleSet(bootGrpId, pressStartMemberNo, scale, scale);
-                     } else {
-                         HuSprScaleSet(bootGrpId, languageMemberNo, scale, scale);
-                     }
-                     scale = ((1-(i/10.0))*(((cosd(scale_time/3.0)*0.05)+0.65)-1.0))+1.0;
-                     if(choice == 0) {
-                         HuSprScaleSet(bootGrpId, languageMemberNo, scale, scale);
-                     } else {
-                         HuSprScaleSet(bootGrpId, pressStartMemberNo, scale, scale);
-                     }
-                     HuPrcVSleep();
-                 }
-                 choice ^= 1;
-                 scale_time = 0;
-             }
-             if (HuPadBtnDown[0] & (PAD_BUTTON_START|PAD_BUTTON_A)) {
-                 if(choice == 0) {
-                     s32 ret = HuAudFXPlay(2092);
-                     if (ret < 0) {
-                         OSReport(">>>>>Error %d\n", ret);
-                     }
-                     HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF);
-                     return 1;
-                 } else {
-                     HuAudFXPlay(1);
-                     HuAudSStreamAllFadeOut(500);
-                     WipeColorSet(255, 255, 255);
-                     WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 30);
-                     while (WipeStatGet()) {
-                         HuPrcVSleep();
-                     }
-                     Hu3DModelAttrSet(titleMdlId[0], HU3D_ATTR_DISPOFF);
-                     Hu3DModelAttrSet(titleMdlId[1], HU3D_ATTR_DISPOFF);
-                     Hu3DModelAttrSet(titleMdlId[2], HU3D_ATTR_DISPOFF);
-                     HuSprAttrSet(bootGrpId, 0, HUSPR_ATTR_DISPOFF);
-                     HuSprAttrSet(bootGrpId, 1, HUSPR_ATTR_DISPOFF);
-                     HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF);
-                     HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF);
-                     for(i=0; i<5; i++) {
-                         HuSprAttrSet(bootGrpId, i+3, HUSPR_ATTR_DISPOFF);
-                     }
-                     for(i=0; i<5; i++) {
-                         HuSprAttrSet(bootGrpId, i+8, HUSPR_ATTR_DISPOFF);
-                     }
-                     LanguageMenuExec();
-                     Hu3DModelCameraInfoSet(titleMdlId[2], 1);
-                     Hu3DModelLightInfoSet(titleMdlId[2], 1);
-                     HuWinInit(1);
-                     goto repeat;
-                 }
-             }
-             scale = (cosd(scale_time) * 0.1) + 0.9;
-             if(choice == 0) {
-                 HuSprScaleSet(bootGrpId, pressStartMemberNo, scale, scale);
-             } else {
-                 HuSprScaleSet(bootGrpId, languageMemberNo, scale, scale);
-             }
-             scale = (cosd(scale_time/3.0) * 0.05) + 0.65;
-             if(choice == 0) {
-                 HuSprScaleSet(bootGrpId, languageMemberNo, scale, scale);
-             } else {
-                 HuSprScaleSet(bootGrpId, pressStartMemberNo, scale, scale);
-             }
-             scale_time += 5;
-             HuPrcVSleep();
-         } else {
-             if (i <= 10) {
-                 HuSprTPLvlSet(bootGrpId, 2, i / 10.0);
-             }
-             if (HuPadBtnDown[0] & PAD_BUTTON_START) {
-                 s32 ret = HuAudFXPlay(2092);
-                 if (ret < 0) {
-                     OSReport(">>>>>Error %d\n", ret);
-                 }
-                 HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF);
-                 return 1;
-             }
-             scale = (sind(i * scale_time) * 0.1) + 0.9;
-             scale_time += 0.05;
-             if (scale_time > 5) {
-                 scale_time = 5;
-             }
-             HuSprScaleSet(bootGrpId, 2, scale, scale);
-             HuPrcVSleep();
-         }
-#else
          #if VERSION_PAL
          if((choice == 0 && (HuPadDStkRep[0] & PAD_BUTTON_DOWN)) || (choice != 0 && (HuPadDStkRep[0] & PAD_BUTTON_UP))) {
              HuAudFXPlay(0);
@@ -1025,7 +760,6 @@ void ObjectSetup(void)
          HuSprScaleSet(bootGrpId, 2, scale, scale);
          HuPrcVSleep();
          #endif
-#endif
      }
      WipeColorSet(255, 255, 255);
      WipeCreate(WIPE_MODE_OUT, WIPE_TYPE_NORMAL, 30);
@@ -1035,24 +769,6 @@ void ObjectSetup(void)
      Hu3DModelAttrSet(titleMdlId[0], HU3D_ATTR_DISPOFF);
      Hu3DModelAttrSet(titleMdlId[1], HU3D_ATTR_DISPOFF);
      Hu3DModelAttrSet(titleMdlId[2], HU3D_ATTR_DISPOFF);
-#ifdef TARGET_PC
-    if (partyboard_version_is_ntsc()) {
-        HuSprAttrSet(bootGrpId, 0, HUSPR_ATTR_DISPOFF);
-        HuSprAttrSet(bootGrpId, 1, HUSPR_ATTR_DISPOFF);
-        HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF);
-        HuSprAttrSet(bootGrpId, 3, HUSPR_ATTR_DISPOFF);
-    } else {
-        HuSprAttrSet(bootGrpId, 0, HUSPR_ATTR_DISPOFF);
-        HuSprAttrSet(bootGrpId, 1, HUSPR_ATTR_DISPOFF);
-        HuSprAttrSet(bootGrpId, 2, HUSPR_ATTR_DISPOFF);
-        for(i=0; i<5; i++) {
-            HuSprAttrSet(bootGrpId, i+3, HUSPR_ATTR_DISPOFF);
-        }
-        for(i=0; i<5; i++) {
-            HuSprAttrSet(bootGrpId, i+8, HUSPR_ATTR_DISPOFF);
-        }
-    }
-#else
 #if VERSION_NTSC
      HuSprAttrSet(bootGrpId, 0, HUSPR_ATTR_DISPOFF);
      HuSprAttrSet(bootGrpId, 1, HUSPR_ATTR_DISPOFF);
@@ -1069,15 +785,10 @@ void ObjectSetup(void)
          HuSprAttrSet(bootGrpId, i+8, HUSPR_ATTR_DISPOFF);
      }
 #endif
-#endif
      return 0;
  }
 
-#ifdef TARGET_PC
-#include "port/dolassets.h"
-#else
 #include "nintendoData.inc"
-#endif
 
  void *NintendoDataDecode(void)
  {
@@ -1086,19 +797,10 @@ void ObjectSetup(void)
      u32 size = *src++;
      void *dst;
      s32 decode_type;
-#ifdef TARGET_PC
-     byteswap_u32(&size);
-#endif
      dst = HuMemDirectMalloc(HEAP_DATA, size);
      decode_type = *src++;
-#ifdef TARGET_PC
-     byteswap_s32(&decode_type);
-#endif
      if(dst) {
          HuDecodeData(src, dst, size, decode_type);
      }
-#ifdef TARGET_PC
-     HuMemDirectFree(src);
-#endif
      return dst;
  }

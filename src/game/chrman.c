@@ -210,7 +210,7 @@ void CharClose(void)
 {
     CharModelKill(CHARNO_NONE);
     CharDataClose(CHARNO_NONE);
-    HuARFree((uintptr_t)effectAMemP);
+    HuARFree((u32)effectAMemP);
     effectAMemP = NULL;
 }
 

@@ -68,7 +68,7 @@ s32 CharFXPlay(s16 charNo, s16 seId);
 s32 CharFXPlayPos(s16 charNo, s16 seId, Vec *pos);
 void CharFXStop(s16 charNo, s16 seId);
 
-SHARED_SYM extern SNDGRPTBL sndGrpTable[];
+extern SNDGRPTBL sndGrpTable[];
 
 extern float Snd3DBackSurDisOffset;
 extern float Snd3DFrontSurDisOffset;
